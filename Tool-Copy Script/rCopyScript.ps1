@@ -23,33 +23,94 @@
 .NAME
     rCopyScript.ps1
 
+.SYNOPSIS
+    Below is a PowerShell script that uses Robocopy to copy all
+        the contents of a directory to another directory, including
+        empty folders. The script includes helpful comments and
+        prompts to guide users who are not familiar with Robocopy.
+
 .DESCRIPTION
-    Simple script uses robocopy to copy all contents of directory
-        to another directory including empty folders. Created
-        script to assist people who do not regularly utilize Rc.
+    PowerShell script to copy all contents of a directory to another
+        directory using Robocopy, and includes prompts for source
+        and destination paths.
 
 .FUNCTIONALITY
-    $sourceDir: The path to the source directory you want to copy.
-    $destinationDir: The path to the destination directory where 
-        you want to copy the files and folders.
-    /E: This switch tells Robocopy to copy all subdirectories,
-        including empty ones. 
-    /ZB: This switch uses restartable mode, which is more resilient
-        to network interruptions.
-    /LOG:C:\Logs\RobocopyLog.txt: This switch creates a log file
-        named "RobocopyLog.txt" in the "C:\Logs" directory,
-        recording the details of the copy operation. 
+    This script guides the user step-by-step:
+        -Prompts the user for the source and destination directories.
+        -Validates that the source directory exists.
+        -Creates the destination directory if it doesn't exist.
+        -Runs Robocopy with options to include empty folders and restartable mode.
+        -Checks and informs the user of the success or failure of the operation.
 
-How to run the script:
-    Save the code as a .ps1 file (e.g., CopyScript.ps1).
-    -eplace the placeholder paths with your actual source and destination directories.
-    -Open PowerShell as an administrator.
-    -Navigate to the directory where you saved the script.
-    -Run the script by typing .\CopyScript.ps1 and pressing Enter.
+.NOTES
+2024-12-11:[UPDATE]
+    Full rewrite; Added: User input prompt, Source/Destination validation,
+        Report success / failure to console, Validate C:\Temp location & 
+        create if doesn't exist, Create & write results to a log file.
+
+2024-12-11:[CREATED]
+    Request: Simple script uses robocopy to copy all contents of
+        directory to another directory including empty folders.
+        Created script to assist people who do not regularly utilize Rc.
 
 #>
 
-$sourceDir = "C:\SourceDirectory"
-$destinationDir = "D:\DestinationDirectory"
+# Prompt user for source and destination directories
+$source = Read-Host "Enter the full path of the source directory (e.g., C:\\Source)"
+$destination = Read-Host "Enter the full path of the destination directory (e.g., D:\\Destination)"
 
-robocopy $sourceDir $destinationDir /E /ZB /LOG:C:\Logs\RobocopyLog.txt
+# Set default log file location
+$logFolder = "C:\\Temp"
+$logFile = Join-Path -Path $logFolder -ChildPath "RobocopyLog.txt"
+
+# Check if the log folder exists, if not create it
+if (-not (Test-Path -Path $logFolder)) {
+    Write-Host "The log folder '$logFolder' does not exist. Creating it now..." -ForegroundColor Yellow
+    New-Item -ItemType Directory -Path $logFolder | Out-Null
+}
+
+# Validate that the source directory exists
+if (-not (Test-Path -Path $source)) {
+    Write-Host "Error: The source directory '$source' does not exist." -ForegroundColor Red
+    Add-Content -Path $logFile -Value "[ERROR] The source directory '$source' does not exist."
+    exit
+}
+
+# Create the destination directory if it doesn't exist
+if (-not (Test-Path -Path $destination)) {
+    Write-Host "The destination directory '$destination' does not exist. Creating it now..." -ForegroundColor Yellow
+    Add-Content -Path $logFile -Value "[INFO] The destination directory '$destination' does not exist. Creating it now..."
+    New-Item -ItemType Directory -Path $destination | Out-Null
+}
+
+# Define Robocopy options
+# /E: Copies all subdirectories, including empty ones
+# /Z: Uses restartable mode for network resiliency
+# /COPYALL: Copies all file attributes, including permissions
+$options = "/E /Z /COPYALL"
+
+# Execute Robocopy
+Write-Host "Starting copy process..." -ForegroundColor Green
+Add-Content -Path $logFile -Value "[INFO] Starting copy process from '$source' to '$destination'."
+$robocopyCommand = "Robocopy `"$source`" `"$destination`" $options /LOG+:`"$logFile`""
+Invoke-Expression $robocopyCommand
+
+# Check the exit code to determine success or failure
+# 0: No files copied, no failures
+# 1: Files copied successfully
+# Other: Errors or issues
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Robocopy completed successfully. No files needed copying." -ForegroundColor Green
+    Add-Content -Path $logFile -Value "[INFO] Robocopy completed successfully. No files needed copying."
+}
+elseif ($LASTEXITCODE -eq 1) {
+    Write-Host "Robocopy completed successfully. Files were copied." -ForegroundColor Green
+    Add-Content -Path $logFile -Value "[INFO] Robocopy completed successfully. Files were copied."
+}
+else {
+    Write-Host "Robocopy encountered errors. Exit code: $LASTEXITCODE" -ForegroundColor Red
+    Add-Content -Path $logFile -Value "[ERROR] Robocopy encountered errors. Exit code: $LASTEXITCODE."
+}
+
+Write-Host "Script execution completed." -ForegroundColor Cyan
+Add-Content -Path $logFile -Value "[INFO] Script execution completed."
