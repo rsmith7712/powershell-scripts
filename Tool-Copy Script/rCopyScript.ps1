@@ -55,6 +55,10 @@
         issues occur.
     (4) Script now wraps user-provided paths in quotes if they contain spaces,
         ensuring compatibility with Robocopy.
+    (5) The script now explicitly wraps source and destination paths in quotes
+        to handle spaces and special characters, including UNC paths.
+        Additionally, it removes the quotes before validating paths with
+        Test-Path.
 
 2024-12-11:[CREATED]
     Request: Simple script uses robocopy to copy all contents of
@@ -70,13 +74,9 @@ Clear-Host
 $source = Read-Host "Enter the full path of the source directory (e.g., C:\\Source)"
 $destination = Read-Host "Enter the full path of the destination directory (e.g., D:\\Destination)"
 
-# Correct paths if they include spaces
-if ($source -match " ") {
-    $source = "`"$source`""
-}
-if ($destination -match " ") {
-    $destination = "`"$destination`""
-}
+# Ensure paths are properly quoted to handle spaces and special characters
+$source = $source -replace '(^\\\\|^.+)', '"$&"'
+$destination = $destination -replace '(^\\\\|^.+)', '"$&"'
 
 # Set default log file location
 $logFolder = "C:\\Temp"
@@ -96,7 +96,7 @@ catch {
 
 # Validate that the source directory exists
 try {
-    if (-not (Test-Path -Path $source)) {
+    if (-not (Test-Path -Path ($source -replace '"', ''))) {
         Write-Host "Error: The source directory '$source' does not exist." -ForegroundColor Red
         Add-Content -Path $logFile -Value "[ERROR] The source directory '$source' does not exist."
         exit
@@ -110,10 +110,10 @@ catch {
 
 # Create the destination directory if it doesn't exist
 try {
-    if (-not (Test-Path -Path $destination)) {
+    if (-not (Test-Path -Path ($destination -replace '"', ''))) {
         Write-Host "The destination directory '$destination' does not exist. Creating it now..." -ForegroundColor Yellow
         Add-Content -Path $logFile -Value "[INFO] The destination directory '$destination' does not exist. Creating it now..."
-        New-Item -ItemType Directory -Path $destination | Out-Null
+        New-Item -ItemType Directory -Path ($destination -replace '"', '') | Out-Null
     }
 }
 catch {
