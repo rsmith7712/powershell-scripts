@@ -59,6 +59,10 @@
         to handle spaces and special characters, including UNC paths.
         Additionally, it removes the quotes before validating paths with
         Test-Path.
+    (6) The updated script now handles Robocopy exit codes more explicitly and
+        adds a write permission test for the destination directory. If
+        Robocopy exits with code 16, the script logs it as a critical error
+        and provides an appropriate message.
 
 2024-12-11:[CREATED]
     Request: Simple script uses robocopy to copy all contents of
@@ -122,6 +126,18 @@ catch {
     exit
 }
 
+# Test write permissions on the destination
+try {
+    $testFile = Join-Path -Path ($destination -replace '"', '') -ChildPath "TestWritePermissions.txt"
+    Add-Content -Path $testFile -Value "Test" -Force
+    Remove-Item -Path $testFile -Force
+}
+catch {
+    Write-Host "Error: No write permissions for the destination directory '$destination'." -ForegroundColor Red
+    Add-Content -Path $logFile -Value "[ERROR] No write permissions for the destination directory '$destination'."
+    exit
+}
+
 # Define Robocopy options
 # /E: Copies all subdirectories, including empty ones
 # /Z: Uses restartable mode for network resiliency
@@ -135,20 +151,31 @@ $robocopyCommand = "Robocopy $source $destination $options /LOG+:`"$logFile`""
 Invoke-Expression $robocopyCommand
 
 # Check the exit code to determine success or failure
-# 0: No files copied, no failures
-# 1: Files copied successfully
-# Other: Errors or issues
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "Robocopy completed successfully. No files needed copying." -ForegroundColor Green
-    Add-Content -Path $logFile -Value "[INFO] Robocopy completed successfully. No files needed copying."
-}
-elseif ($LASTEXITCODE -eq 1) {
-    Write-Host "Robocopy completed successfully. Files were copied." -ForegroundColor Green
-    Add-Content -Path $logFile -Value "[INFO] Robocopy completed successfully. Files were copied."
-}
-else {
-    Write-Host "Robocopy encountered errors. Exit code: $LASTEXITCODE" -ForegroundColor Red
-    Add-Content -Path $logFile -Value "[ERROR] Robocopy encountered errors. Exit code: $LASTEXITCODE."
+switch ($LASTEXITCODE) {
+    0 {
+        Write-Host "Robocopy completed successfully. No files needed copying." -ForegroundColor Green
+        Add-Content -Path $logFile -Value "[INFO] Robocopy completed successfully. No files needed copying."
+    }
+    1 {
+        Write-Host "Robocopy completed successfully. Files were copied." -ForegroundColor Green
+        Add-Content -Path $logFile -Value "[INFO] Robocopy completed successfully. Files were copied."
+    }
+    2..7 {
+        Write-Host "Robocopy completed with warnings. Exit code: $LASTEXITCODE" -ForegroundColor Yellow
+        Add-Content -Path $logFile -Value "[WARNING] Robocopy completed with warnings. Exit code: $LASTEXITCODE."
+    }
+    8..15 {
+        Write-Host "Robocopy encountered errors. Exit code: $LASTEXITCODE" -ForegroundColor Red
+        Add-Content -Path $logFile -Value "[ERROR] Robocopy encountered errors. Exit code: $LASTEXITCODE."
+    }
+    16 {
+        Write-Host "Robocopy encountered a serious error. Exit code: 16" -ForegroundColor Red
+        Add-Content -Path $logFile -Value "[CRITICAL] Robocopy encountered a serious error. Exit code: 16."
+    }
+    default {
+        Write-Host "Unexpected exit code: $LASTEXITCODE" -ForegroundColor Red
+        Add-Content -Path $logFile -Value "[ERROR] Unexpected exit code: $LASTEXITCODE."
+    }
 }
 
 Write-Host "Script execution completed." -ForegroundColor Cyan
