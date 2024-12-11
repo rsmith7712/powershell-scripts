@@ -21,7 +21,7 @@
     IN THE SOFTWARE.
 
 .DESCRIPTION
-    name2SIDConverter-v3-2.ps1
+    name2SIDConverter.ps1
 
 .FUNCTIONALITY
     1. Interactive Selection:
@@ -60,15 +60,12 @@
     Run this script with sufficient permissions to resolve SIDs within your
     Active Directory environment.
 
-
 .FUTURE DEVELOPMENT
     -User inputs partial name, all potential objects listed and script asks
         if their object is listed, with an option to select it and return
         results for that object
 
-
 .HISTORY
-
 2024-12-10:[UPDATES]v3.3
 
 
@@ -264,17 +261,20 @@ function Perform-Search {
             }
             Write-Host "Object found:"
             $results | Format-Table -AutoSize
-        } else {
+        }
+        else {
             Write-Host "No object found with the name '$objectName' in Active Directory."
         }
-    } catch {
+    }
+    catch {
         Write-Host "An error occurred: $_"
     }
     # Export results to CSV if any results were found
     if ($results.Count -gt 0) {
         $results | Export-Csv -Path $outputFile -NoTypeInformation
         Write-Host "Results exported to $outputFile"
-    } else {
+    }
+    else {
         Write-Host "No results to export."
     }
 }
