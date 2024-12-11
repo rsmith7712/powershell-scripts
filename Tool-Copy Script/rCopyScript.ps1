@@ -143,10 +143,17 @@ catch {
 }
 
 # Define Robocopy options
-# /E: Copies all subdirectories, including empty ones
-# /Z: Uses restartable mode for network resiliency
+# /S: Copies subdirectories. This option automatically excludes empty directories.
+# /E: Copies subdirectories. This option automatically includes empty directories.
+# /Z: Copies files in restartable mode. In restartable mode, should a file copy
+#       be interrupted, robocopy can pick up where it left off rather than
+#       recopying the entire file.
+# /B: Copies files in backup mode. In backup mode, robocopy overrides file and
+#       folder permission settings (ACLs), which might otherwise block access.
+# /ZB: Copies files in restartable mode. If file access is denied, switches
+#       to backup mode.
 # /COPYALL: Copies all file attributes, including permissions
-$options = "/E /Z /COPYALL"
+$options = "/E /ZB /COPYALL"
 
 # Execute Robocopy
 Write-Host "Starting copy process..." -ForegroundColor Green
