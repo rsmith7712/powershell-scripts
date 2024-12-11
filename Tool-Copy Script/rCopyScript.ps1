@@ -49,6 +49,10 @@
         create if doesn't exist, Create & write results to a log file.
     (2) The script now starts with a cleared console and hides its code from
         view. It only displays prompts and results to the user.
+    (3) Updated the script to handle errors such as invalid characters in
+        paths and to ensure proper permissions when creating directories. The
+        script now provides informative messages and exits gracefully if
+        issues occur.
 
 2024-12-11:[CREATED]
     Request: Simple script uses robocopy to copy all contents of
@@ -70,23 +74,43 @@ $logFolder = "C:\\Temp"
 $logFile = Join-Path -Path $logFolder -ChildPath "RobocopyLog.txt"
 
 # Check if the log folder exists, if not create it
-if (-not (Test-Path -Path $logFolder)) {
-    Write-Host "The log folder '$logFolder' does not exist. Creating it now..." -ForegroundColor Yellow
-    New-Item -ItemType Directory -Path $logFolder | Out-Null
+try {
+    if (-not (Test-Path -Path $logFolder)) {
+        Write-Host "The log folder '$logFolder' does not exist. Creating it now..." -ForegroundColor Yellow
+        New-Item -ItemType Directory -Path $logFolder | Out-Null
+    }
+}
+catch {
+    Write-Host "Error: Failed to create log folder '$logFolder'. Ensure you have proper permissions." -ForegroundColor Red
+    exit
 }
 
 # Validate that the source directory exists
-if (-not (Test-Path -Path $source)) {
-    Write-Host "Error: The source directory '$source' does not exist." -ForegroundColor Red
-    Add-Content -Path $logFile -Value "[ERROR] The source directory '$source' does not exist."
+try {
+    if (-not (Test-Path -Path $source)) {
+        Write-Host "Error: The source directory '$source' does not exist." -ForegroundColor Red
+        Add-Content -Path $logFile -Value "[ERROR] The source directory '$source' does not exist."
+        exit
+    }
+}
+catch {
+    Write-Host "Error: Invalid characters in source directory path." -ForegroundColor Red
+    Add-Content -Path $logFile -Value "[ERROR] Invalid characters in source directory path."
     exit
 }
 
 # Create the destination directory if it doesn't exist
-if (-not (Test-Path -Path $destination)) {
-    Write-Host "The destination directory '$destination' does not exist. Creating it now..." -ForegroundColor Yellow
-    Add-Content -Path $logFile -Value "[INFO] The destination directory '$destination' does not exist. Creating it now..."
-    New-Item -ItemType Directory -Path $destination | Out-Null
+try {
+    if (-not (Test-Path -Path $destination)) {
+        Write-Host "The destination directory '$destination' does not exist. Creating it now..." -ForegroundColor Yellow
+        Add-Content -Path $logFile -Value "[INFO] The destination directory '$destination' does not exist. Creating it now..."
+        New-Item -ItemType Directory -Path $destination | Out-Null
+    }
+}
+catch {
+    Write-Host "Error: Failed to create destination directory. Ensure you have proper permissions." -ForegroundColor Red
+    Add-Content -Path $logFile -Value "[ERROR] Failed to create destination directory."
+    exit
 }
 
 # Define Robocopy options
