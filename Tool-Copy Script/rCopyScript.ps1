@@ -44,9 +44,11 @@
 
 .NOTES
 2024-12-11:[UPDATE]
-    Full rewrite; Added: User input prompt, Source/Destination validation,
+    (1) Full rewrite; Added: User input prompt, Source/Destination validation,
         Report success / failure to console, Validate C:\Temp location & 
         create if doesn't exist, Create & write results to a log file.
+    (2) The script now starts with a cleared console and hides its code from
+        view. It only displays prompts and results to the user.
 
 2024-12-11:[CREATED]
     Request: Simple script uses robocopy to copy all contents of
@@ -54,6 +56,10 @@
         Created script to assist people who do not regularly utilize Rc.
 
 #>
+
+# Hide script code from the console
+$Host.UI.RawUI.WindowTitle = "Robocopy Automation Script"
+Clear-Host
 
 # Prompt user for source and destination directories
 $source = Read-Host "Enter the full path of the source directory (e.g., C:\\Source)"
