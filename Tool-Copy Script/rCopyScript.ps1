@@ -63,6 +63,10 @@
         adds a write permission test for the destination directory. If
         Robocopy exits with code 16, the script logs it as a critical error
         and provides an appropriate message.
+    (7) Script now ensures that paths are correctly trimmed of existing quotes
+        before re-quoting them properly for consistent usage. This should
+        resolve the issue with mismatched or mixed quotes in the paths logged
+        in C:\Temp\RobocopyLog.txt.
 
 2024-12-11:[CREATED]
     Request: Simple script uses robocopy to copy all contents of
@@ -79,8 +83,8 @@ $source = Read-Host "Enter the full path of the source directory (e.g., C:\\Sour
 $destination = Read-Host "Enter the full path of the destination directory (e.g., D:\\Destination)"
 
 # Ensure paths are properly quoted to handle spaces and special characters
-$source = $source -replace '(^\\\\|^.+)', '"$&"'
-$destination = $destination -replace '(^\\\\|^.+)', '"$&"'
+$source = $source.Trim('"')
+$destination = $destination.Trim('"')
 
 # Set default log file location
 $logFolder = "C:\\Temp"
@@ -100,7 +104,7 @@ catch {
 
 # Validate that the source directory exists
 try {
-    if (-not (Test-Path -Path ($source -replace '"', ''))) {
+    if (-not (Test-Path -Path $source)) {
         Write-Host "Error: The source directory '$source' does not exist." -ForegroundColor Red
         Add-Content -Path $logFile -Value "[ERROR] The source directory '$source' does not exist."
         exit
@@ -114,10 +118,10 @@ catch {
 
 # Create the destination directory if it doesn't exist
 try {
-    if (-not (Test-Path -Path ($destination -replace '"', ''))) {
+    if (-not (Test-Path -Path $destination)) {
         Write-Host "The destination directory '$destination' does not exist. Creating it now..." -ForegroundColor Yellow
         Add-Content -Path $logFile -Value "[INFO] The destination directory '$destination' does not exist. Creating it now..."
-        New-Item -ItemType Directory -Path ($destination -replace '"', '') | Out-Null
+        New-Item -ItemType Directory -Path $destination | Out-Null
     }
 }
 catch {
@@ -128,7 +132,7 @@ catch {
 
 # Test write permissions on the destination
 try {
-    $testFile = Join-Path -Path ($destination -replace '"', '') -ChildPath "TestWritePermissions.txt"
+    $testFile = Join-Path -Path $destination -ChildPath "TestWritePermissions.txt"
     Add-Content -Path $testFile -Value "Test" -Force
     Remove-Item -Path $testFile -Force
 }
@@ -147,7 +151,7 @@ $options = "/E /Z /COPYALL"
 # Execute Robocopy
 Write-Host "Starting copy process..." -ForegroundColor Green
 Add-Content -Path $logFile -Value "[INFO] Starting copy process from '$source' to '$destination'."
-$robocopyCommand = "Robocopy $source $destination $options /LOG+:`"$logFile`""
+$robocopyCommand = "Robocopy `"$source`" `"$destination`" $options /LOG+:`"$logFile`""
 Invoke-Expression $robocopyCommand
 
 # Check the exit code to determine success or failure
