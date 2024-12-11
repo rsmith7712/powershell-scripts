@@ -53,12 +53,13 @@
         paths and to ensure proper permissions when creating directories. The
         script now provides informative messages and exits gracefully if
         issues occur.
+    (4) Script now wraps user-provided paths in quotes if they contain spaces,
+        ensuring compatibility with Robocopy.
 
 2024-12-11:[CREATED]
     Request: Simple script uses robocopy to copy all contents of
         directory to another directory including empty folders.
         Created script to assist people who do not regularly utilize Rc.
-
 #>
 
 # Hide script code from the console
@@ -68,6 +69,14 @@ Clear-Host
 # Prompt user for source and destination directories
 $source = Read-Host "Enter the full path of the source directory (e.g., C:\\Source)"
 $destination = Read-Host "Enter the full path of the destination directory (e.g., D:\\Destination)"
+
+# Correct paths if they include spaces
+if ($source -match " ") {
+    $source = "`"$source`""
+}
+if ($destination -match " ") {
+    $destination = "`"$destination`""
+}
 
 # Set default log file location
 $logFolder = "C:\\Temp"
@@ -122,7 +131,7 @@ $options = "/E /Z /COPYALL"
 # Execute Robocopy
 Write-Host "Starting copy process..." -ForegroundColor Green
 Add-Content -Path $logFile -Value "[INFO] Starting copy process from '$source' to '$destination'."
-$robocopyCommand = "Robocopy `"$source`" `"$destination`" $options /LOG+:`"$logFile`""
+$robocopyCommand = "Robocopy $source $destination $options /LOG+:`"$logFile`""
 Invoke-Expression $robocopyCommand
 
 # Check the exit code to determine success or failure
