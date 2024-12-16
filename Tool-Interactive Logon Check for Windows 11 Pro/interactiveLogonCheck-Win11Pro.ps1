@@ -1,5 +1,24 @@
 ﻿<#
+.LICENSE
+    MIT License, Copyright 2024 Richard Smith
 
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
 
 .NAME
     interactiveLogonCheck-Win11Pro.ps1
@@ -42,6 +61,10 @@
     date/time following format [yyyy-MM-dd_HH-mm-ss]. This will help
     identify which files are associated with specific computers and
     their changes.
+    (6) The script now validates and creates separate directories for
+    logs (C:\Temp\Logs) and CSV files (C:\Temp\Csv) if they do not exist.
+    Log files and CSV files are saved in their respective directories
+    with the appropriate naming format. Added License header to script.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -53,10 +76,20 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
     exit
 }
 
+# Validate and create necessary directories
+$LogPath = "C:\Temp\Logs"
+$CsvPath = "C:\Temp\Csv"
+if (-not (Test-Path -Path $LogPath)) {
+    New-Item -Path $LogPath -ItemType Directory | Out-Null
+}
+if (-not (Test-Path -Path $CsvPath)) {
+    New-Item -Path $CsvPath -ItemType Directory | Out-Null
+}
+
 # Initialize log file
 function Initialize-LogFile {
     param([string]$ComputerName)
-    $LogFileName = "C:\Temp\${ComputerName}_InactivityLimitLog_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').log"
+    $LogFileName = "$LogPath\${ComputerName}_InactivityLimitLog_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').log"
     $LogFileName
 }
 
@@ -100,14 +133,15 @@ while ($true) {
             Log-Activity "The remote computer is running $OSName." -LogFile $LogFile
 
             # Get the Interactive Logon: Machine Inactivity Limit setting from the registry
-            $RegistryPath = "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+            $RegistryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
             $RegistryKey = Invoke-Command -ComputerName $RemoteComputerName -Credential $Credentials -ScriptBlock {
                 Get-ItemProperty -Path $using:RegistryPath -Name "InactivityTimeoutSecs" -ErrorAction SilentlyContinue
             }
 
             $InactivityLimit = if ($RegistryKey.InactivityTimeoutSecs) {
                 $RegistryKey.InactivityTimeoutSecs
-            } else {
+            }
+            else {
                 "Not Configured"
             }
 
@@ -150,15 +184,9 @@ while ($true) {
                 }
             } while ($UserChoice -ne "3")
 
-            # Ensure C:\Temp exists
-            $ExportPath = "C:\Temp"
-            if (-not (Test-Path -Path $ExportPath)) {
-                New-Item -Path $ExportPath -ItemType Directory | Out-Null
-            }
-
             # Export results to a CSV file
             $DateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-            $ExportFile = "$ExportPath\${RemoteComputerName}_InactivityLimitResults_$DateTime.csv"
+            $ExportFile = "$CsvPath\${RemoteComputerName}_InactivityLimitResults_$DateTime.csv"
             $Results = [PSCustomObject]@{
                 ComputerName        = $RemoteComputerName
                 OperatingSystem     = $OSName
@@ -168,14 +196,15 @@ while ($true) {
 
             Write-Host "Results exported to $ExportFile" -ForegroundColor Green
             Log-Activity "Results exported to $ExportFile." -LogFile $LogFile
-        } else {
+        }
+        else {
             Write-Host "The remote computer is running: $OSName" -ForegroundColor Yellow
             Log-Activity "The remote computer is running: $OSName." -LogFile $LogFile
         }
-    } else {
+    }
+    else {
         Write-Host "Failed to retrieve the operating system information for $RemoteComputerName." -ForegroundColor Red
         Log-Activity "Failed to retrieve operating system information for $RemoteComputerName." -LogFile $LogFile
     }
 }
-
 Log-Activity "Script completed." -LogFile $LogFile
