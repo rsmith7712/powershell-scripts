@@ -75,6 +75,9 @@
     (9) I've updated the script to handle local connections by detecting
     if the provided computer name matches the local machine name. For local
     connections, the script now queries the OS without using credentials.
+    (10) The script has been updated to use Get-CimInstance and
+    Invoke-Command with proper handling of arguments for registry
+    operations, addressing access issues and ensuring compatibility.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -135,9 +138,9 @@ while ($true) {
     # Check the operating system of the remote computer
     if ($RemoteComputerName -ieq $env:COMPUTERNAME) {
         Write-Host "Local connection detected. Ignoring credentials for local query." -ForegroundColor Yellow
-        $OSInfo = Get-WmiObject -Class Win32_OperatingSystem
+        $OSInfo = Get-CimInstance -ClassName Win32_OperatingSystem
     } else {
-        $OSInfo = Get-WmiObject -Class Win32_OperatingSystem -ComputerName $RemoteComputerName -Credential $Credentials
+        $OSInfo = Get-CimInstance -ClassName Win32_OperatingSystem -ComputerName $RemoteComputerName -Credential $Credentials
     }
 
     if ($OSInfo) {
@@ -150,8 +153,9 @@ while ($true) {
             # Get the Interactive Logon: Machine Inactivity Limit setting from the registry
             $RegistryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
             $RegistryKey = Invoke-Command -ComputerName $RemoteComputerName -Credential $Credentials -ScriptBlock {
-                Get-ItemProperty -Path $using:RegistryPath -Name "InactivityTimeoutSecs" -ErrorAction SilentlyContinue
-            }
+                param($Path)
+                Get-ItemProperty -Path $Path -Name "InactivityTimeoutSecs" -ErrorAction SilentlyContinue
+            } -ArgumentList $RegistryPath
 
             $InactivityLimit = if ($RegistryKey.InactivityTimeoutSecs) {
                 $RegistryKey.InactivityTimeoutSecs
@@ -176,15 +180,17 @@ while ($true) {
                     "1" {
                         $NewLimit = Read-Host "Enter the new inactivity limit in seconds"
                         Invoke-Command -ComputerName $RemoteComputerName -Credential $Credentials -ScriptBlock {
-                            Set-ItemProperty -Path $using:RegistryPath -Name "InactivityTimeoutSecs" -Value $using:NewLimit
-                        }
+                            param($Path, $Limit)
+                            Set-ItemProperty -Path $Path -Name "InactivityTimeoutSecs" -Value $Limit
+                        } -ArgumentList $RegistryPath, $NewLimit
                         Write-Host "Inactivity limit set to $NewLimit seconds." -ForegroundColor Green
                         Log-Activity "Inactivity limit modified to $NewLimit seconds." -LogFile $LogFile
                     }
                     "2" {
                         Invoke-Command -ComputerName $RemoteComputerName -Credential $Credentials -ScriptBlock {
-                            Remove-ItemProperty -Path $using:RegistryPath -Name "InactivityTimeoutSecs" -ErrorAction SilentlyContinue
-                        }
+                            param($Path)
+                            Remove-ItemProperty -Path $Path -Name "InactivityTimeoutSecs" -ErrorAction SilentlyContinue
+                        } -ArgumentList $RegistryPath
                         Write-Host "Inactivity limit disabled." -ForegroundColor Green
                         Log-Activity "Inactivity limit disabled." -LogFile $LogFile
                     }
