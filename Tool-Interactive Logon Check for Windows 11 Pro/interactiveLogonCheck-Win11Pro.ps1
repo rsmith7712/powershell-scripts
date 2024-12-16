@@ -83,6 +83,8 @@
     use of credentials.
     (12) Added logic to clear the console only when the script is first
     launched. Subsequent searches will not clear the console.
+    (13) The script now logs the user executing it and their provided
+    credentials into the log file.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -124,8 +126,13 @@ function Log-Activity {
     Add-Content -Path $LogFile -Value $LogMessage
 }
 
+# Log script executor details
+$CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+Log-Activity "Script executed by user: $CurrentUser" -LogFile $LogPath\ScriptExecution.log
+
 # Prompt user for Domain Administrator credentials
 $Credentials = Get-Credential -Message "Enter Domain Administrator credentials"
+Log-Activity "Domain credentials provided by: $($Credentials.UserName)" -LogFile $LogPath\ScriptExecution.log
 
 # Main script loop
 while ($true) {
