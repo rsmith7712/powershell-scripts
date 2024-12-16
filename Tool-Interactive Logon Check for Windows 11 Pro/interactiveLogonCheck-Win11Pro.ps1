@@ -37,6 +37,11 @@
     Windows 10 Professional. It applies the same logic for checking and
     modifying the "Interactive Logon: Machine Inactivity Limit"
     registry key as it does for Windows 11 Pro.
+    (5) The log and CSV file names have been updated to include the
+    remote computer name, followed by "InactivityLimitResults" and the
+    date/time following format [yyyy-MM-dd_HH-mm-ss]. This will help
+    identify which files are associated with specific computers and
+    their changes.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -49,19 +54,21 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 }
 
 # Initialize log file
-$LogFile = "C:\Temp\InteractiveLogonScriptLog_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').log"
+function Initialize-LogFile {
+    param([string]$ComputerName)
+    $LogFileName = "C:\Temp\${ComputerName}_InactivityLimitLog_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').log"
+    $LogFileName
+}
+
 function Log-Activity {
-    param([string]$Message)
+    param([string]$Message, [string]$LogFile)
     $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $LogMessage = "$Timestamp - $Message"
     Add-Content -Path $LogFile -Value $LogMessage
 }
 
-Log-Activity "Script started."
-
 # Prompt user for Domain Administrator credentials
 $Credentials = Get-Credential -Message "Enter Domain Administrator credentials"
-Log-Activity "User entered credentials."
 
 # Main script loop
 while ($true) {
@@ -69,16 +76,16 @@ while ($true) {
     $RemoteComputerName = Read-Host "Enter the remote computer name (or type 'exit' to quit)"
     if ($RemoteComputerName -eq "exit") {
         Write-Host "Exiting script." -ForegroundColor Yellow
-        Log-Activity "User exited the script."
         break
     }
 
-    Log-Activity "Remote computer name entered: $RemoteComputerName"
+    $LogFile = Initialize-LogFile -ComputerName $RemoteComputerName
+    Log-Activity "Script started for $RemoteComputerName." -LogFile $LogFile
 
     # Verify if the remote computer is reachable
     if (-not (Test-Connection -ComputerName $RemoteComputerName -Count 1 -Quiet)) {
         Write-Host "The remote computer is not reachable." -ForegroundColor Red
-        Log-Activity "Remote computer $RemoteComputerName is not reachable."
+        Log-Activity "Remote computer $RemoteComputerName is not reachable." -LogFile $LogFile
         continue
     }
 
@@ -87,10 +94,10 @@ while ($true) {
 
     if ($OSInfo) {
         $OSName = $OSInfo.Caption
-        Log-Activity "Operating system retrieved: $OSName"
+        Log-Activity "Operating system retrieved: $OSName" -LogFile $LogFile
         if ($OSName -match "Windows 11 Pro|Windows 10 Enterprise|Windows 10 Pro") {
             Write-Host "The remote computer is running $OSName." -ForegroundColor Green
-            Log-Activity "The remote computer is running $OSName."
+            Log-Activity "The remote computer is running $OSName." -LogFile $LogFile
 
             # Get the Interactive Logon: Machine Inactivity Limit setting from the registry
             $RegistryPath = "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
@@ -100,14 +107,13 @@ while ($true) {
 
             $InactivityLimit = if ($RegistryKey.InactivityTimeoutSecs) {
                 $RegistryKey.InactivityTimeoutSecs
-            }
-            else {
+            } else {
                 "Not Configured"
             }
 
             # Display the result in the console
             Write-Host "Interactive Logon: Machine Inactivity Limit: $InactivityLimit seconds" -ForegroundColor Cyan
-            Log-Activity "Inactivity Limit retrieved: $InactivityLimit seconds"
+            Log-Activity "Inactivity Limit retrieved: $InactivityLimit seconds" -LogFile $LogFile
 
             # Prompt user for action
             do {
@@ -125,18 +131,18 @@ while ($true) {
                             Set-ItemProperty -Path $using:RegistryPath -Name "InactivityTimeoutSecs" -Value $using:NewLimit
                         }
                         Write-Host "Inactivity limit set to $NewLimit seconds." -ForegroundColor Green
-                        Log-Activity "Inactivity limit modified to $NewLimit seconds."
+                        Log-Activity "Inactivity limit modified to $NewLimit seconds." -LogFile $LogFile
                     }
                     "2" {
                         Invoke-Command -ComputerName $RemoteComputerName -Credential $Credentials -ScriptBlock {
                             Remove-ItemProperty -Path $using:RegistryPath -Name "InactivityTimeoutSecs" -ErrorAction SilentlyContinue
                         }
                         Write-Host "Inactivity limit disabled." -ForegroundColor Green
-                        Log-Activity "Inactivity limit disabled."
+                        Log-Activity "Inactivity limit disabled." -LogFile $LogFile
                     }
                     "3" {
                         Write-Host "Exiting options menu." -ForegroundColor Yellow
-                        Log-Activity "User exited the options menu."
+                        Log-Activity "User exited the options menu." -LogFile $LogFile
                     }
                     default {
                         Write-Host "Invalid choice. Please select 1, 2, or 3." -ForegroundColor Red
@@ -151,8 +157,8 @@ while ($true) {
             }
 
             # Export results to a CSV file
-            #$DateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-            $ExportFile = "$ExportPath\InactivityLimitResults_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').csv"
+            $DateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+            $ExportFile = "$ExportPath\${RemoteComputerName}_InactivityLimitResults_$DateTime.csv"
             $Results = [PSCustomObject]@{
                 ComputerName        = $RemoteComputerName
                 OperatingSystem     = $OSName
@@ -161,16 +167,15 @@ while ($true) {
             $Results | Export-Csv -Path $ExportFile -NoTypeInformation -Force
 
             Write-Host "Results exported to $ExportFile" -ForegroundColor Green
-            Log-Activity "Results exported to $ExportFile."
-        }
-        else {
+            Log-Activity "Results exported to $ExportFile." -LogFile $LogFile
+        } else {
             Write-Host "The remote computer is running: $OSName" -ForegroundColor Yellow
-            Log-Activity "The remote computer is running: $OSName."
+            Log-Activity "The remote computer is running: $OSName." -LogFile $LogFile
         }
-    }
-    else {
+    } else {
         Write-Host "Failed to retrieve the operating system information for $RemoteComputerName." -ForegroundColor Red
-        Log-Activity "Failed to retrieve operating system information for $RemoteComputerName."
+        Log-Activity "Failed to retrieve operating system information for $RemoteComputerName." -LogFile $LogFile
     }
 }
-Log-Activity "Script completed."
+
+Log-Activity "Script completed." -LogFile $LogFile
