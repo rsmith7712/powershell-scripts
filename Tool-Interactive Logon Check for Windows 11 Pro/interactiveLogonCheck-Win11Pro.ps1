@@ -176,8 +176,7 @@ while ($true) {
         Write-Host "Local connection detected. Ignoring credentials for local query." -ForegroundColor Yellow
         Log-Activity "Local connection detected for $RemoteComputerName." -LogFile $ScriptExecutionLog
         $OSInfo = Get-CimInstance -ClassName Win32_OperatingSystem
-    }
-    else {
+    } else {
         $OSInfo = Invoke-Command -ComputerName $RemoteComputerName -Credential $Credentials -ScriptBlock {
             Get-CimInstance -ClassName Win32_OperatingSystem
         }
@@ -185,7 +184,7 @@ while ($true) {
 
     if ($OSInfo) {
         $OSName = $OSInfo.Caption
-        Log-Activity "Operating system retrieved for $RemoteComputerName: $OSName." -LogFile $ScriptExecutionLog
+        Log-Activity "Operating system retrieved for ${RemoteComputerName}: $OSName." -LogFile $ScriptExecutionLog
         Log-Activity "Operating system retrieved: $OSName." -LogFile $ComputerLogFile
 
         if ($OSName -match "Windows 11 Pro|Windows 10 Enterprise|Windows 10 Pro") {
@@ -201,14 +200,13 @@ while ($true) {
 
             $InactivityLimit = if ($RegistryKey.InactivityTimeoutSecs) {
                 $RegistryKey.InactivityTimeoutSecs
-            }
-            else {
+            } else {
                 "Not Configured"
             }
 
             # Display the result in the console
             Write-Host "Interactive Logon: Machine Inactivity Limit: $InactivityLimit seconds" -ForegroundColor Cyan
-            Log-Activity "Inactivity Limit retrieved for $RemoteComputerName: $InactivityLimit seconds." -LogFile $ScriptExecutionLog
+            Log-Activity "Inactivity Limit retrieved for ${RemoteComputerName}: $InactivityLimit seconds." -LogFile $ScriptExecutionLog
             Log-Activity "Interactive Logon: Machine Inactivity Limit: $InactivityLimit seconds." -LogFile $ComputerLogFile
 
             # Prompt user for action
