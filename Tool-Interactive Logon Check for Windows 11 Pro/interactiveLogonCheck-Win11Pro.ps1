@@ -69,6 +69,9 @@
     "Inactivity Limit Results," the date/time in the following format
     [yyyy-MM-dd_HH-mm-ss], and the remote computer name. File name
     alignment is important, as is one's personal Zen.
+    (8) I've fixed the issues in the script, including the incomplete
+    string at the CSV export line, and updated the code to ensure proper
+    formatting and execution.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -144,7 +147,8 @@ while ($true) {
 
             $InactivityLimit = if ($RegistryKey.InactivityTimeoutSecs) {
                 $RegistryKey.InactivityTimeoutSecs
-            } else {
+            }
+            else {
                 "Not Configured"
             }
 
@@ -189,7 +193,7 @@ while ($true) {
 
             # Export results to a CSV file
             $DateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-            $ExportFile = "$CsvPath\InactivityLimitResults_$DateTime_${RemoteComputerName}.csv"
+            $ExportFile = "$CsvPath\InactivityLimitResults_${DateTime}_${RemoteComputerName}.csv"
             $Results = [PSCustomObject]@{
                 ComputerName        = $RemoteComputerName
                 OperatingSystem     = $OSName
@@ -199,11 +203,13 @@ while ($true) {
 
             Write-Host "Results exported to $ExportFile" -ForegroundColor Green
             Log-Activity "Results exported to $ExportFile." -LogFile $LogFile
-        } else {
+        }
+        else {
             Write-Host "The remote computer is running: $OSName" -ForegroundColor Yellow
             Log-Activity "The remote computer is running: $OSName." -LogFile $LogFile
         }
-    } else {
+    }
+    else {
         Write-Host "Failed to retrieve the operating system information for $RemoteComputerName." -ForegroundColor Red
         Log-Activity "Failed to retrieve operating system information for $RemoteComputerName." -LogFile $LogFile
     }
