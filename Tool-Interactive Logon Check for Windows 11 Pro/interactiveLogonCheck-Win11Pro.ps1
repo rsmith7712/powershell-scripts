@@ -33,6 +33,10 @@
     searches by entering another remote computer name, while reusing the
     cached credentials. The user can continue searching or exit the
     script. All actions are logged.
+    (4) Script now includes support for Windows 10 Enterprise and
+    Windows 10 Professional. It applies the same logic for checking and
+    modifying the "Interactive Logon: Machine Inactivity Limit"
+    registry key as it does for Windows 11 Pro.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -84,9 +88,9 @@ while ($true) {
     if ($OSInfo) {
         $OSName = $OSInfo.Caption
         Log-Activity "Operating system retrieved: $OSName"
-        if ($OSName -match "Windows 11 Pro") {
-            Write-Host "The remote computer is running Windows 11 Pro." -ForegroundColor Green
-            Log-Activity "The remote computer is running Windows 11 Pro."
+        if ($OSName -match "Windows 11 Pro|Windows 10 Enterprise|Windows 10 Pro") {
+            Write-Host "The remote computer is running $OSName." -ForegroundColor Green
+            Log-Activity "The remote computer is running $OSName."
 
             # Get the Interactive Logon: Machine Inactivity Limit setting from the registry
             $RegistryPath = "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
@@ -96,7 +100,8 @@ while ($true) {
 
             $InactivityLimit = if ($RegistryKey.InactivityTimeoutSecs) {
                 $RegistryKey.InactivityTimeoutSecs
-            } else {
+            }
+            else {
                 "Not Configured"
             }
 
@@ -157,11 +162,13 @@ while ($true) {
 
             Write-Host "Results exported to $ExportFile" -ForegroundColor Green
             Log-Activity "Results exported to $ExportFile."
-        } else {
+        }
+        else {
             Write-Host "The remote computer is running: $OSName" -ForegroundColor Yellow
             Log-Activity "The remote computer is running: $OSName."
         }
-    } else {
+    }
+    else {
         Write-Host "Failed to retrieve the operating system information for $RemoteComputerName." -ForegroundColor Red
         Log-Activity "Failed to retrieve operating system information for $RemoteComputerName."
     }
