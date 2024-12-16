@@ -96,7 +96,8 @@ while ($true) {
 
             $InactivityLimit = if ($RegistryKey.InactivityTimeoutSecs) {
                 $RegistryKey.InactivityTimeoutSecs
-            } else {
+            }
+            else {
                 "Not Configured"
             }
 
@@ -146,8 +147,8 @@ while ($true) {
             }
 
             # Export results to a CSV file
-            $DateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-            $ExportFile = "$ExportPath\$DateTime_InactivityLimitResults.csv"
+            #$DateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+            $ExportFile = "$ExportPath\InactivityLimitResults_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').csv"
             $Results = [PSCustomObject]@{
                 ComputerName        = $RemoteComputerName
                 OperatingSystem     = $OSName
@@ -157,11 +158,13 @@ while ($true) {
 
             Write-Host "Results exported to $ExportFile" -ForegroundColor Green
             Log-Activity "Results exported to $ExportFile."
-        } else {
+        }
+        else {
             Write-Host "The remote computer is running: $OSName" -ForegroundColor Yellow
             Log-Activity "The remote computer is running: $OSName."
         }
-    } else {
+    }
+    else {
         Write-Host "Failed to retrieve the operating system information for $RemoteComputerName." -ForegroundColor Red
         Log-Activity "Failed to retrieve operating system information for $RemoteComputerName."
     }
