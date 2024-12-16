@@ -72,6 +72,9 @@
     (8) I've fixed the issues in the script, including the incomplete
     string at the CSV export line, and updated the code to ensure proper
     formatting and execution.
+    (9) I've updated the script to handle local connections by detecting
+    if the provided computer name matches the local machine name. For local
+    connections, the script now queries the OS without using credentials.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -130,7 +133,12 @@ while ($true) {
     }
 
     # Check the operating system of the remote computer
-    $OSInfo = Get-WmiObject -Class Win32_OperatingSystem -ComputerName $RemoteComputerName -Credential $Credentials
+    if ($RemoteComputerName -ieq $env:COMPUTERNAME) {
+        Write-Host "Local connection detected. Ignoring credentials for local query." -ForegroundColor Yellow
+        $OSInfo = Get-WmiObject -Class Win32_OperatingSystem
+    } else {
+        $OSInfo = Get-WmiObject -Class Win32_OperatingSystem -ComputerName $RemoteComputerName -Credential $Credentials
+    }
 
     if ($OSInfo) {
         $OSName = $OSInfo.Caption
@@ -147,8 +155,7 @@ while ($true) {
 
             $InactivityLimit = if ($RegistryKey.InactivityTimeoutSecs) {
                 $RegistryKey.InactivityTimeoutSecs
-            }
-            else {
+            } else {
                 "Not Configured"
             }
 
@@ -203,13 +210,11 @@ while ($true) {
 
             Write-Host "Results exported to $ExportFile" -ForegroundColor Green
             Log-Activity "Results exported to $ExportFile." -LogFile $LogFile
-        }
-        else {
+        } else {
             Write-Host "The remote computer is running: $OSName" -ForegroundColor Yellow
             Log-Activity "The remote computer is running: $OSName." -LogFile $LogFile
         }
-    }
-    else {
+    } else {
         Write-Host "Failed to retrieve the operating system information for $RemoteComputerName." -ForegroundColor Red
         Log-Activity "Failed to retrieve operating system information for $RemoteComputerName." -LogFile $LogFile
     }
