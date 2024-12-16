@@ -87,6 +87,9 @@
     credentials into the log file.
     (14) The script has been updated to include the date and time to the
     end of the ScriptExecution.log file name.
+    (15) Updated the script to record the script executor and domain
+    administrator credentials into the session-specific
+    ScriptExecution_(date & time).log.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -115,6 +118,8 @@ if (-not (Test-Path -Path $CsvPath)) {
 }
 
 # Initialize log file
+$ScriptExecutionLog = "$LogPath\ScriptExecution_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').log"
+
 function Initialize-LogFile {
     param([string]$ComputerName)
     $LogFileName = "$LogPath\InactivityLimitResults_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss')_${ComputerName}.log"
@@ -130,11 +135,11 @@ function Log-Activity {
 
 # Log script executor details
 $CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-Log-Activity "Script executed by user: $CurrentUser" -LogFile $LogPath\ScriptExecution_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').log
+Log-Activity "Script executed by user: $CurrentUser" -LogFile $ScriptExecutionLog
 
 # Prompt user for Domain Administrator credentials
 $Credentials = Get-Credential -Message "Enter Domain Administrator credentials"
-Log-Activity "Domain credentials provided by: $($Credentials.UserName)" -LogFile $LogPath\ScriptExecution.log
+Log-Activity "Domain credentials provided by: $($Credentials.UserName)" -LogFile $ScriptExecutionLog
 
 # Main script loop
 while ($true) {
@@ -248,4 +253,4 @@ while ($true) {
     }
 }
 
-Log-Activity "Script completed." -LogFile $LogFile
+Log-Activity "Script completed." -LogFile $ScriptExecutionLog
