@@ -85,6 +85,8 @@
     launched. Subsequent searches will not clear the console.
     (13) The script now logs the user executing it and their provided
     credentials into the log file.
+    (14) The script has been updated to append the date and time to the
+    end of the ScriptExecution.log file name.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -128,7 +130,7 @@ function Log-Activity {
 
 # Log script executor details
 $CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-Log-Activity "Script executed by user: $CurrentUser" -LogFile $LogPath\ScriptExecution.log
+Log-Activity "Script executed by user: $CurrentUser" -LogFile $LogPath\ScriptExecution.log_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss')
 
 # Prompt user for Domain Administrator credentials
 $Credentials = Get-Credential -Message "Enter Domain Administrator credentials"
