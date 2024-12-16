@@ -81,6 +81,8 @@
     (11) The script has been updated to replace Get-CimInstance with
     Invoke-Command for remote operations, ensuring compatibility with the
     use of credentials.
+    (12) Added logic to clear the console only when the script is first
+    launched. Subsequent searches will not clear the console.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -90,6 +92,12 @@
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Write-Host "Please run this script as an Administrator." -ForegroundColor Red
     exit
+}
+
+# Clear the console only when the script is first launched
+if ($global:ScriptInitialized -ne $true) {
+    Clear-Host
+    $global:ScriptInitialized = $true
 }
 
 # Validate and create necessary directories
