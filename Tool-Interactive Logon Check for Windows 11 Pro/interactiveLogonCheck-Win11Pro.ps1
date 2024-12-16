@@ -78,6 +78,9 @@
     (10) The script has been updated to use Get-CimInstance and
     Invoke-Command with proper handling of arguments for registry
     operations, addressing access issues and ensuring compatibility.
+    (11) The script has been updated to replace Get-CimInstance with
+    Invoke-Command for remote operations, ensuring compatibility with the
+    use of credentials.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -140,7 +143,9 @@ while ($true) {
         Write-Host "Local connection detected. Ignoring credentials for local query." -ForegroundColor Yellow
         $OSInfo = Get-CimInstance -ClassName Win32_OperatingSystem
     } else {
-        $OSInfo = Get-CimInstance -ClassName Win32_OperatingSystem -ComputerName $RemoteComputerName -Credential $Credentials
+        $OSInfo = Invoke-Command -ComputerName $RemoteComputerName -Credential $Credentials -ScriptBlock {
+            Get-CimInstance -ClassName Win32_OperatingSystem
+        }
     }
 
     if ($OSInfo) {
