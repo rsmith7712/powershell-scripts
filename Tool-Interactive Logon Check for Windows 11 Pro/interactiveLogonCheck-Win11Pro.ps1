@@ -58,13 +58,17 @@
     registry key as it does for Windows 11 Pro.
     (5) The log and CSV file names have been updated to include the
     remote computer name, followed by "InactivityLimitResults" and the
-    date/time following format [yyyy-MM-dd_HH-mm-ss]. This will help
+    date/time in the following format [yyyy-MM-dd_HH-mm-ss]. This will help
     identify which files are associated with specific computers and
     their changes.
     (6) The script now validates and creates separate directories for
     logs (C:\Temp\Logs) and CSV files (C:\Temp\Csv) if they do not exist.
     Log files and CSV files are saved in their respective directories
     with the appropriate naming format. Added License header to script.
+    (7) The log and CSV file naming format has been updated to include
+    "Inactivity Limit Results," the date/time in the following format
+    [yyyy-MM-dd_HH-mm-ss], and the remote computer name. File name
+    alignment is important, as is one's personal Zen.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -89,7 +93,7 @@ if (-not (Test-Path -Path $CsvPath)) {
 # Initialize log file
 function Initialize-LogFile {
     param([string]$ComputerName)
-    $LogFileName = "$LogPath\${ComputerName}_InactivityLimitLog_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').log"
+    $LogFileName = "$LogPath\InactivityLimitResults_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss')_${ComputerName}.log"
     $LogFileName
 }
 
@@ -140,8 +144,7 @@ while ($true) {
 
             $InactivityLimit = if ($RegistryKey.InactivityTimeoutSecs) {
                 $RegistryKey.InactivityTimeoutSecs
-            }
-            else {
+            } else {
                 "Not Configured"
             }
 
@@ -186,7 +189,7 @@ while ($true) {
 
             # Export results to a CSV file
             $DateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-            $ExportFile = "$CsvPath\${RemoteComputerName}_InactivityLimitResults_$DateTime.csv"
+            $ExportFile = "$CsvPath\InactivityLimitResults_$DateTime_${RemoteComputerName}.csv"
             $Results = [PSCustomObject]@{
                 ComputerName        = $RemoteComputerName
                 OperatingSystem     = $OSName
@@ -196,15 +199,14 @@ while ($true) {
 
             Write-Host "Results exported to $ExportFile" -ForegroundColor Green
             Log-Activity "Results exported to $ExportFile." -LogFile $LogFile
-        }
-        else {
+        } else {
             Write-Host "The remote computer is running: $OSName" -ForegroundColor Yellow
             Log-Activity "The remote computer is running: $OSName." -LogFile $LogFile
         }
-    }
-    else {
+    } else {
         Write-Host "Failed to retrieve the operating system information for $RemoteComputerName." -ForegroundColor Red
         Log-Activity "Failed to retrieve operating system information for $RemoteComputerName." -LogFile $LogFile
     }
 }
+
 Log-Activity "Script completed." -LogFile $LogFile
