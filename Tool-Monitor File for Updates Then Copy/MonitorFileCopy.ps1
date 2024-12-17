@@ -146,6 +146,26 @@
             - The -ExecutionPolicy Bypass argument ensures the script runs
             regardless of system restrictions.
         
+    STEP 5: ADDITIONAL TROUBLESHOOTING TIPS (IF NEEDED)
+    ***************************************************
+        Verify File Locks:
+            - Ensure no process locks the destination file, preventing
+            overwrites.
+            - Use tools like Handle (Sysinternals) or Resource Monitor to
+            identify file locks.
+        Permissions:
+            - Ensure the script has proper write permissions for the
+            destination folder.
+            - Run the script as an Administrator.
+        Testing:
+            - Modify the source file and observe the log to confirm the copy
+            operation.
+            - Check if the destination file is updated with the new contents.
+        Log Additional Details:
+            - Add file metadata (e.g., timestamp, size) to the log to confirm
+            what is being copied:
+            $SourceInfo = Get-Item $SourceFile
+            Write-Log "Source File: $SourceFile | Size: $($SourceInfo.Length) | Modified: $($SourceInfo.LastWriteTime)"
 
     FINAL THOUGHTS
     **************
@@ -172,6 +192,43 @@
             - Logs entries with date (yyyy-MM-dd) and time
             (HH:mm:ss) in a structured format.
     (2) Updated detailed steps for implementation
+    (3) TROUBLESHOOTING: 
+            - The script detects file changes, launches, reports in log file
+            that it copies file from source location to destination location,
+            but in the destination location, the file's Date Modified value
+            does not change, nor are the updates from the source file appearing
+            in the destination. The source file will be overwriting an existing
+            file in the destination folder with the same name.
+        CAUSE:
+            - [Summary] The issue occurs because Robocopy skips overwriting files
+            with the same timestamp and size. By adding the /IS and /IT flags, we
+            explicitly instruct Robocopy to overwrite the file every time a
+            change is detected, ensuring the updated file is always copied to
+            the destination.
+            - [Adt'l Info] Robocopy is skipping the file because:
+                > The source file's Date Modified timestamp and size are
+                identical to the destination file.
+                > Even though the file contents may have changed, the timestamp
+                may not be updated immediately or correctly due to certain
+                systems/applications caching file metadata.
+        SOLUTION:
+            - Address the issue by explicitly forcing Robocopy to overwrite
+            files regardless of timestamps or sizes.
+        CODE UPDATE:
+            - Replace the current Robocopy line:
+            [Current] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5" | Out-Null
+            [Updated] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5 /IS /IT" | Out-Null
+        EXPLANATION OF UPDATED ROBOCOPY FLAGS:
+            - /IS: Copies files even if they are the same size (ignores size
+            comparison).
+            - /IT: Copies files even if they have the same timestamp (ignores
+            timestamp comparison).
+            - /Z: Copies files in restartable mode (resumable on failure).
+            - /R:3: Retries the copy operation 3 times if it fails.
+            - /W:5: Waits 5 seconds between retries.
+            These flags ensure that the destination file is always overwritten,
+            even if the Date Modified timestamp and file size appear unchanged.
+
 
 2024-12-16:[UPDATES]
     Rewrite to leverage FileSystemWatcher instead of Robocopy.
@@ -256,8 +313,8 @@ $watcher.NotifyFilter = [System.IO.NotifyFilters]'LastWrite'
 $action = {
     Write-Log "Change detected in $SourceFile. Copying to $DestinationFolder."
     try {
-        # Execute Robocopy
-        robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5" | Out-Null
+        # Force overwrite using Robocopy
+        robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5 /IS /IT" | Out-Null
         Write-Log "File copied successfully to $DestinationFolder"
     }
     catch {
