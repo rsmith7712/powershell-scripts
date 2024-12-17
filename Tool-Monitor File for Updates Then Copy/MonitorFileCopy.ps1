@@ -47,6 +47,7 @@
 .NOTES
     See HISTORY section at bottom of script for development updates.
 #>
+
 # Define core paths
 $ScriptName = "MonitorFileCopy.ps1"
 $TargetFolder = "C:\Scripts"
@@ -106,7 +107,47 @@ $FilesToMonitor = @("report1.csv", "report2.csv")  # Files to monitor
 
 Write-Log "Script execution started. Monitoring files: $($FilesToMonitor -join ', ')"
 
-# Initialize FileSystemWatchers
+# -------------------------------
+# Step 3: Initial File Comparison
+# -------------------------------
+Write-Log "Performing initial file comparison between source and destination..."
+
+foreach ($file in $FilesToMonitor) {
+    $SourceFile = Join-Path -Path $SourceFolder -ChildPath $file
+    $DestinationFile = Join-Path -Path $DestinationFolder -ChildPath $file
+
+    if (Test-Path -Path $SourceFile) {
+        if (-not (Test-Path -Path $DestinationFile)) {
+            # Destination file does not exist, copy immediately
+            Write-Log "Destination file '$DestinationFile' missing. Copying from source."
+            Copy-Item -Path $SourceFile -Destination $DestinationFile -Force
+            Write-Log "Copied '$file' to destination."
+        }
+        else {
+            # Compare Date Modified timestamps
+            $SourceModified = (Get-Item $SourceFile).LastWriteTime
+            $DestinationModified = (Get-Item $DestinationFile).LastWriteTime
+
+            if ($SourceModified -gt $DestinationModified) {
+                Write-Log "Source file '$SourceFile' is newer. Copying to destination."
+                Copy-Item -Path $SourceFile -Destination $DestinationFile -Force
+                Write-Log "Updated '$file' in destination."
+            }
+            else {
+                Write-Log "Destination file '$DestinationFile' is up-to-date."
+            }
+        }
+    }
+    else {
+        Write-Log "Source file '$SourceFile' does not exist. Skipping."
+    }
+}
+
+Write-Log "Initial file comparison completed."
+
+# -------------------------------
+# Step 4: Initialize FileSystemWatchers
+# -------------------------------
 $watchers = @()
 
 foreach ($file in $FilesToMonitor) {
@@ -134,7 +175,7 @@ foreach ($file in $FilesToMonitor) {
 }
 
 # -------------------------------
-# Step 3: Continuous Execution
+# Step 5: Continuous Execution
 # -------------------------------
 Write-Host "Monitoring file changes for: $($FilesToMonitor -join ', ')"
 Write-Host "Logs will be stored in: $LogFolder"
@@ -421,6 +462,24 @@ while ($true) {
             of Robocopy in this scenario.
             - Logs clearly document the file changes, making
             troubleshooting easier.
+    (6) [Summary] Script now includes a pre-check during the initial
+        script launch to compare the Date Modified timestamps of the source
+        and destination files. If the destination files are older (or
+        missing), the script will initiate a copy of the source files to
+        update the destination files.
+        KEY UPDATES:
+            - Initial File Comparison:
+                > Checks each source file in $FilesToMonitor against its
+                destination counterpart.
+                > If the destination file does not exist or is older, the
+                source file is copied immediately.
+                > Logs the action taken for transparency.
+            - File Timestamp Validation:
+                > Uses the LastWriteTime property to compare timestamps.
+                > Ensures only newer files are copied.
+            - Preserved File Monitoring:
+                > After the initial comparison, the script initializes
+                FileSystemWatcher objects to monitor file changes.
 
 2024-12-16:[UPDATES]
     Rewrite to leverage FileSystemWatcher instead of Robocopy.
