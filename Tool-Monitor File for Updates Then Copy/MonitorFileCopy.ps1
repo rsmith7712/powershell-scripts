@@ -180,9 +180,8 @@ while ($true) {
     Start-Sleep -Seconds 1
 }
 
+#region FUNCTIONALITY
 <#
-*********************************************************
-*********************************************************
 .FUNCTIONALITY
     STEP 1: PREPARE THE SCRIPT
         **************************
@@ -325,10 +324,11 @@ while ($true) {
                 - Survivability after a system reboot using Task Scheduler.
             The updated approach ensures robustness, clear logging, and
             self-healing for long-term automated monitoring.
+#>
+#endregion FUNCTIONALITY
 
-*********************************************************
-*********************************************************
-
+#region HISTORY
+<#
 .HISTORY
 2024-12-17:[UPDATES]
     (1) Below are the updated features added:
@@ -505,3 +505,4 @@ while ($true) {
         to copy the file from "C:\Planning Report Data Sources" to
         "E:\Planning Report Data Sources".
 #>
+#endregion HISTORY
