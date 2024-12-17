@@ -21,7 +21,7 @@
     IN THE SOFTWARE.
 
 .NAME
-    MonitorFileCopy.ps1
+    MonitorFileCopy-v0.ps1
 
 .SYNOPSIS
 
