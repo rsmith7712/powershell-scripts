@@ -21,7 +21,7 @@
     IN THE SOFTWARE.
 
 .NAME
-    interactiveLogonCheck-Win11Pro.ps1
+    interactiveLogonCheck.ps1
 
 .FUNCTIONALITY
     This script will:
@@ -98,6 +98,8 @@
     overall script activity continues to be logged in the
     ScriptExecution_yyyy-MM-dd_HH-mm-ss.log. "He who has a why can
     endure any how" Friedrich Nietzsche
+    (18) Removed '-Win11Pro' from file name as this works for
+    Windows 10 Professional and Windows 10 Enterprise as well.
 
 2024-12-16:[CREATED]
     Time for troubleshooting and updates.
@@ -176,7 +178,8 @@ while ($true) {
         Write-Host "Local connection detected. Ignoring credentials for local query." -ForegroundColor Yellow
         Log-Activity "Local connection detected for $RemoteComputerName." -LogFile $ScriptExecutionLog
         $OSInfo = Get-CimInstance -ClassName Win32_OperatingSystem
-    } else {
+    }
+    else {
         $OSInfo = Invoke-Command -ComputerName $RemoteComputerName -Credential $Credentials -ScriptBlock {
             Get-CimInstance -ClassName Win32_OperatingSystem
         }
@@ -200,7 +203,8 @@ while ($true) {
 
             $InactivityLimit = if ($RegistryKey.InactivityTimeoutSecs) {
                 $RegistryKey.InactivityTimeoutSecs
-            } else {
+            }
+            else {
                 "Not Configured"
             }
 
