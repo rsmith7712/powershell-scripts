@@ -221,7 +221,7 @@
         SOLUTION:
             - Address the issue by explicitly forcing Robocopy to overwrite
             files regardless of timestamps or sizes.
-        CODE UPDATE:
+        CODE UPDATES:
             - Replace the current Robocopy line:
             [Current] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5" | Out-Null
             [Updated] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5 /IS /IT" | Out-Null
@@ -261,6 +261,56 @@
             - Detailed Logging:
                 > Each detected file change is logged with the file name,
                 date, and time.
+    (5) TROUBLESHOOTING:
+            - Observed behavior indicates two key problems:
+                > File Replication Issue: 
+                    *The log shows report2.csv being copied, even when the
+                    trigger was a change to report1.csv. This is due to how
+                    the Register-ObjectEvent dynamically handles file names
+                    during the action execution.
+                > Robocopy Issue:
+                    *Despite being reported as copied, the files' "Date
+                    Modified" timestamps and content are not updated. This
+                    strongly suggests that Robocopy is unsuitable for
+                    overwriting small files in scenarios where the source is
+                    continuously changing or that Robocopy caching/skip logic
+                    is interfering.
+        SOLUTION:
+            - Instead of relying on Robocopy, we will switch to PowerShell's
+            built-in Copy-Item cmdlet, which:
+                > Provides simpler and more predictable behavior.
+                > Allows you to force overwrites without file size/timestamp
+                checks.
+        CODE UPDATES:
+            - Accurate File Triggering: 
+                > Ensures the correct file is processed on a change.
+            - Reliable Copying:
+                > Uses Copy-Item -Force to overwrite files explicitly.
+        KEY UPDATES:
+            - Accurate File Handling:
+                > $Event.SourceEventArgs.FullPath dynamically captures the
+                full path of the file that triggered the event.
+                > Prevents unrelated files (e.g., report2.csv) from being
+                incorrectly processed.
+            - Switch to Copy-Item:
+                > Copy-Item with the -Force flag reliably overwrites files
+                in the destination folder.
+                > Avoids Robocopy's skipping logic based on timestamps or
+                file sizes.
+            - Detailed Logging:
+                > Each operation logs the specific file being copied and
+                any errors encountered.
+        BENEFITS OF USING COPY-ITEM OVER ROBOCOPY:
+            - Simpler and more predictable behavior.
+            - No reliance on external tools like Robocopy.
+            - Reliable file overwriting with the -Force parameter.
+        FINAL NOTES:
+            - This approach resolves the file replication issue and
+            ensures reliable copying.
+            - Copy-Item provides simplicity and avoids the complexities
+            of Robocopy in this scenario.
+            - Logs clearly document the file changes, making
+            troubleshooting easier.
 
 2024-12-16:[UPDATES]
     Rewrite to leverage FileSystemWatcher instead of Robocopy.
@@ -332,7 +382,7 @@ if ($PSScriptRoot -ne $TargetFolder) {
 # Define file paths for monitoring and copying
 $SourceFolder = "C:\Planning Report Data Sources"
 $DestinationFolder = "E:\Planning Report Data Sources"
-$FilesToMonitor = @("report.xlsx", "report2.xlsx")  # Add files to this array
+$FilesToMonitor = @("report1.csv", "report2.csv")  # Files to monitor
 
 Write-Log "Script execution started. Monitoring files: $($FilesToMonitor -join ', ')"
 
@@ -349,14 +399,16 @@ foreach ($file in $FilesToMonitor) {
     # Action on file change
     Register-ObjectEvent $watcher "Changed" -Action {
         $ChangedFile = $Event.SourceEventArgs.FullPath
-        Write-Log "Change detected in $ChangedFile. Copying to $DestinationFolder."
+        $DestinationFile = Join-Path -Path $DestinationFolder -ChildPath (Split-Path $ChangedFile -Leaf)
+        Write-Log "Change detected in $ChangedFile. Copying to $DestinationFile."
+
         try {
-            # Force overwrite using Robocopy
-            robocopy $SourceFolder $DestinationFolder $file "/Z /R:3 /W:5 /IS /IT" | Out-Null
-            Write-Log "File '$file' copied successfully to $DestinationFolder."
+            # Copy the file explicitly with overwrite
+            Copy-Item -Path $ChangedFile -Destination $DestinationFile -Force
+            Write-Log "File '$($Event.SourceEventArgs.Name)' copied successfully to $DestinationFile."
         }
         catch {
-            Write-Log "Error copying file '$file': $_"
+            Write-Log "Error copying file '$($Event.SourceEventArgs.Name)': $_"
         }
     }
 }
