@@ -85,7 +85,12 @@
             - Click New... to add an action.
             - Configure as follows:
                 > Action: Start a program
-                > Program/script: powershell.exe
+            >EITHER<
+                # PowerShell 5x
+                > Program/script: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+            >OR<
+                #PowerShell 7x    
+                > Program/script: C:\Program Files\PowerShell\7\pwsh.exe
                 > Add arguments: -ExecutionPolicy Bypass -File "C:\Scripts\MonitorFileCopy.ps1"
             - Click OK.
         Conditions Tab:
