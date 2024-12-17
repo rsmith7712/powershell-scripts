@@ -129,7 +129,8 @@
             - Test File Monitoring:
                 > Modify the monitored file to trigger the FileSystemWatcher.
                 > Verify:
-                    *The fileis copied to the destination folder.
+                    *Modify both monitored files (report.xlsx and report2.xlsx)
+                    to ensure changes trigger file copying.
                     *A log entry is created in C:\Scripts\Logs.
                 > Restart the system to confirm the Scheduled Task runs
                 automatically and logs its startup.
@@ -166,6 +167,12 @@
             what is being copied:
             $SourceInfo = Get-Item $SourceFile
             Write-Log "Source File: $SourceFile | Size: $($SourceInfo.Length) | Modified: $($SourceInfo.LastWriteTime)"
+
+    STEP 6: HOW TO ADD MORE FILES TO MONITOR (IF NEEDED)
+    ****************************************************
+        To monitor more files, simply add their names to the $FilesToMonitor
+        array:
+        $FilesToMonitor = @("report.xlsx", "report2.xlsx", "report3.xlsx", "data.csv")
 
     FINAL THOUGHTS
     **************
@@ -228,7 +235,32 @@
             - /W:5: Waits 5 seconds between retries.
             These flags ensure that the destination file is always overwritten,
             even if the Date Modified timestamp and file size appear unchanged.
-
+    (4) The updated script dynamically monitors multiple files using a loop.
+            - It ensures:
+                > Efficient file monitoring for multiple files.
+                > Robust logging for each change and copy operation.
+                > File overwrites using Robocopy with the /IS and /IT flags.
+            By deploying this script and configuring a Scheduled Task, you can
+            ensure automated file monitoring and copying for multiple files
+            across reboots.
+        KEY UPDATES:
+            - $FilesToMonitor Array:
+                > Define the list of files to monitor using this array:
+                $FilesToMonitor = @("report.xlsx", "report2.xlsx")
+            - Dynamic FileSystemWatcher Creation:
+                > A foreach loop initializes a FileSystemWatcher for each file
+                in the array.
+                > Each watcher monitors the file's LastWrite changes and
+                triggers the robocopy action.
+            - File Change Action:
+                > The script dynamically identifies the file that changed and
+                logs the details.
+                > Robocopy explicitly copies the changed file to the
+                destination folder using:
+                robocopy $SourceFolder $DestinationFolder $file "/Z /R:3 /W:5 /IS /IT"
+            - Detailed Logging:
+                > Each detected file change is logged with the file name,
+                date, and time.
 
 2024-12-16:[UPDATES]
     Rewrite to leverage FileSystemWatcher instead of Robocopy.
@@ -298,39 +330,43 @@ if ($PSScriptRoot -ne $TargetFolder) {
 # Step 2: File Monitoring Setup
 # -------------------------------
 # Define file paths for monitoring and copying
-$SourceFile = "C:\Planning Report Data Sources\report.xlsx"
+$SourceFolder = "C:\Planning Report Data Sources"
 $DestinationFolder = "E:\Planning Report Data Sources"
+$FilesToMonitor = @("report.xlsx", "report2.xlsx")  # Add files to this array
 
-Write-Log "Script execution started. Monitoring file: $SourceFile"
+Write-Log "Script execution started. Monitoring files: $($FilesToMonitor -join ', ')"
 
-# Initialize FileSystemWatcher
-$watcher = New-Object System.IO.FileSystemWatcher
-$watcher.Path = (Split-Path $SourceFile)
-$watcher.Filter = (Split-Path $SourceFile -Leaf)
-$watcher.NotifyFilter = [System.IO.NotifyFilters]'LastWrite'
+# Initialize FileSystemWatchers
+$watchers = @()
 
-# Action on file change
-$action = {
-    Write-Log "Change detected in $SourceFile. Copying to $DestinationFolder."
-    try {
-        # Force overwrite using Robocopy
-        robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5 /IS /IT" | Out-Null
-        Write-Log "File copied successfully to $DestinationFolder"
-    }
-    catch {
-        Write-Log "Error during file copy: $_"
+foreach ($file in $FilesToMonitor) {
+    $watcher = New-Object System.IO.FileSystemWatcher
+    $watcher.Path = $SourceFolder
+    $watcher.Filter = $file
+    $watcher.NotifyFilter = [System.IO.NotifyFilters]'LastWrite'
+    $watchers += $watcher
+
+    # Action on file change
+    Register-ObjectEvent $watcher "Changed" -Action {
+        $ChangedFile = $Event.SourceEventArgs.FullPath
+        Write-Log "Change detected in $ChangedFile. Copying to $DestinationFolder."
+        try {
+            # Force overwrite using Robocopy
+            robocopy $SourceFolder $DestinationFolder $file "/Z /R:3 /W:5 /IS /IT" | Out-Null
+            Write-Log "File '$file' copied successfully to $DestinationFolder."
+        }
+        catch {
+            Write-Log "Error copying file '$file': $_"
+        }
     }
 }
-
-# Register FileSystemWatcher Event
-Register-ObjectEvent $watcher "Changed" -Action $action
 
 # -------------------------------
 # Step 3: Continuous Execution
 # -------------------------------
-Write-Host "Monitoring file changes for: $SourceFile"
+Write-Host "Monitoring file changes for: $($FilesToMonitor -join ', ')"
 Write-Host "Logs will be stored in: $LogFolder"
-Write-Log "File monitoring initialized."
+Write-Log "File monitoring initialized for $($FilesToMonitor -join ', ')."
 
 # Keep script alive
 while ($true) {
