@@ -98,7 +98,7 @@ if ($PSScriptRoot -ne $TargetFolder) {
 }
 
 # -------------------------------
-# Step 2: File Monitoring Setup
+# Step 2: File Paths and Monitoring Setup
 # -------------------------------
 # Define file paths for monitoring and copying
 $SourceFolder = "C:\Planning Report Data Sources"
@@ -108,46 +108,40 @@ $FilesToMonitor = @("report1.csv", "report2.csv")  # Files to monitor
 Write-Log "Script execution started. Monitoring files: $($FilesToMonitor -join ', ')"
 
 # -------------------------------
-# Step 3: Initial File Comparison
+# Step 3: Initial Synchronization
 # -------------------------------
-Write-Log "Performing initial file comparison between source and destination..."
+Write-Log "Starting initial synchronization of files..."
 
 foreach ($file in $FilesToMonitor) {
     $SourceFile = Join-Path -Path $SourceFolder -ChildPath $file
     $DestinationFile = Join-Path -Path $DestinationFolder -ChildPath $file
 
-    if (Test-Path -Path $SourceFile) {
-        if (-not (Test-Path -Path $DestinationFile)) {
-            # Destination file does not exist, copy immediately
-            Write-Log "Destination file '$DestinationFile' missing. Copying from source."
-            Copy-Item -Path $SourceFile -Destination $DestinationFile -Force
-            Write-Log "Copied '$file' to destination."
+    if (Test-Path $SourceFile) {
+        if ((-not (Test-Path $DestinationFile)) -or ((Get-Item $SourceFile).LastWriteTime -gt (Get-Item $DestinationFile).LastWriteTime)) {
+            try {
+                Write-Log "Destination file '$file' is outdated or missing. Copying to destination..."
+                Copy-Item -Path $SourceFile -Destination $DestinationFile -Force
+                Write-Log "File '$file' successfully copied to destination."
+            }
+            catch {
+                Write-Log "Error copying file '$file': $_"
+            }
         }
         else {
-            # Compare Date Modified timestamps
-            $SourceModified = (Get-Item $SourceFile).LastWriteTime
-            $DestinationModified = (Get-Item $DestinationFile).LastWriteTime
-
-            if ($SourceModified -gt $DestinationModified) {
-                Write-Log "Source file '$SourceFile' is newer. Copying to destination."
-                Copy-Item -Path $SourceFile -Destination $DestinationFile -Force
-                Write-Log "Updated '$file' in destination."
-            }
-            else {
-                Write-Log "Destination file '$DestinationFile' is up-to-date."
-            }
+            Write-Log "Destination file '$file' is up-to-date. No action taken."
         }
     }
     else {
-        Write-Log "Source file '$SourceFile' does not exist. Skipping."
+        Write-Log "Source file '$file' does not exist. Skipping."
     }
 }
 
-Write-Log "Initial file comparison completed."
+Write-Log "Initial synchronization complete."
 
 # -------------------------------
-# Step 4: Initialize FileSystemWatchers
+# Step 4: File Monitoring Setup
 # -------------------------------
+# Initialize FileSystemWatchers
 $watchers = @()
 
 foreach ($file in $FilesToMonitor) {
@@ -468,18 +462,34 @@ while ($true) {
         missing), the script will initiate a copy of the source files to
         update the destination files.
         KEY UPDATES:
-            - Initial File Comparison:
-                > Checks each source file in $FilesToMonitor against its
-                destination counterpart.
-                > If the destination file does not exist or is older, the
-                source file is copied immediately.
+            - Initial Synchronization:
+                > The script compares the LastWriteTime (Date Modified) of
+                each file in the source and destination.
+                > If the destination file is older or missing, it copies the
+                source file to the destination.
                 > Logs the action taken for transparency.
-            - File Timestamp Validation:
-                > Uses the LastWriteTime property to compare timestamps.
-                > Ensures only newer files are copied.
+            - File Comparison:
+                > Uses (Get-Item $SourceFile).LastWriteTime to fetch the
+                file's Date Modified timestamp.
             - Preserved File Monitoring:
                 > After the initial comparison, the script initializes
                 FileSystemWatcher objects to monitor file changes.
+            - Logs:
+                > Detailed log entries are created for:
+                    *Outdated or missing files that are copied.
+                    *Files that are already up-to-date.
+                    *Errors encountered during the initial synchronization.
+        EXECUTION FLOW:
+            - When the script starts:
+                > It checks each file defined in $FilesToMonitor to ensure
+                the destination files are up-to-date.
+                > Any outdated or missing file is immediately copied.
+            - After synchronization:
+                > The script continues monitoring file changes in real-time
+                using FileSystemWatcher.
+            - Logs:
+                > All operations (initial synchronization and file changes)
+                are recorded in daily log files.
 
 2024-12-16:[UPDATES]
     Rewrite to leverage FileSystemWatcher instead of Robocopy.
