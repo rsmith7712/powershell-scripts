@@ -41,150 +41,260 @@
             completes.
 
 .FUNCTIONALITY
-    STEP 1: PREPARE THE SCRIPT
-    **************************
-        Save the Script:
-            - Save the script to any location, e.g., C:\Temp\MonitorFileCopy.ps1.
-        Run the Script:
-            -Run script manually in PowerShell:
-            powershell.exe -ExecutionPolicy Bypass -File "C:\Temp\MonitorFileCopy.ps1"
-        Automatic Relocation:
-            - If the script is not in C:\Scripts, it:
-                > Creates C:\Scripts if it doesn’t exist.
-                > Copies itself to C:\Scripts\MonitorFileCopy.ps1.
-                > Relaunches the script as an Administrator.
-                > Logs the activity in C:\Scripts\Logs.
-        Log Folder Creation:
-            - Validates and creates C:\Scripts\Logs automatically.
-        Daily Log Management:
-            - Logs are stored in the format:
-            C:\Scripts\Logs\Activity-MonitorFileCopy-YYYY-MM-DD.log
-            - Each log entry includes:
-                > Date and time in yyyy-MM-dd HH:mm:ss format.
-                > Execution details, file changes, errors, and updates.
-        File Monitoring:
-            - Monitors C:\Planning Report Data Sources\report.xlsx.
-            - On a change, it uses Robocopy to copy the file to
-            E:\Planning Report Data Sources.
-            - Logs success or error messages.
-    
-    STEP 2: SCHEDULE THE SCRIPT WITH TASK SCHEDULER
-    ***********************************************
-        To ensure the script runs automatically at startup after a reboot, 
-        configure a Scheduled Task in Windows Task Scheduler.
-
-        Open Task Scheduler:
-            - Press Win + R, type taskschd.msc, and press Enter.
-        Create a New Task:
-            - Click Create Task on the right-hand side.
-        General Tab:
-            - Name: MonitorFileCopy
-            - Description: "Monitors file changes and copies them automatically."
-            - Security options:
-                > Select Run whether user is logged on or not.
-                > Check Run with highest privileges (ensures it runs
-                with admin permissions).
-        Triggers Tab:
-            - Click New... to create a trigger.
-            - Configure as follows:
-                > Begin the task: At startup
-                > Check Enabled.
-            - Click OK.
-        Actions Tab:
-            - Click New... to add an action.
-            - Configure as follows:
-                > Action: Start a program
-            >EITHER<
-                # PowerShell 5x
-                > Program/script: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-            >OR<
-                #PowerShell 7x    
-                > Program/script: C:\Program Files\PowerShell\7\pwsh.exe
-                > Add arguments: -ExecutionPolicy Bypass -File "C:\Scripts\MonitorFileCopy.ps1"
-            - Click OK.
-        Conditions Tab:
-            - Uncheck "Start the task only if the computer is on AC power" 
-            to ensure it runs if on laptops running on battery.
-        Settings Tab:
-            - Check:
-                > Allow task to be run on demand
-                > Run task as soon as possible after a scheduled start is missed
-            - Uncheck:
-                > Stop the task if it runs longer than... (the script runs
-                indefinitely).
-        Save and Test:
-            - Click OK to save the task.
-            - If prompted, provide the admin credentials.
-            - Restart computer system to ensure the task runs at startup.
-
-    
-    STEP 3: VERIFY SCHEDULED TASK BEHAVIOR
-    **************************************
-        Reboot the System:
-            - Restart the computer to ensure the task runs on startup.
-            - Check Task Scheduler:
-                > Open Task Scheduler and check the History tab for the task to
-                confirm it started successfully.
-                > Check C:\Scripts\Logs for activity.
-            - Test File Monitoring:
-                > Modify the monitored file to trigger the FileSystemWatcher.
-                > Verify:
-                    *Modify both monitored files (report.xlsx and report2.xlsx)
-                    to ensure changes trigger file copying.
-                    *A log entry is created in C:\Scripts\Logs.
-                > Restart the system to confirm the Scheduled Task runs
-                automatically and logs its startup.
-
-    STEP 4: ENSURE SURVIVABILITY
-    ****************************
-        Permissions:
-            - Ensure the account running the script has:
-                > Read access to the source file.
-                > Write access to the destination folder.
-            - Use an account with administrative privileges for the Scheduled
-            Task.
-        Execution Policy:
-            - The -ExecutionPolicy Bypass argument ensures the script runs
-            regardless of system restrictions.
-        
-    STEP 5: ADDITIONAL TROUBLESHOOTING TIPS (IF NEEDED)
-    ***************************************************
-        Verify File Locks:
-            - Ensure no process locks the destination file, preventing
-            overwrites.
-            - Use tools like Handle (Sysinternals) or Resource Monitor to
-            identify file locks.
-        Permissions:
-            - Ensure the script has proper write permissions for the
-            destination folder.
-            - Run the script as an Administrator.
-        Testing:
-            - Modify the source file and observe the log to confirm the copy
-            operation.
-            - Check if the destination file is updated with the new contents.
-        Log Additional Details:
-            - Add file metadata (e.g., timestamp, size) to the log to confirm
-            what is being copied:
-            $SourceInfo = Get-Item $SourceFile
-            Write-Log "Source File: $SourceFile | Size: $($SourceInfo.Length) | Modified: $($SourceInfo.LastWriteTime)"
-
-    STEP 6: HOW TO ADD MORE FILES TO MONITOR (IF NEEDED)
-    ****************************************************
-        To monitor more files, simply add their names to the $FilesToMonitor
-        array:
-        $FilesToMonitor = @("report.xlsx", "report2.xlsx", "report3.xlsx", "data.csv")
-
-    FINAL THOUGHTS
-    **************
-        Script updates now ensures the following:
-            - Automatic relocation to C:\Scripts.
-            - Administrator relaunch for proper execution.
-            - Detailed logging with timestamps.
-            - Survivability after a system reboot using Task Scheduler.
-        The updated approach ensures robustness, clear logging, and
-        self-healing for long-term automated monitoring.
+    See FUNCTIONALITY section at bottom of script for detailed instructions
+    on setting up this script, and the associated Scheduled Task.
 
 .NOTES
+    See HISTORY section at bottom of script for development updates.
+#>
+# Define core paths
+$ScriptName = "MonitorFileCopy.ps1"
+$TargetFolder = "C:\Scripts"
+$LogFolder = "C:\Scripts\Logs"
+$ScriptFullPath = "$TargetFolder\$ScriptName"
+
+# -------------------------------
+# Function: Write Log
+# -------------------------------
+function Write-Log {
+    param ([string]$Message)
+    $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $LogFile = "$LogFolder\Activity-MonitorFileCopy-$(Get-Date -Format "yyyy-MM-dd").log"
+
+    # Create log folder if it doesn't exist
+    if (-not (Test-Path -Path $LogFolder)) {
+        New-Item -Path $LogFolder -ItemType Directory -Force | Out-Null
+    }
+
+    # Write to log file
+    Add-Content -Path $LogFile -Value "$Timestamp - $Message"
+}
+
+# -------------------------------
+# Step 1: Validate Script Location
+# -------------------------------
+if ($PSScriptRoot -ne $TargetFolder) {
+    Write-Host "Script is not running from $TargetFolder. Moving script..."
+    Write-Log "Script not in $TargetFolder. Moving script."
+
+    # Create target folder if it doesn't exist
+    if (-not (Test-Path -Path $TargetFolder)) {
+        New-Item -Path $TargetFolder -ItemType Directory -Force | Out-Null
+        Write-Log "Created folder: $TargetFolder"
+    }
+
+    # Copy script to target folder
+    Copy-Item -Path $MyInvocation.MyCommand.Definition -Destination $ScriptFullPath -Force
+    Write-Log "Copied script to $TargetFolder"
+
+    # Relaunch script in administrator mode
+    Write-Host "Restarting script in administrative mode..."
+    Start-Process -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -File $ScriptFullPath" -Verb RunAs
+    Write-Log "Relaunched script as Administrator."
+
+    # Exit old session
+    exit
+}
+
+# -------------------------------
+# Step 2: File Monitoring Setup
+# -------------------------------
+# Define file paths for monitoring and copying
+$SourceFolder = "C:\Planning Report Data Sources"
+$DestinationFolder = "E:\Planning Report Data Sources"
+$FilesToMonitor = @("report1.csv", "report2.csv")  # Files to monitor
+
+Write-Log "Script execution started. Monitoring files: $($FilesToMonitor -join ', ')"
+
+# Initialize FileSystemWatchers
+$watchers = @()
+
+foreach ($file in $FilesToMonitor) {
+    $watcher = New-Object System.IO.FileSystemWatcher
+    $watcher.Path = $SourceFolder
+    $watcher.Filter = $file
+    $watcher.NotifyFilter = [System.IO.NotifyFilters]'LastWrite'
+    $watchers += $watcher
+
+    # Action on file change
+    Register-ObjectEvent $watcher "Changed" -Action {
+        $ChangedFile = $Event.SourceEventArgs.FullPath
+        $DestinationFile = Join-Path -Path $DestinationFolder -ChildPath (Split-Path $ChangedFile -Leaf)
+        Write-Log "Change detected in $ChangedFile. Copying to $DestinationFile."
+
+        try {
+            # Copy the file explicitly with overwrite
+            Copy-Item -Path $ChangedFile -Destination $DestinationFile -Force
+            Write-Log "File '$($Event.SourceEventArgs.Name)' copied successfully to $DestinationFile."
+        }
+        catch {
+            Write-Log "Error copying file '$($Event.SourceEventArgs.Name)': $_"
+        }
+    }
+}
+
+# -------------------------------
+# Step 3: Continuous Execution
+# -------------------------------
+Write-Host "Monitoring file changes for: $($FilesToMonitor -join ', ')"
+Write-Host "Logs will be stored in: $LogFolder"
+Write-Log "File monitoring initialized for $($FilesToMonitor -join ', ')."
+
+# Keep script alive
+while ($true) {
+    Start-Sleep -Seconds 1
+}
+
+<#
+*********************************************************
+*********************************************************
+.FUNCTIONALITY
+    STEP 1: PREPARE THE SCRIPT
+        **************************
+            Save the Script:
+                - Save the script to any location, e.g., C:\Temp\MonitorFileCopy.ps1.
+            Run the Script:
+                -Run script manually in PowerShell:
+                powershell.exe -ExecutionPolicy Bypass -File "C:\Temp\MonitorFileCopy.ps1"
+            Automatic Relocation:
+                - If the script is not in C:\Scripts, it:
+                    > Creates C:\Scripts if it doesn’t exist.
+                    > Copies itself to C:\Scripts\MonitorFileCopy.ps1.
+                    > Relaunches the script as an Administrator.
+                    > Logs the activity in C:\Scripts\Logs.
+            Log Folder Creation:
+                - Validates and creates C:\Scripts\Logs automatically.
+            Daily Log Management:
+                - Logs are stored in the format:
+                C:\Scripts\Logs\Activity-MonitorFileCopy-YYYY-MM-DD.log
+                - Each log entry includes:
+                    > Date and time in yyyy-MM-dd HH:mm:ss format.
+                    > Execution details, file changes, errors, and updates.
+            File Monitoring:
+                - Monitors C:\Planning Report Data Sources\report.xlsx.
+                - On a change, it uses Robocopy to copy the file to
+                E:\Planning Report Data Sources.
+                - Logs success or error messages.
+        
+        STEP 2: SCHEDULE THE SCRIPT WITH TASK SCHEDULER
+        ***********************************************
+            To ensure the script runs automatically at startup after a reboot, 
+            configure a Scheduled Task in Windows Task Scheduler.
+
+            Open Task Scheduler:
+                - Press Win + R, type taskschd.msc, and press Enter.
+            Create a New Task:
+                - Click Create Task on the right-hand side.
+            General Tab:
+                - Name: MonitorFileCopy
+                - Description: "Monitors file changes and copies them automatically."
+                - Security options:
+                    > Select Run whether user is logged on or not.
+                    > Check Run with highest privileges (ensures it runs
+                    with admin permissions).
+            Triggers Tab:
+                - Click New... to create a trigger.
+                - Configure as follows:
+                    > Begin the task: At startup
+                    > Check Enabled.
+                - Click OK.
+            Actions Tab:
+                - Click New... to add an action.
+                - Configure as follows:
+                    > Action: Start a program
+                >EITHER<
+                    # PowerShell 5x
+                    > Program/script: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+                >OR<
+                    #PowerShell 7x    
+                    > Program/script: C:\Program Files\PowerShell\7\pwsh.exe
+                    > Add arguments: -ExecutionPolicy Bypass -File "C:\Scripts\MonitorFileCopy.ps1"
+                - Click OK.
+            Conditions Tab:
+                - Uncheck "Start the task only if the computer is on AC power" 
+                to ensure it runs if on laptops running on battery.
+            Settings Tab:
+                - Check:
+                    > Allow task to be run on demand
+                    > Run task as soon as possible after a scheduled start is missed
+                - Uncheck:
+                    > Stop the task if it runs longer than... (the script runs
+                    indefinitely).
+            Save and Test:
+                - Click OK to save the task.
+                - If prompted, provide the admin credentials.
+                - Restart computer system to ensure the task runs at startup.
+        
+        STEP 3: VERIFY SCHEDULED TASK BEHAVIOR
+        **************************************
+            Reboot the System:
+                - Restart the computer to ensure the task runs on startup.
+                - Check Task Scheduler:
+                    > Open Task Scheduler and check the History tab for the task to
+                    confirm it started successfully.
+                    > Check C:\Scripts\Logs for activity.
+                - Test File Monitoring:
+                    > Modify the monitored file to trigger the FileSystemWatcher.
+                    > Verify:
+                        *Modify both monitored files (report.xlsx and report2.xlsx)
+                        to ensure changes trigger file copying.
+                        *A log entry is created in C:\Scripts\Logs.
+                    > Restart the system to confirm the Scheduled Task runs
+                    automatically and logs its startup.
+
+        STEP 4: ENSURE SURVIVABILITY
+        ****************************
+            Permissions:
+                - Ensure the account running the script has:
+                    > Read access to the source file.
+                    > Write access to the destination folder.
+                - Use an account with administrative privileges for the Scheduled
+                Task.
+            Execution Policy:
+                - The -ExecutionPolicy Bypass argument ensures the script runs
+                regardless of system restrictions.
+            
+        STEP 5: ADDITIONAL TROUBLESHOOTING TIPS (IF NEEDED)
+        ***************************************************
+            Verify File Locks:
+                - Ensure no process locks the destination file, preventing
+                overwrites.
+                - Use tools like Handle (Sysinternals) or Resource Monitor to
+                identify file locks.
+            Permissions:
+                - Ensure the script has proper write permissions for the
+                destination folder.
+                - Run the script as an Administrator.
+            Testing:
+                - Modify the source file and observe the log to confirm the copy
+                operation.
+                - Check if the destination file is updated with the new contents.
+            Log Additional Details:
+                - Add file metadata (e.g., timestamp, size) to the log to confirm
+                what is being copied:
+                $SourceInfo = Get-Item $SourceFile
+                Write-Log "Source File: $SourceFile | Size: $($SourceInfo.Length) | Modified: $($SourceInfo.LastWriteTime)"
+
+        STEP 6: HOW TO ADD MORE FILES TO MONITOR (IF NEEDED)
+        ****************************************************
+            To monitor more files, simply add their names to the $FilesToMonitor
+            array:
+            $FilesToMonitor = @("report.xlsx", "report2.xlsx", "report3.xlsx", "data.csv")
+
+        FINAL THOUGHTS
+        **************
+            Script updates now ensures the following:
+                - Automatic relocation to C:\Scripts.
+                - Administrator relaunch for proper execution.
+                - Detailed logging with timestamps.
+                - Survivability after a system reboot using Task Scheduler.
+            The updated approach ensures robustness, clear logging, and
+            self-healing for long-term automated monitoring.
+
+*********************************************************
+*********************************************************
+
+.HISTORY
 2024-12-17:[UPDATES]
     (1) Below are the updated features added:
         Script Location Validation:
@@ -326,101 +436,3 @@
         to copy the file from "C:\Planning Report Data Sources" to
         "E:\Planning Report Data Sources".
 #>
-
-# Define core paths
-$ScriptName = "MonitorFileCopy.ps1"
-$TargetFolder = "C:\Scripts"
-$LogFolder = "C:\Scripts\Logs"
-$ScriptFullPath = "$TargetFolder\$ScriptName"
-
-# -------------------------------
-# Function: Write Log
-# -------------------------------
-function Write-Log {
-    param ([string]$Message)
-    $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $LogFile = "$LogFolder\Activity-MonitorFileCopy-$(Get-Date -Format "yyyy-MM-dd").log"
-
-    # Create log folder if it doesn't exist
-    if (-not (Test-Path -Path $LogFolder)) {
-        New-Item -Path $LogFolder -ItemType Directory -Force | Out-Null
-    }
-
-    # Write to log file
-    Add-Content -Path $LogFile -Value "$Timestamp - $Message"
-}
-
-# -------------------------------
-# Step 1: Validate Script Location
-# -------------------------------
-if ($PSScriptRoot -ne $TargetFolder) {
-    Write-Host "Script is not running from $TargetFolder. Moving script..."
-    Write-Log "Script not in $TargetFolder. Moving script."
-
-    # Create target folder if it doesn't exist
-    if (-not (Test-Path -Path $TargetFolder)) {
-        New-Item -Path $TargetFolder -ItemType Directory -Force | Out-Null
-        Write-Log "Created folder: $TargetFolder"
-    }
-
-    # Copy script to target folder
-    Copy-Item -Path $MyInvocation.MyCommand.Definition -Destination $ScriptFullPath -Force
-    Write-Log "Copied script to $TargetFolder"
-
-    # Relaunch script in administrator mode
-    Write-Host "Restarting script in administrative mode..."
-    Start-Process -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -File $ScriptFullPath" -Verb RunAs
-    Write-Log "Relaunched script as Administrator."
-
-    # Exit old session
-    exit
-}
-
-# -------------------------------
-# Step 2: File Monitoring Setup
-# -------------------------------
-# Define file paths for monitoring and copying
-$SourceFolder = "C:\Planning Report Data Sources"
-$DestinationFolder = "E:\Planning Report Data Sources"
-$FilesToMonitor = @("report1.csv", "report2.csv")  # Files to monitor
-
-Write-Log "Script execution started. Monitoring files: $($FilesToMonitor -join ', ')"
-
-# Initialize FileSystemWatchers
-$watchers = @()
-
-foreach ($file in $FilesToMonitor) {
-    $watcher = New-Object System.IO.FileSystemWatcher
-    $watcher.Path = $SourceFolder
-    $watcher.Filter = $file
-    $watcher.NotifyFilter = [System.IO.NotifyFilters]'LastWrite'
-    $watchers += $watcher
-
-    # Action on file change
-    Register-ObjectEvent $watcher "Changed" -Action {
-        $ChangedFile = $Event.SourceEventArgs.FullPath
-        $DestinationFile = Join-Path -Path $DestinationFolder -ChildPath (Split-Path $ChangedFile -Leaf)
-        Write-Log "Change detected in $ChangedFile. Copying to $DestinationFile."
-
-        try {
-            # Copy the file explicitly with overwrite
-            Copy-Item -Path $ChangedFile -Destination $DestinationFile -Force
-            Write-Log "File '$($Event.SourceEventArgs.Name)' copied successfully to $DestinationFile."
-        }
-        catch {
-            Write-Log "Error copying file '$($Event.SourceEventArgs.Name)': $_"
-        }
-    }
-}
-
-# -------------------------------
-# Step 3: Continuous Execution
-# -------------------------------
-Write-Host "Monitoring file changes for: $($FilesToMonitor -join ', ')"
-Write-Host "Logs will be stored in: $LogFolder"
-Write-Log "File monitoring initialized for $($FilesToMonitor -join ', ')."
-
-# Keep script alive
-while ($true) {
-    Start-Sleep -Seconds 1
-}
