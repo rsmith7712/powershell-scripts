@@ -180,10 +180,9 @@ while ($true) {
     Start-Sleep -Seconds 1
 }
 
-#region FUNCTIONALITY
+#region FUNCTIONALITY: STEP 1: PREPARE THE SCRIPT
 <#
-.FUNCTIONALITY
-    STEP 1: PREPARE THE SCRIPT
+        STEP 1: PREPARE THE SCRIPT
         **************************
             Save the Script:
                 - Save the script to any location, e.g., C:\Temp\MonitorFileCopy.ps1.
@@ -209,7 +208,10 @@ while ($true) {
                 - On a change, it uses Robocopy to copy the file to
                 E:\Planning Report Data Sources.
                 - Logs success or error messages.
-        
+#>
+#endregion FUNCTIONALITY: STEP 1: PREPARE THE SCRIPT
+#region FUNCTIONALITY: STEP 2: SCHEDULE THE SCRIPT WITH TASK SCHEDULER
+<#
         STEP 2: SCHEDULE THE SCRIPT WITH TASK SCHEDULER
         ***********************************************
             To ensure the script runs automatically at startup after a reboot, 
@@ -258,7 +260,10 @@ while ($true) {
                 - Click OK to save the task.
                 - If prompted, provide the admin credentials.
                 - Restart computer system to ensure the task runs at startup.
-        
+#>
+#endregion FUNCTIONALITY: STEP 2: SCHEDULE THE SCRIPT WITH TASK SCHEDULER
+#region FUNCTIONALITY: STEP 3: VERIFY SCHEDULED TASK BEHAVIOR
+<#
         STEP 3: VERIFY SCHEDULED TASK BEHAVIOR
         **************************************
             Reboot the System:
@@ -275,7 +280,10 @@ while ($true) {
                         *A log entry is created in C:\Scripts\Logs.
                     > Restart the system to confirm the Scheduled Task runs
                     automatically and logs its startup.
-
+#>
+#endregion FUNCTIONALITY: STEP 3: VERIFY SCHEDULED TASK BEHAVIOR
+#region FUNCTIONALITY: STEP 4: ENSURE SURVIVABILITY
+<#
         STEP 4: ENSURE SURVIVABILITY
         ****************************
             Permissions:
@@ -287,7 +295,10 @@ while ($true) {
             Execution Policy:
                 - The -ExecutionPolicy Bypass argument ensures the script runs
                 regardless of system restrictions.
-            
+#>
+#endregion FUNCTIONALITY: STEP 4: ENSURE SURVIVABILITY
+#region FUNCTIONALITY: STEP 5: ADDITIONAL TROUBLESHOOTING TIPS (IF NEEDED)
+<#
         STEP 5: ADDITIONAL TROUBLESHOOTING TIPS (IF NEEDED)
         ***************************************************
             Verify File Locks:
@@ -308,13 +319,19 @@ while ($true) {
                 what is being copied:
                 $SourceInfo = Get-Item $SourceFile
                 Write-Log "Source File: $SourceFile | Size: $($SourceInfo.Length) | Modified: $($SourceInfo.LastWriteTime)"
-
+#>
+#endregion FUNCTIONALITY: STEP 5: ADDITIONAL TROUBLESHOOTING TIPS (IF NEEDED)
+#region FUNCTIONALITY: STEP 6: HOW TO ADD MORE FILES TO MONITOR (IF NEEDED)
+<#
         STEP 6: HOW TO ADD MORE FILES TO MONITOR (IF NEEDED)
         ****************************************************
             To monitor more files, simply add their names to the $FilesToMonitor
             array:
             $FilesToMonitor = @("report.xlsx", "report2.xlsx", "report3.xlsx", "data.csv")
-
+#>
+#endregion FUNCTIONALITY: STEP 6: HOW TO ADD MORE FILES TO MONITOR (IF NEEDED)
+#region FUNCTIONALITY: FINAL THOUGHTS
+<#
         FINAL THOUGHTS
         **************
             Script updates now ensures the following:
@@ -325,184 +342,206 @@ while ($true) {
             The updated approach ensures robustness, clear logging, and
             self-healing for long-term automated monitoring.
 #>
-#endregion FUNCTIONALITY
-
-#region HISTORY
+#endregion FUNCTIONALITY: FINAL THOUGHTS
+#region 2024-12-17 UPDATE 1
 <#
-.HISTORY
-2024-12-17:[UPDATES]
-    (1) Below are the updated features added:
-        Script Location Validation:
-            - Ensures the script is executed from C:\Scripts.
-        Automatic Relocation:
-            - If not in C:\Scripts, copies itself and restarts with
-            administrative privileges.
-        Log Management:
-            - Creates detailed logs stored in C:\Scripts\Logs with daily
-            activity recording.
-        Logging Format:
-            - Logs entries with date (yyyy-MM-dd) and time
-            (HH:mm:ss) in a structured format.
-    (2) Updated detailed steps for implementation
-    (3) TROUBLESHOOTING: 
-            - The script detects file changes, launches, reports in log file
-            that it copies file from source location to destination location,
-            but in the destination location, the file's Date Modified value
-            does not change, nor are the updates from the source file appearing
-            in the destination. The source file will be overwriting an existing
-            file in the destination folder with the same name.
-        CAUSE:
-            - [Summary] The issue occurs because Robocopy skips overwriting files
-            with the same timestamp and size. By adding the /IS and /IT flags, we
-            explicitly instruct Robocopy to overwrite the file every time a
-            change is detected, ensuring the updated file is always copied to
-            the destination.
-            - [Adt'l Info] Robocopy is skipping the file because:
-                > The source file's Date Modified timestamp and size are
-                identical to the destination file.
-                > Even though the file contents may have changed, the timestamp
-                may not be updated immediately or correctly due to certain
-                systems/applications caching file metadata.
-        SOLUTION:
-            - Address the issue by explicitly forcing Robocopy to overwrite
-            files regardless of timestamps or sizes.
-        CODE UPDATES:
-            - Replace the current Robocopy line:
-            [Current] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5" | Out-Null
-            [Updated] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5 /IS /IT" | Out-Null
-        EXPLANATION OF UPDATED ROBOCOPY FLAGS:
-            - /IS: Copies files even if they are the same size (ignores size
-            comparison).
-            - /IT: Copies files even if they have the same timestamp (ignores
-            timestamp comparison).
-            - /Z: Copies files in restartable mode (resumable on failure).
-            - /R:3: Retries the copy operation 3 times if it fails.
-            - /W:5: Waits 5 seconds between retries.
-            These flags ensure that the destination file is always overwritten,
-            even if the Date Modified timestamp and file size appear unchanged.
-    (4) The updated script dynamically monitors multiple files using a loop.
-            - It ensures:
-                > Efficient file monitoring for multiple files.
-                > Robust logging for each change and copy operation.
-                > File overwrites using Robocopy with the /IS and /IT flags.
-            By deploying this script and configuring a Scheduled Task, you can
-            ensure automated file monitoring and copying for multiple files
-            across reboots.
-        KEY UPDATES:
-            - $FilesToMonitor Array:
-                > Define the list of files to monitor using this array:
-                $FilesToMonitor = @("report.xlsx", "report2.xlsx")
-            - Dynamic FileSystemWatcher Creation:
-                > A foreach loop initializes a FileSystemWatcher for each file
-                in the array.
-                > Each watcher monitors the file's LastWrite changes and
-                triggers the robocopy action.
-            - File Change Action:
-                > The script dynamically identifies the file that changed and
-                logs the details.
-                > Robocopy explicitly copies the changed file to the
-                destination folder using:
-                robocopy $SourceFolder $DestinationFolder $file "/Z /R:3 /W:5 /IS /IT"
-            - Detailed Logging:
-                > Each detected file change is logged with the file name,
-                date, and time.
-    (5) TROUBLESHOOTING:
-            - Observed behavior indicates two key problems:
-                > File Replication Issue: 
-                    *The log shows report2.csv being copied, even when the
-                    trigger was a change to report1.csv. This is due to how
-                    the Register-ObjectEvent dynamically handles file names
-                    during the action execution.
-                > Robocopy Issue:
-                    *Despite being reported as copied, the files' "Date
-                    Modified" timestamps and content are not updated. This
-                    strongly suggests that Robocopy is unsuitable for
-                    overwriting small files in scenarios where the source is
-                    continuously changing or that Robocopy caching/skip logic
-                    is interfering.
-        SOLUTION:
-            - Instead of relying on Robocopy, we will switch to PowerShell's
-            built-in Copy-Item cmdlet, which:
-                > Provides simpler and more predictable behavior.
-                > Allows you to force overwrites without file size/timestamp
-                checks.
-        CODE UPDATES:
-            - Accurate File Triggering: 
-                > Ensures the correct file is processed on a change.
-            - Reliable Copying:
-                > Uses Copy-Item -Force to overwrite files explicitly.
-        KEY UPDATES:
-            - Accurate File Handling:
-                > $Event.SourceEventArgs.FullPath dynamically captures the
-                full path of the file that triggered the event.
-                > Prevents unrelated files (e.g., report2.csv) from being
-                incorrectly processed.
-            - Switch to Copy-Item:
-                > Copy-Item with the -Force flag reliably overwrites files
-                in the destination folder.
-                > Avoids Robocopy's skipping logic based on timestamps or
-                file sizes.
-            - Detailed Logging:
-                > Each operation logs the specific file being copied and
-                any errors encountered.
-        BENEFITS OF USING COPY-ITEM OVER ROBOCOPY:
-            - Simpler and more predictable behavior.
-            - No reliance on external tools like Robocopy.
-            - Reliable file overwriting with the -Force parameter.
-        FINAL NOTES:
-            - This approach resolves the file replication issue and
-            ensures reliable copying.
-            - Copy-Item provides simplicity and avoids the complexities
-            of Robocopy in this scenario.
-            - Logs clearly document the file changes, making
-            troubleshooting easier.
-    (6) [Summary] Script now includes a pre-check during the initial
-        script launch to compare the Date Modified timestamps of the source
-        and destination files. If the destination files are older (or
-        missing), the script will initiate a copy of the source files to
-        update the destination files.
-        KEY UPDATES:
-            - Initial Synchronization:
-                > The script compares the LastWriteTime (Date Modified) of
-                each file in the source and destination.
-                > If the destination file is older or missing, it copies the
-                source file to the destination.
-                > Logs the action taken for transparency.
-            - File Comparison:
-                > Uses (Get-Item $SourceFile).LastWriteTime to fetch the
-                file's Date Modified timestamp.
-            - Preserved File Monitoring:
-                > After the initial comparison, the script initializes
-                FileSystemWatcher objects to monitor file changes.
-            - Logs:
-                > Detailed log entries are created for:
-                    *Outdated or missing files that are copied.
-                    *Files that are already up-to-date.
-                    *Errors encountered during the initial synchronization.
-        EXECUTION FLOW:
-            - When the script starts:
-                > It checks each file defined in $FilesToMonitor to ensure
-                the destination files are up-to-date.
-                > Any outdated or missing file is immediately copied.
-            - After synchronization:
-                > The script continues monitoring file changes in real-time
-                using FileSystemWatcher.
-            - Logs:
-                > All operations (initial synchronization and file changes)
-                are recorded in daily log files.
-
-2024-12-16:[UPDATES]
+Below are the updated features added:
+    Script Location Validation:
+        - Ensures the script is executed from C:\Scripts.
+    Automatic Relocation:
+        - If not in C:\Scripts, copies itself and restarts with
+        administrative privileges.
+    Log Management:
+        - Creates detailed logs stored in C:\Scripts\Logs with daily
+        activity recording.
+    Logging Format:
+        - Logs entries with date (yyyy-MM-dd) and time
+        (HH:mm:ss) in a structured format.
+#>
+#endregion 2024-12-17 UPDATE 1
+#region 2024-12-17 UPDATE 2
+<#
+Updated detailed steps for implementation
+#>
+#endregion 2024-12-17 UPDATE 2
+#region 2024-12-17 UPDATE 3
+<#
+TROUBLESHOOTING: 
+    - The script detects file changes, launches, reports in log file
+    that it copies file from source location to destination location,
+    but in the destination location, the file's Date Modified value
+    does not change, nor are the updates from the source file appearing
+    in the destination. The source file will be overwriting an existing
+    file in the destination folder with the same name.
+CAUSE:
+    - [Summary] The issue occurs because Robocopy skips overwriting files
+    with the same timestamp and size. By adding the /IS and /IT flags, we
+    explicitly instruct Robocopy to overwrite the file every time a
+    change is detected, ensuring the updated file is always copied to
+    the destination.
+    - [Adt'l Info] Robocopy is skipping the file because:
+        > The source file's Date Modified timestamp and size are
+        identical to the destination file.
+        > Even though the file contents may have changed, the timestamp
+        may not be updated immediately or correctly due to certain
+        systems/applications caching file metadata.
+SOLUTION:
+    - Address the issue by explicitly forcing Robocopy to overwrite
+    files regardless of timestamps or sizes.
+CODE UPDATES:
+    - Replace the current Robocopy line:
+    [Current] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5" | Out-Null
+    [Updated] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5 /IS /IT" | Out-Null
+EXPLANATION OF UPDATED ROBOCOPY FLAGS:
+    - /IS: Copies files even if they are the same size (ignores size
+    comparison).
+    - /IT: Copies files even if they have the same timestamp (ignores
+    timestamp comparison).
+    - /Z: Copies files in restartable mode (resumable on failure).
+    - /R:3: Retries the copy operation 3 times if it fails.
+    - /W:5: Waits 5 seconds between retries.
+    These flags ensure that the destination file is always overwritten,
+    even if the Date Modified timestamp and file size appear unchanged.
+#>
+#endregion 2024-12-17 UPDATE 3
+#region 2024-12-17 UPDATE 4
+<#
+The updated script dynamically monitors multiple files using a loop.
+    - It ensures:
+        > Efficient file monitoring for multiple files.
+        > Robust logging for each change and copy operation.
+        > File overwrites using Robocopy with the /IS and /IT flags.
+    By deploying this script and configuring a Scheduled Task, you can
+    ensure automated file monitoring and copying for multiple files
+    across reboots.
+KEY UPDATES:
+    - $FilesToMonitor Array:
+        > Define the list of files to monitor using this array:
+        $FilesToMonitor = @("report.xlsx", "report2.xlsx")
+    - Dynamic FileSystemWatcher Creation:
+        > A foreach loop initializes a FileSystemWatcher for each file
+        in the array.
+        > Each watcher monitors the file's LastWrite changes and
+        triggers the robocopy action.
+    - File Change Action:
+        > The script dynamically identifies the file that changed and
+        logs the details.
+        > Robocopy explicitly copies the changed file to the
+        destination folder using:
+        robocopy $SourceFolder $DestinationFolder $file "/Z /R:3 /W:5 /IS /IT"
+    - Detailed Logging:
+        > Each detected file change is logged with the file name,
+        date, and time.
+#>
+#endregion 2024-12-17 UPDATE 4
+#region 2024-12-17 UPDATE 5
+<#
+TROUBLESHOOTING:
+    - Observed behavior indicates two key problems:
+        > File Replication Issue: 
+            *The log shows report2.csv being copied, even when the
+            trigger was a change to report1.csv. This is due to how
+            the Register-ObjectEvent dynamically handles file names
+            during the action execution.
+        > Robocopy Issue:
+            *Despite being reported as copied, the files' "Date
+            Modified" timestamps and content are not updated. This
+            strongly suggests that Robocopy is unsuitable for
+            overwriting small files in scenarios where the source is
+            continuously changing or that Robocopy caching/skip logic
+            is interfering.
+SOLUTION:
+    - Instead of relying on Robocopy, we will switch to PowerShell's
+    built-in Copy-Item cmdlet, which:
+        > Provides simpler and more predictable behavior.
+        > Allows you to force overwrites without file size/timestamp
+        checks.
+CODE UPDATES:
+    - Accurate File Triggering: 
+        > Ensures the correct file is processed on a change.
+    - Reliable Copying:
+        > Uses Copy-Item -Force to overwrite files explicitly.
+KEY UPDATES:
+    - Accurate File Handling:
+        > $Event.SourceEventArgs.FullPath dynamically captures the
+        full path of the file that triggered the event.
+        > Prevents unrelated files (e.g., report2.csv) from being
+        incorrectly processed.
+    - Switch to Copy-Item:
+        > Copy-Item with the -Force flag reliably overwrites files
+        in the destination folder.
+        > Avoids Robocopy's skipping logic based on timestamps or
+        file sizes.
+    - Detailed Logging:
+        > Each operation logs the specific file being copied and
+        any errors encountered.
+BENEFITS OF USING COPY-ITEM OVER ROBOCOPY:
+    - Simpler and more predictable behavior.
+    - No reliance on external tools like Robocopy.
+    - Reliable file overwriting with the -Force parameter.
+FINAL NOTES:
+    - This approach resolves the file replication issue and
+    ensures reliable copying.
+    - Copy-Item provides simplicity and avoids the complexities
+    of Robocopy in this scenario.
+    - Logs clearly document the file changes, making
+    troubleshooting easier.
+#>
+#endregion 2024-12-17 UPDATE 5
+#region 2024-12-17 UPDATE 6
+<#
+SUMMARY:
+    Script now includes a pre-check during the initial
+    script launch to compare the Date Modified timestamps of the source
+    and destination files. If the destination files are older (or
+    missing), the script will initiate a copy of the source files to
+    update the destination files.
+KEY UPDATES:
+    - Initial Synchronization:
+        > The script compares the LastWriteTime (Date Modified) of
+        each file in the source and destination.
+        > If the destination file is older or missing, it copies the
+        source file to the destination.
+        > Logs the action taken for transparency.
+    - File Comparison:
+        > Uses (Get-Item $SourceFile).LastWriteTime to fetch the
+        file's Date Modified timestamp.
+    - Preserved File Monitoring:
+        > After the initial comparison, the script initializes
+        FileSystemWatcher objects to monitor file changes.
+    - Logs:
+        > Detailed log entries are created for:
+            *Outdated or missing files that are copied.
+            *Files that are already up-to-date.
+            *Errors encountered during the initial synchronization.
+EXECUTION FLOW:
+    - When the script starts:
+        > It checks each file defined in $FilesToMonitor to ensure
+        the destination files are up-to-date.
+        > Any outdated or missing file is immediately copied.
+    - After synchronization:
+        > The script continues monitoring file changes in real-time
+        using FileSystemWatcher.
+    - Logs:
+        > All operations (initial synchronization and file changes)
+        are recorded in daily log files.
+#>
+#endregion 2024-12-17 UPDATE 6
+#region HISTORY 2024-12-16 UPDATE
+<#
     Rewrite to leverage FileSystemWatcher instead of Robocopy.
     FSW is a .NET object available in PowerShell, and allows the
     script to react immediately to changes, rather than polling
     as it is event-driven, only triggers when the file changes,
     and reacts instantly to LastWrite updates.
-
-2024-12-16:[CREATED]
+#>
+#endregion HISTORY 2024-12-16 UPDATE
+#region HISTORY 2024-12-16 CREATED
+<#
     Issue triggering script creation:
         - Create a PowerShell script leveraging Robocopy to monitor a specific
         file name and when it's Date Modified changes the script is triggered
         to copy the file from "C:\Planning Report Data Sources" to
         "E:\Planning Report Data Sources".
 #>
-#endregion HISTORY
+#endregion HISTORY 2024-12-16 CREATED
