@@ -1,5 +1,5 @@
-﻿<#
-.LICENSE
+﻿# LEGAL
+<# LICENSE
     MIT License, Copyright 2024 Richard Smith
 
     Permission is hereby granted, free of charge, to any person obtaining a
@@ -19,7 +19,9 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
-
+#>
+# GENERAL SCRIPT INFORMATION
+<#
 .NAME
     MonitorFileCopy.ps1
 
@@ -180,262 +182,189 @@ while ($true) {
     Start-Sleep -Seconds 1
 }
 
-#region FUNCTIONALITY: STEP 1: PREPARE THE SCRIPT
-<#
-        STEP 1: PREPARE THE SCRIPT
-        **************************
-            Save the Script:
-                - Save the script to any location, e.g., C:\Temp\MonitorFileCopy.ps1.
-            Run the Script:
-                -Run script manually in PowerShell:
-                powershell.exe -ExecutionPolicy Bypass -File "C:\Temp\MonitorFileCopy.ps1"
-            Automatic Relocation:
-                - If the script is not in C:\Scripts, it:
-                    > Creates C:\Scripts if it doesn’t exist.
-                    > Copies itself to C:\Scripts\MonitorFileCopy.ps1.
-                    > Relaunches the script as an Administrator.
-                    > Logs the activity in C:\Scripts\Logs.
-            Log Folder Creation:
-                - Validates and creates C:\Scripts\Logs automatically.
-            Daily Log Management:
-                - Logs are stored in the format:
-                C:\Scripts\Logs\Activity-MonitorFileCopy-YYYY-MM-DD.log
-                - Each log entry includes:
-                    > Date and time in yyyy-MM-dd HH:mm:ss format.
-                    > Execution details, file changes, errors, and updates.
-            File Monitoring:
-                - Monitors C:\Planning Report Data Sources\report.xlsx.
-                - On a change, it uses Robocopy to copy the file to
-                E:\Planning Report Data Sources.
-                - Logs success or error messages.
-#>
-#endregion FUNCTIONALITY: STEP 1: PREPARE THE SCRIPT
-#region FUNCTIONALITY: STEP 2: SCHEDULE THE SCRIPT WITH TASK SCHEDULER
-<#
-        STEP 2: SCHEDULE THE SCRIPT WITH TASK SCHEDULER
-        ***********************************************
-            To ensure the script runs automatically at startup after a reboot, 
-            configure a Scheduled Task in Windows Task Scheduler.
-
-            Open Task Scheduler:
-                - Press Win + R, type taskschd.msc, and press Enter.
-            Create a New Task:
-                - Click Create Task on the right-hand side.
-            General Tab:
-                - Name: MonitorFileCopy
-                - Description: "Monitors file changes and copies them automatically."
-                - Security options:
-                    > Select Run whether user is logged on or not.
-                    > Check Run with highest privileges (ensures it runs
-                    with admin permissions).
-            Triggers Tab:
-                - Click New... to create a trigger.
-                - Configure as follows:
-                    > Begin the task: At startup
-                    > Check Enabled.
-                - Click OK.
-            Actions Tab:
-                - Click New... to add an action.
-                - Configure as follows:
-                    > Action: Start a program
-                >EITHER<
-                    # PowerShell 5x
-                    > Program/script: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-                >OR<
-                    #PowerShell 7x    
-                    > Program/script: C:\Program Files\PowerShell\7\pwsh.exe
-                    > Add arguments: -ExecutionPolicy Bypass -File "C:\Scripts\MonitorFileCopy.ps1"
-                - Click OK.
-            Conditions Tab:
-                - Uncheck "Start the task only if the computer is on AC power" 
-                to ensure it runs if on laptops running on battery.
-            Settings Tab:
-                - Check:
-                    > Allow task to be run on demand
-                    > Run task as soon as possible after a scheduled start is missed
-                - Uncheck:
-                    > Stop the task if it runs longer than... (the script runs
-                    indefinitely).
-            Save and Test:
-                - Click OK to save the task.
-                - If prompted, provide the admin credentials.
-                - Restart computer system to ensure the task runs at startup.
-#>
-#endregion FUNCTIONALITY: STEP 2: SCHEDULE THE SCRIPT WITH TASK SCHEDULER
-#region FUNCTIONALITY: STEP 3: VERIFY SCHEDULED TASK BEHAVIOR
-<#
-        STEP 3: VERIFY SCHEDULED TASK BEHAVIOR
-        **************************************
-            Reboot the System:
-                - Restart the computer to ensure the task runs on startup.
-                - Check Task Scheduler:
-                    > Open Task Scheduler and check the History tab for the task to
-                    confirm it started successfully.
-                    > Check C:\Scripts\Logs for activity.
-                - Test File Monitoring:
-                    > Modify the monitored file to trigger the FileSystemWatcher.
-                    > Verify:
-                        *Modify both monitored files (report.xlsx and report2.xlsx)
-                        to ensure changes trigger file copying.
-                        *A log entry is created in C:\Scripts\Logs.
-                    > Restart the system to confirm the Scheduled Task runs
-                    automatically and logs its startup.
-#>
-#endregion FUNCTIONALITY: STEP 3: VERIFY SCHEDULED TASK BEHAVIOR
-#region FUNCTIONALITY: STEP 4: ENSURE SURVIVABILITY
-<#
-        STEP 4: ENSURE SURVIVABILITY
-        ****************************
-            Permissions:
-                - Ensure the account running the script has:
-                    > Read access to the source file.
-                    > Write access to the destination folder.
-                - Use an account with administrative privileges for the Scheduled
-                Task.
-            Execution Policy:
-                - The -ExecutionPolicy Bypass argument ensures the script runs
-                regardless of system restrictions.
-#>
-#endregion FUNCTIONALITY: STEP 4: ENSURE SURVIVABILITY
-#region FUNCTIONALITY: STEP 5: ADDITIONAL TROUBLESHOOTING TIPS (IF NEEDED)
-<#
-        STEP 5: ADDITIONAL TROUBLESHOOTING TIPS (IF NEEDED)
-        ***************************************************
-            Verify File Locks:
-                - Ensure no process locks the destination file, preventing
-                overwrites.
-                - Use tools like Handle (Sysinternals) or Resource Monitor to
-                identify file locks.
-            Permissions:
-                - Ensure the script has proper write permissions for the
-                destination folder.
-                - Run the script as an Administrator.
-            Testing:
-                - Modify the source file and observe the log to confirm the copy
-                operation.
-                - Check if the destination file is updated with the new contents.
-            Log Additional Details:
-                - Add file metadata (e.g., timestamp, size) to the log to confirm
-                what is being copied:
-                $SourceInfo = Get-Item $SourceFile
-                Write-Log "Source File: $SourceFile | Size: $($SourceInfo.Length) | Modified: $($SourceInfo.LastWriteTime)"
-#>
-#endregion FUNCTIONALITY: STEP 5: ADDITIONAL TROUBLESHOOTING TIPS (IF NEEDED)
-#region FUNCTIONALITY: STEP 6: HOW TO ADD MORE FILES TO MONITOR (IF NEEDED)
-<#
-        STEP 6: HOW TO ADD MORE FILES TO MONITOR (IF NEEDED)
-        ****************************************************
-            To monitor more files, simply add their names to the $FilesToMonitor
-            array:
-            $FilesToMonitor = @("report.xlsx", "report2.xlsx", "report3.xlsx", "data.csv")
-#>
-#endregion FUNCTIONALITY: STEP 6: HOW TO ADD MORE FILES TO MONITOR (IF NEEDED)
-#region FUNCTIONALITY: FINAL THOUGHTS
-<#
-        FINAL THOUGHTS
-        **************
-            Script updates now ensures the following:
-                - Automatic relocation to C:\Scripts.
-                - Administrator relaunch for proper execution.
-                - Detailed logging with timestamps.
-                - Survivability after a system reboot using Task Scheduler.
-            The updated approach ensures robustness, clear logging, and
-            self-healing for long-term automated monitoring.
-#>
-#endregion FUNCTIONALITY: FINAL THOUGHTS
-#region 2024-12-17 UPDATE 1
-<#
-Below are the updated features added:
-    Script Location Validation:
-        - Ensures the script is executed from C:\Scripts.
+# FUNCTIONALITY: STEP 1: PREPARE THE SCRIPT
+<# STAGE 1
+    Save the Script:
+        - Save the script to any location, e.g., C:\Temp\MonitorFileCopy.ps1.
+    Run the Script:
+        -Run script manually in PowerShell:
+        powershell.exe -ExecutionPolicy Bypass -File "C:\Temp\MonitorFileCopy.ps1"
     Automatic Relocation:
-        - If not in C:\Scripts, copies itself and restarts with
-        administrative privileges.
-    Log Management:
-        - Creates detailed logs stored in C:\Scripts\Logs with daily
-        activity recording.
-    Logging Format:
-        - Logs entries with date (yyyy-MM-dd) and time
-        (HH:mm:ss) in a structured format.
+        - If the script is not in C:\Scripts, it:
+            > Creates C:\Scripts if it doesn’t exist.
+            > Copies itself to C:\Scripts\MonitorFileCopy.ps1.
+            > Relaunches the script as an Administrator.
+            > Logs the activity in C:\Scripts\Logs.
+    Log Folder Creation:
+        - Validates and creates C:\Scripts\Logs automatically.
+    Daily Log Management:
+        - Logs are stored in the format:
+        C:\Scripts\Logs\Activity-MonitorFileCopy-YYYY-MM-DD.log
+        - Each log entry includes:
+            > Date and time in yyyy-MM-dd HH:mm:ss format.
+            > Execution details, file changes, errors, and updates.
+    File Monitoring:
+        - Monitors C:\Planning Report Data Sources\report.xlsx.
+        - On a change, it uses Robocopy to copy the file to
+        E:\Planning Report Data Sources.
+        - Logs success or error messages.
 #>
-#endregion 2024-12-17 UPDATE 1
-#region 2024-12-17 UPDATE 2
-<#
-Updated detailed steps for implementation
+# FUNCTIONALITY: STEP 2: SCHEDULE THE SCRIPT WITH TASK SCHEDULER
+<# STAGE 2
+    To ensure the script runs automatically at startup after a reboot, 
+    configure a Scheduled Task in Windows Task Scheduler.
+
+    Open Task Scheduler:
+        - Press Win + R, type taskschd.msc, and press Enter.
+    Create a New Task:
+        - Click Create Task on the right-hand side.
+    General Tab:
+        - Name: MonitorFileCopy
+        - Description: "Monitors file changes and copies them automatically."
+        - Security options:
+            > Select Run whether user is logged on or not.
+            > Check Run with highest privileges (ensures it runs
+            with admin permissions).
+    Triggers Tab:
+        - Click New... to create a trigger.
+        - Configure as follows:
+            > Begin the task: At startup
+            > Check Enabled.
+        - Click OK.
+    Actions Tab:
+        - Click New... to add an action.
+        - Configure as follows:
+            > Action: Start a program
+        >EITHER<
+            # PowerShell 5x
+            > Program/script: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+        >OR<
+            #PowerShell 7x    
+            > Program/script: C:\Program Files\PowerShell\7\pwsh.exe
+            > Add arguments: -ExecutionPolicy Bypass -File "C:\Scripts\MonitorFileCopy.ps1"
+        - Click OK.
+    Conditions Tab:
+        - Uncheck "Start the task only if the computer is on AC power" 
+        to ensure it runs if on laptops running on battery.
+    Settings Tab:
+        - Check:
+            > Allow task to be run on demand
+            > Run task as soon as possible after a scheduled start is missed
+        - Uncheck:
+            > Stop the task if it runs longer than... (the script runs
+            indefinitely).
+    Save and Test:
+        - Click OK to save the task.
+        - If prompted, provide the admin credentials.
+        - Restart computer system to ensure the task runs at startup.
 #>
-#endregion 2024-12-17 UPDATE 2
-#region 2024-12-17 UPDATE 3
-<#
-TROUBLESHOOTING: 
-    - The script detects file changes, launches, reports in log file
-    that it copies file from source location to destination location,
-    but in the destination location, the file's Date Modified value
-    does not change, nor are the updates from the source file appearing
-    in the destination. The source file will be overwriting an existing
-    file in the destination folder with the same name.
-CAUSE:
-    - [Summary] The issue occurs because Robocopy skips overwriting files
-    with the same timestamp and size. By adding the /IS and /IT flags, we
-    explicitly instruct Robocopy to overwrite the file every time a
-    change is detected, ensuring the updated file is always copied to
-    the destination.
-    - [Adt'l Info] Robocopy is skipping the file because:
-        > The source file's Date Modified timestamp and size are
-        identical to the destination file.
-        > Even though the file contents may have changed, the timestamp
-        may not be updated immediately or correctly due to certain
-        systems/applications caching file metadata.
-SOLUTION:
-    - Address the issue by explicitly forcing Robocopy to overwrite
-    files regardless of timestamps or sizes.
-CODE UPDATES:
-    - Replace the current Robocopy line:
-    [Current] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5" | Out-Null
-    [Updated] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5 /IS /IT" | Out-Null
-EXPLANATION OF UPDATED ROBOCOPY FLAGS:
-    - /IS: Copies files even if they are the same size (ignores size
-    comparison).
-    - /IT: Copies files even if they have the same timestamp (ignores
-    timestamp comparison).
-    - /Z: Copies files in restartable mode (resumable on failure).
-    - /R:3: Retries the copy operation 3 times if it fails.
-    - /W:5: Waits 5 seconds between retries.
-    These flags ensure that the destination file is always overwritten,
-    even if the Date Modified timestamp and file size appear unchanged.
+# FUNCTIONALITY: STEP 3: VERIFY SCHEDULED TASK BEHAVIOR
+<# STAGE 3
+    Reboot the System:
+        - Restart the computer to ensure the task runs on startup.
+        - Check Task Scheduler:
+            > Open Task Scheduler and check the History tab for the task to
+            confirm it started successfully.
+            > Check C:\Scripts\Logs for activity.
+        - Test File Monitoring:
+            > Modify the monitored file to trigger the FileSystemWatcher.
+            > Verify:
+                *Modify both monitored files (report.xlsx and report2.xlsx)
+                to ensure changes trigger file copying.
+                *A log entry is created in C:\Scripts\Logs.
+            > Restart the system to confirm the Scheduled Task runs
+            automatically and logs its startup.
 #>
-#endregion 2024-12-17 UPDATE 3
-#region 2024-12-17 UPDATE 4
-<#
-The updated script dynamically monitors multiple files using a loop.
-    - It ensures:
-        > Efficient file monitoring for multiple files.
-        > Robust logging for each change and copy operation.
-        > File overwrites using Robocopy with the /IS and /IT flags.
-    By deploying this script and configuring a Scheduled Task, you can
-    ensure automated file monitoring and copying for multiple files
-    across reboots.
+# FUNCTIONALITY: STEP 4: ENSURE SURVIVABILITY
+<# STAGE 4
+    Permissions:
+        - Ensure the account running the script has:
+            > Read access to the source file.
+            > Write access to the destination folder.
+        - Use an account with administrative privileges for the Scheduled
+        Task.
+    Execution Policy:
+        - The -ExecutionPolicy Bypass argument ensures the script runs
+        regardless of system restrictions.
+#>
+# FUNCTIONALITY: STEP 5: ADDITIONAL TROUBLESHOOTING TIPS (IF NEEDED)
+<# STAGE 5
+    Verify File Locks:
+        - Ensure no process locks the destination file, preventing
+        overwrites.
+        - Use tools like Handle (Sysinternals) or Resource Monitor to
+        identify file locks.
+    Permissions:
+        - Ensure the script has proper write permissions for the
+        destination folder.
+        - Run the script as an Administrator.
+    Testing:
+        - Modify the source file and observe the log to confirm the copy
+        operation.
+        - Check if the destination file is updated with the new contents.
+    Log Additional Details:
+        - Add file metadata (e.g., timestamp, size) to the log to confirm
+        what is being copied:
+        $SourceInfo = Get-Item $SourceFile
+        Write-Log "Source File: $SourceFile | Size: $($SourceInfo.Length) | Modified: $($SourceInfo.LastWriteTime)"
+#>
+# FUNCTIONALITY: STEP 6: HOW TO ADD MORE FILES TO MONITOR (IF NEEDED)
+<# STAGE 6
+    To monitor more files, simply add their names to the $FilesToMonitor
+    array:
+    $FilesToMonitor = @("report.xlsx", "report2.xlsx", "report3.xlsx", "data.csv")
+#>
+# FUNCTIONALITY: FINAL THOUGHTS
+<# FINAL
+    Script updates now ensures the following:
+        - Automatic relocation to C:\Scripts.
+        - Administrator relaunch for proper execution.
+        - Detailed logging with timestamps.
+        - Survivability after a system reboot using Task Scheduler.
+    The updated approach ensures robustness, clear logging, and
+    self-healing for long-term automated monitoring.
+#>
+
+# HISTORY: 2024-12-17 UPDATE 6
+<# U6
+SUMMARY:
+    Script now includes a pre-check during the initial
+    script launch to compare the Date Modified timestamps of the source
+    and destination files. If the destination files are older (or
+    missing), the script will initiate a copy of the source files to
+    update the destination files.
 KEY UPDATES:
-    - $FilesToMonitor Array:
-        > Define the list of files to monitor using this array:
-        $FilesToMonitor = @("report.xlsx", "report2.xlsx")
-    - Dynamic FileSystemWatcher Creation:
-        > A foreach loop initializes a FileSystemWatcher for each file
-        in the array.
-        > Each watcher monitors the file's LastWrite changes and
-        triggers the robocopy action.
-    - File Change Action:
-        > The script dynamically identifies the file that changed and
-        logs the details.
-        > Robocopy explicitly copies the changed file to the
-        destination folder using:
-        robocopy $SourceFolder $DestinationFolder $file "/Z /R:3 /W:5 /IS /IT"
-    - Detailed Logging:
-        > Each detected file change is logged with the file name,
-        date, and time.
+    - Initial Synchronization:
+        > The script compares the LastWriteTime (Date Modified) of
+        each file in the source and destination.
+        > If the destination file is older or missing, it copies the
+        source file to the destination.
+        > Logs the action taken for transparency.
+    - File Comparison:
+        > Uses (Get-Item $SourceFile).LastWriteTime to fetch the
+        file's Date Modified timestamp.
+    - Preserved File Monitoring:
+        > After the initial comparison, the script initializes
+        FileSystemWatcher objects to monitor file changes.
+    - Logs:
+        > Detailed log entries are created for:
+            *Outdated or missing files that are copied.
+            *Files that are already up-to-date.
+            *Errors encountered during the initial synchronization.
+EXECUTION FLOW:
+    - When the script starts:
+        > It checks each file defined in $FilesToMonitor to ensure
+        the destination files are up-to-date.
+        > Any outdated or missing file is immediately copied.
+    - After synchronization:
+        > The script continues monitoring file changes in real-time
+        using FileSystemWatcher.
+    - Logs:
+        > All operations (initial synchronization and file changes)
+        are recorded in daily log files.
 #>
-#endregion 2024-12-17 UPDATE 4
-#region 2024-12-17 UPDATE 5
-<#
+# HISTORY: 2024-12-17 UPDATE 5
+<# U5
 TROUBLESHOOTING:
     - Observed behavior indicates two key problems:
         > File Replication Issue: 
@@ -487,61 +416,106 @@ FINAL NOTES:
     - Logs clearly document the file changes, making
     troubleshooting easier.
 #>
-#endregion 2024-12-17 UPDATE 5
-#region 2024-12-17 UPDATE 6
-<#
-SUMMARY:
-    Script now includes a pre-check during the initial
-    script launch to compare the Date Modified timestamps of the source
-    and destination files. If the destination files are older (or
-    missing), the script will initiate a copy of the source files to
-    update the destination files.
+# HISTORY: 2024-12-17 UPDATE 4
+<# U4
+The updated script dynamically monitors multiple files using a loop.
+    - It ensures:
+        > Efficient file monitoring for multiple files.
+        > Robust logging for each change and copy operation.
+        > File overwrites using Robocopy with the /IS and /IT flags.
+    By deploying this script and configuring a Scheduled Task, you can
+    ensure automated file monitoring and copying for multiple files
+    across reboots.
 KEY UPDATES:
-    - Initial Synchronization:
-        > The script compares the LastWriteTime (Date Modified) of
-        each file in the source and destination.
-        > If the destination file is older or missing, it copies the
-        source file to the destination.
-        > Logs the action taken for transparency.
-    - File Comparison:
-        > Uses (Get-Item $SourceFile).LastWriteTime to fetch the
-        file's Date Modified timestamp.
-    - Preserved File Monitoring:
-        > After the initial comparison, the script initializes
-        FileSystemWatcher objects to monitor file changes.
-    - Logs:
-        > Detailed log entries are created for:
-            *Outdated or missing files that are copied.
-            *Files that are already up-to-date.
-            *Errors encountered during the initial synchronization.
-EXECUTION FLOW:
-    - When the script starts:
-        > It checks each file defined in $FilesToMonitor to ensure
-        the destination files are up-to-date.
-        > Any outdated or missing file is immediately copied.
-    - After synchronization:
-        > The script continues monitoring file changes in real-time
-        using FileSystemWatcher.
-    - Logs:
-        > All operations (initial synchronization and file changes)
-        are recorded in daily log files.
+    - $FilesToMonitor Array:
+        > Define the list of files to monitor using this array:
+        $FilesToMonitor = @("report.xlsx", "report2.xlsx")
+    - Dynamic FileSystemWatcher Creation:
+        > A foreach loop initializes a FileSystemWatcher for each file
+        in the array.
+        > Each watcher monitors the file's LastWrite changes and
+        triggers the robocopy action.
+    - File Change Action:
+        > The script dynamically identifies the file that changed and
+        logs the details.
+        > Robocopy explicitly copies the changed file to the
+        destination folder using:
+        robocopy $SourceFolder $DestinationFolder $file "/Z /R:3 /W:5 /IS /IT"
+    - Detailed Logging:
+        > Each detected file change is logged with the file name,
+        date, and time.
 #>
-#endregion 2024-12-17 UPDATE 6
-#region HISTORY 2024-12-16 UPDATE
-<#
+# HISTORY: 2024-12-17 UPDATE 3
+<# U3
+TROUBLESHOOTING: 
+    - The script detects file changes, launches, reports in log file
+    that it copies file from source location to destination location,
+    but in the destination location, the file's Date Modified value
+    does not change, nor are the updates from the source file appearing
+    in the destination. The source file will be overwriting an existing
+    file in the destination folder with the same name.
+CAUSE:
+    - [Summary] The issue occurs because Robocopy skips overwriting files
+    with the same timestamp and size. By adding the /IS and /IT flags, we
+    explicitly instruct Robocopy to overwrite the file every time a
+    change is detected, ensuring the updated file is always copied to
+    the destination.
+    - [Adt'l Info] Robocopy is skipping the file because:
+        > The source file's Date Modified timestamp and size are
+        identical to the destination file.
+        > Even though the file contents may have changed, the timestamp
+        may not be updated immediately or correctly due to certain
+        systems/applications caching file metadata.
+SOLUTION:
+    - Address the issue by explicitly forcing Robocopy to overwrite
+    files regardless of timestamps or sizes.
+CODE UPDATES:
+    - Replace the current Robocopy line:
+    [Current] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5" | Out-Null
+    [Updated] robocopy (Split-Path $SourceFile) $DestinationFolder (Split-Path $SourceFile -Leaf) "/Z /R:3 /W:5 /IS /IT" | Out-Null
+EXPLANATION OF UPDATED ROBOCOPY FLAGS:
+    - /IS: Copies files even if they are the same size (ignores size
+    comparison).
+    - /IT: Copies files even if they have the same timestamp (ignores
+    timestamp comparison).
+    - /Z: Copies files in restartable mode (resumable on failure).
+    - /R:3: Retries the copy operation 3 times if it fails.
+    - /W:5: Waits 5 seconds between retries.
+    These flags ensure that the destination file is always overwritten,
+    even if the Date Modified timestamp and file size appear unchanged.
+#>
+# HISTORY: 2024-12-17 UPDATE 2
+<# U2
+Updated detailed steps for implementation
+#>
+# HISTORY: 2024-12-17 UPDATE 1
+<# U1
+Below are the updated features added:
+    Script Location Validation:
+        - Ensures the script is executed from C:\Scripts.
+    Automatic Relocation:
+        - If not in C:\Scripts, copies itself and restarts with
+        administrative privileges.
+    Log Management:
+        - Creates detailed logs stored in C:\Scripts\Logs with daily
+        activity recording.
+    Logging Format:
+        - Logs entries with date (yyyy-MM-dd) and time
+        (HH:mm:ss) in a structured format.
+#>
+# HISTORY: 2024-12-16 UPDATE
+<# U
     Rewrite to leverage FileSystemWatcher instead of Robocopy.
     FSW is a .NET object available in PowerShell, and allows the
     script to react immediately to changes, rather than polling
     as it is event-driven, only triggers when the file changes,
     and reacts instantly to LastWrite updates.
 #>
-#endregion HISTORY 2024-12-16 UPDATE
-#region HISTORY 2024-12-16 CREATED
-<#
+# HISTORY: 2024-12-16 CREATED
+<# C
     Issue triggering script creation:
         - Create a PowerShell script leveraging Robocopy to monitor a specific
         file name and when it's Date Modified changes the script is triggered
         to copy the file from "C:\Planning Report Data Sources" to
         "E:\Planning Report Data Sources".
 #>
-#endregion HISTORY 2024-12-16 CREATED
