@@ -1,8 +1,10 @@
 # Blueprinting Script for Server Documentation
 
-# Create output folder; Validate if exists; If not exist, create it
+# Create output folder
 $OutputFolder = "C:\Blueprint"
-if (-Not (Test-Path $OutputFolder)) { New-Item -ItemType Directory -Path $OutputFolder }
+if (-Not (Test-Path $OutputFolder)) {
+    New-Item -ItemType Directory -Path $OutputFolder -Force
+}
 
 # System Overview
 Get-WmiObject Win32_OperatingSystem | Select-Object Caption, OSArchitecture, Version, BuildNumber | Out-File "$OutputFolder\system_info.txt"
