@@ -26,7 +26,7 @@
     blueprintingScriptForServerDocumentation.ps1
 
 .SYNOPSIS
-    Achieve a complete blueprint of an inherited server.
+    Blueprinting Script for Server Documentation with Logging and Remote Capability
 
 .FUNCTIONALITY
     Run the Script: 
@@ -54,6 +54,35 @@ function Write-Log {
     Add-Content -Path $LogFile -Value $LogMessage
 }
 
+# Function to Run Commands Locally or Remotely
+function Execute-Command {
+    param (
+        [string]$ComputerName,
+        [ScriptBlock]$Command
+    )
+    if ($ComputerName -eq "localhost") {
+        Invoke-Command -ScriptBlock $Command
+    }
+    else {
+        Invoke-Command -ComputerName $ComputerName -ScriptBlock $Command
+    }
+}
+
+# Prompt for Local or Remote Execution
+Write-Host "Select Execution Mode:" -ForegroundColor Green
+Write-Host "1. Local (Run on this computer)" -ForegroundColor Yellow
+Write-Host "2. Remote (Run on another computer)" -ForegroundColor Yellow
+
+$ExecutionMode = Read-Host "Enter choice (1 or 2)"
+
+if ($ExecutionMode -eq "2") {
+    $RemoteComputer = Read-Host "Enter the computer name or IPv4 address"
+    $TargetComputer = $RemoteComputer
+}
+else {
+    $TargetComputer = "localhost"
+}
+
 # Ensure Output Folder Exists
 if (-Not (Test-Path $OutputFolder)) {
     try {
@@ -71,7 +100,9 @@ else {
 
 # System Overview
 try {
-    Get-WmiObject Win32_OperatingSystem | Select-Object Caption, OSArchitecture, Version, BuildNumber | Out-File "$OutputFolder\system_info.txt"
+    Execute-Command -ComputerName $TargetComputer -Command {
+        Get-WmiObject Win32_OperatingSystem | Select-Object Caption, OSArchitecture, Version, BuildNumber
+    } | Out-File "$OutputFolder\system_info.txt"
     Write-Log -Message "System overview saved to system_info.txt."
 }
 catch {
@@ -79,7 +110,9 @@ catch {
 }
 
 try {
-    Get-WmiObject Win32_ComputerSystem | Select-Object Manufacturer, Model, TotalPhysicalMemory | Out-File "$OutputFolder\hardware_info.txt"
+    Execute-Command -ComputerName $TargetComputer -Command {
+        Get-WmiObject Win32_ComputerSystem | Select-Object Manufacturer, Model, TotalPhysicalMemory
+    } | Out-File "$OutputFolder\hardware_info.txt"
     Write-Log -Message "Hardware information saved to hardware_info.txt."
 }
 catch {
@@ -87,7 +120,14 @@ catch {
 }
 
 try {
-    ipconfig /all > "$OutputFolder\network_config.txt"
+    if ($TargetComputer -eq "localhost") {
+        ipconfig /all > "$OutputFolder\network_config.txt"
+    }
+    else {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            ipconfig /all
+        } > "$OutputFolder\network_config.txt"
+    }
     Write-Log -Message "Network configuration saved to network_config.txt."
 }
 catch {
@@ -96,7 +136,9 @@ catch {
 
 # Installed Applications
 try {
-    Get-WmiObject Win32_Product | Select-Object Name, Version, Vendor | Out-File "$OutputFolder\installed_apps.txt"
+    Execute-Command -ComputerName $TargetComputer -Command {
+        Get-WmiObject Win32_Product | Select-Object Name, Version, Vendor
+    } | Out-File "$OutputFolder\installed_apps.txt"
     Write-Log -Message "Installed applications saved to installed_apps.txt."
 }
 catch {
@@ -104,7 +146,9 @@ catch {
 }
 
 try {
-    reg export HKEY_LOCAL_MACHINE\SOFTWARE "$OutputFolder\software_registry_backup.reg"
+    Execute-Command -ComputerName $TargetComputer -Command {
+        reg export HKEY_LOCAL_MACHINE\SOFTWARE "$OutputFolder\software_registry_backup.reg"
+    }
     Write-Log -Message "Registry backup saved to software_registry_backup.reg."
 }
 catch {
@@ -113,7 +157,9 @@ catch {
 
 # Database Details
 try {
-    Get-Service | Where-Object { $_.DisplayName -like '*SQL*' -or $_.DisplayName -like '*Database*' } | Out-File "$OutputFolder\database_services.txt"
+    Execute-Command -ComputerName $TargetComputer -Command {
+        Get-Service | Where-Object { $_.DisplayName -like '*SQL*' -or $_.DisplayName -like '*Database*' }
+    } | Out-File "$OutputFolder\database_services.txt"
     Write-Log -Message "Database services saved to database_services.txt."
 }
 catch {
@@ -121,7 +167,14 @@ catch {
 }
 
 try {
-    sqlcmd -L > "$OutputFolder\sql_instances.txt"
+    if ($TargetComputer -eq "localhost") {
+        sqlcmd -L > "$OutputFolder\sql_instances.txt"
+    }
+    else {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            sqlcmd -L
+        } > "$OutputFolder\sql_instances.txt"
+    }
     Write-Log -Message "SQL instances saved to sql_instances.txt."
 }
 catch {
@@ -130,7 +183,9 @@ catch {
 
 # Services and Scheduled Tasks
 try {
-    Get-Service | Select-Object DisplayName, Status, StartType, DependentServices | Out-File "$OutputFolder\services_list.txt"
+    Execute-Command -ComputerName $TargetComputer -Command {
+        Get-Service | Select-Object DisplayName, Status, StartType, DependentServices
+    } | Out-File "$OutputFolder\services_list.txt"
     Write-Log -Message "Services list saved to services_list.txt."
 }
 catch {
@@ -138,7 +193,14 @@ catch {
 }
 
 try {
-    schtasks /query /FO LIST /V > "$OutputFolder\scheduled_tasks.txt"
+    if ($TargetComputer -eq "localhost") {
+        schtasks /query /FO LIST /V > "$OutputFolder\scheduled_tasks.txt"
+    }
+    else {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            schtasks /query /FO LIST /V
+        } > "$OutputFolder\scheduled_tasks.txt"
+    }
     Write-Log -Message "Scheduled tasks saved to scheduled_tasks.txt."
 }
 catch {
@@ -147,7 +209,9 @@ catch {
 
 # Security and Credentials
 try {
-    Get-LocalUser | Select-Object Name, Enabled | Out-File "$OutputFolder\local_users.txt"
+    Execute-Command -ComputerName $TargetComputer -Command {
+        Get-LocalUser | Select-Object Name, Enabled
+    } | Out-File "$OutputFolder\local_users.txt"
     Write-Log -Message "Local users saved to local_users.txt."
 }
 catch {
@@ -155,7 +219,9 @@ catch {
 }
 
 try {
-    Get-LocalGroup | Select-Object Name | Out-File "$OutputFolder\local_groups.txt"
+    Execute-Command -ComputerName $TargetComputer -Command {
+        Get-LocalGroup | Select-Object Name
+    } | Out-File "$OutputFolder\local_groups.txt"
     Write-Log -Message "Local groups saved to local_groups.txt."
 }
 catch {
@@ -163,7 +229,14 @@ catch {
 }
 
 try {
-    gpresult /H "$OutputFolder\gp_report.html"
+    if ($TargetComputer -eq "localhost") {
+        gpresult /H "$OutputFolder\gp_report.html"
+    }
+    else {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            gpresult /H "$OutputFolder\gp_report.html"
+        }
+    }
     Write-Log -Message "Group policy report saved to gp_report.html."
 }
 catch {
@@ -172,7 +245,9 @@ catch {
 
 # IIS Configurations
 try {
-    appcmd list site /config /xml > "$OutputFolder\iis_sites.xml"
+    Execute-Command -ComputerName $TargetComputer -Command {
+        appcmd list site /config /xml
+    } | Out-File "$OutputFolder\iis_sites.xml"
     Write-Log -Message "IIS configurations saved to iis_sites.xml."
 }
 catch {
