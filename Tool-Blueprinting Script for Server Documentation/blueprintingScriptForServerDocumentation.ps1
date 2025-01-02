@@ -66,16 +66,26 @@ function Write-Log {
 function Check-Admin {
     $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
     if (-not $isAdmin) {
-        Write-Host "This script must be run as an Administrator to function properly." -ForegroundColor Red
-        Write-Host "To avoid UAC blocking, consider creating a Task Scheduler entry to run the script elevated automatically."
-        Write-Log -Message "Script was not run as Administrator. Relaunch required." -Type "ERROR"
-
-        Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -Verb RunAs" -WindowStyle Hidden
+        Write-Host "This script must be run as an Administrator. Relaunching..." -ForegroundColor Red
+        Write-Log -Message "Script was not run as Administrator. Relaunching." -Type "ERROR"
+        Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -WindowStyle Hidden" -Verb RunAs
         exit
     }
 }
 
 Check-Admin
+
+# Prompt for elevated credentials
+Write-Host "This script requires elevated domain permissions to run against remote systems." -ForegroundColor Yellow
+Write-Host "Please provide domain admin-level credentials when prompted. These credentials will be cached temporarily for the session." -ForegroundColor Yellow
+
+$Global:CachedCredentials = Get-Credential -Message "Enter domain admin-level or higher credentials"
+
+# Clear credentials on exit
+Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
+    Remove-Variable -Name CachedCredentials -Scope Global -Force -ErrorAction SilentlyContinue
+    Write-Host "Cached credentials have been purged." -ForegroundColor Green
+}
 
 # Function to Run Commands Locally or Remotely
 function Execute-Command {
@@ -84,10 +94,10 @@ function Execute-Command {
         [ScriptBlock]$Command
     )
     if ($ComputerName -eq "localhost") {
-        Invoke-Command -ScriptBlock $Command
+        Invoke-Command -ScriptBlock $Command -Credential $Global:CachedCredentials
     }
     else {
-        Invoke-Command -ComputerName $ComputerName -ScriptBlock $Command
+        Invoke-Command -ComputerName $ComputerName -ScriptBlock $Command -Credential $Global:CachedCredentials
     }
 }
 
