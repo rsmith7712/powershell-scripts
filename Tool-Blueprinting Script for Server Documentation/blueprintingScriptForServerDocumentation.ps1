@@ -66,9 +66,11 @@ function Write-Log {
 function Check-Admin {
     $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
     if (-not $isAdmin) {
-        Write-Host "This script must be run as an Administrator. Relaunching..." -ForegroundColor Red
-        Write-Log -Message "Script was not run as Administrator. Relaunching." -Type "ERROR"
-        Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -WindowStyle Hidden" -Verb RunAs
+        Write-Host "This script must be run as an Administrator to function properly." -ForegroundColor Red
+        Write-Host "To avoid UAC blocking, consider creating a Task Scheduler entry to run the script elevated automatically."
+        Write-Log -Message "Script was not run as Administrator. Relaunch required." -Type "ERROR"
+
+        Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -Verb RunAs" -WindowStyle Hidden
         exit
     }
 }
