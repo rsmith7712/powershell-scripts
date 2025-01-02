@@ -76,6 +76,45 @@ function Check-Admin {
 
 Check-Admin
 
+# Core logic for blueprinting
+function Run-Blueprinting {
+    param (
+        [string]$ExecutionMode,
+        [string]$RemoteComputer = ""
+    )
+    Write-Log -Message "Starting blueprinting process. Execution Mode: $ExecutionMode."
+    Write-Host "Starting blueprinting process in $ExecutionMode Mode..." -ForegroundColor Green
+
+    if (-Not (Test-Path $OutputFolder)) {
+        try {
+            New-Item -ItemType Directory -Path $OutputFolder -Force
+            Write-Log -Message "Created output folder at $OutputFolder."
+        }
+        catch {
+            Write-Log -Message "Failed to create output folder: $_" -Type "ERROR"
+            throw
+        }
+    }
+    else {
+        Write-Log -Message "Output folder already exists at $OutputFolder."
+    }
+
+    # Example logic (extend with your actual blueprinting logic)
+    if ($ExecutionMode -eq "Remote") {
+        Write-Log -Message "Connecting to remote computer: $RemoteComputer."
+        Write-Host "Connecting to remote computer: $RemoteComputer..." -ForegroundColor Green
+        # Add remote execution logic here
+    }
+    else {
+        Write-Log -Message "Running locally."
+        Write-Host "Running locally..." -ForegroundColor Green
+        # Add local execution logic here
+    }
+
+    Write-Log -Message "Blueprinting process completed."
+    Write-Host "Blueprinting process completed." -ForegroundColor Green
+}
+
 # Prompt for console or GUI mode
 Write-Host "Select Interface Mode:" -ForegroundColor Green
 Write-Host "1. Console Mode" -ForegroundColor Yellow
@@ -124,7 +163,8 @@ if ($InterfaceMode -eq "2") {
             if ($ExecutionMode -eq "Remote") {
                 $LogsBox.AppendText("Remote Computer: $RemoteComputer`n")
             }
-            # Call the main script logic here
+            Run-Blueprinting -ExecutionMode $ExecutionMode -RemoteComputer $RemoteComputer
+            $LogsBox.AppendText("Blueprinting process completed.`n")
         })
 
     # Show the Window
@@ -134,26 +174,4 @@ if ($InterfaceMode -eq "2") {
 
 # If Console Mode is selected, proceed with existing logic
 Write-Host "Proceeding in Console Mode..." -ForegroundColor Green
-
-# Main script logic for Console Mode
-Write-Host "Starting blueprinting process in Console Mode..." -ForegroundColor Green
-
-# Ensure Output Folder Exists
-if (-Not (Test-Path $OutputFolder)) {
-    try {
-        New-Item -ItemType Directory -Path $OutputFolder -Force
-        Write-Log -Message "Created output folder at $OutputFolder."
-    }
-    catch {
-        Write-Log -Message "Failed to create output folder: $_" -Type "ERROR"
-        throw
-    }
-}
-else {
-    Write-Log -Message "Output folder already exists at $OutputFolder."
-}
-
-# Example of script logic
-Write-Host "Blueprinting logic goes here..." -ForegroundColor Green
-
-Write-Host "Script execution completed." -ForegroundColor Green
+Run-Blueprinting -ExecutionMode "Local"
