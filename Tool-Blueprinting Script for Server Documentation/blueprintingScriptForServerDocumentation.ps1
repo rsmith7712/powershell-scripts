@@ -27,6 +27,7 @@
 
 .SYNOPSIS
     Blueprinting Script for Server Documentation with Logging and Remote Capability
+    with GUI and Console Options
 
 .FUNCTIONALITY
     Run the Script: 
@@ -134,6 +135,25 @@ if ($InterfaceMode -eq "2") {
 # If Console Mode is selected, proceed with existing logic
 Write-Host "Proceeding in Console Mode..." -ForegroundColor Green
 
-# Existing script logic for Console Mode
+# Main script logic for Console Mode
+Write-Host "Starting blueprinting process in Console Mode..." -ForegroundColor Green
+
+# Ensure Output Folder Exists
+if (-Not (Test-Path $OutputFolder)) {
+    try {
+        New-Item -ItemType Directory -Path $OutputFolder -Force
+        Write-Log -Message "Created output folder at $OutputFolder."
+    }
+    catch {
+        Write-Log -Message "Failed to create output folder: $_" -Type "ERROR"
+        throw
+    }
+}
+else {
+    Write-Log -Message "Output folder already exists at $OutputFolder."
+}
+
+# Example of script logic
+Write-Host "Blueprinting logic goes here..." -ForegroundColor Green
 
 Write-Host "Script execution completed." -ForegroundColor Green
