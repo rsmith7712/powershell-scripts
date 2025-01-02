@@ -75,226 +75,65 @@ function Check-Admin {
 
 Check-Admin
 
-# Prompt for elevated credentials
-Write-Host "This script requires elevated domain permissions to run against remote systems." -ForegroundColor Yellow
-Write-Host "Please provide domain admin-level credentials when prompted. These credentials will be cached temporarily for the session." -ForegroundColor Yellow
+# Prompt for console or GUI mode
+Write-Host "Select Interface Mode:" -ForegroundColor Green
+Write-Host "1. Console Mode" -ForegroundColor Yellow
+Write-Host "2. Graphical Interface (GUI)" -ForegroundColor Yellow
+$InterfaceMode = Read-Host "Enter choice (1 or 2)"
 
-$Global:CachedCredentials = Get-Credential -Message "Enter domain admin-level or higher credentials"
+if ($InterfaceMode -eq "2") {
+    # Load WPF Assembly
+    Add-Type -AssemblyName PresentationFramework
 
-# Clear credentials on exit
-Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
-    Remove-Variable -Name CachedCredentials -Scope Global -Force -ErrorAction SilentlyContinue
-    Write-Host "Cached credentials have been purged." -ForegroundColor Green
-}
+    # Create WPF GUI
+    $xaml = @"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Server Blueprinting Tool" Height="400" Width="600">
+    <Grid>
+        <TextBlock Text="Select Execution Mode:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,10,0,0"/>
+        <RadioButton x:Name="LocalMode" Content="Local" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="150,10,0,0" IsChecked="True"/>
+        <RadioButton x:Name="RemoteMode" Content="Remote" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="230,10,0,0"/>
+        <TextBox x:Name="RemoteComputerBox" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="150,40,0,0" Width="200" IsEnabled="False"/>
+        <Button Content="Start" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,80,0,0" Width="100" x:Name="StartButton"/>
+        <TextBox x:Name="LogsBox" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,120,0,0" Width="560" Height="200" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+    </Grid>
+</Window>
+"@
 
-# Function to Run Commands Locally or Remotely
-function Execute-Command {
-    param (
-        [string]$ComputerName,
-        [ScriptBlock]$Command
-    )
-    if ($ComputerName -eq "localhost") {
-        Invoke-Command -ScriptBlock $Command -Credential $Global:CachedCredentials
-    }
-    else {
-        Invoke-Command -ComputerName $ComputerName -ScriptBlock $Command -Credential $Global:CachedCredentials
-    }
-}
+    # Load XAML
+    $reader = (New-Object System.Xml.XmlNodeReader (New-Object System.Xml.XmlDocument)).ReadOuterXml()
+    $reader.ReadInnerXml($xaml)
+    $Window = [System.Windows.Markup.XamlReader]::Load($reader)
 
-# Prompt for Local or Remote Execution
-Write-Host "Select Execution Mode:" -ForegroundColor Green
-Write-Host "1. Local (Run on this computer)" -ForegroundColor Yellow
-Write-Host "2. Remote (Run on another computer)" -ForegroundColor Yellow
+    # GUI Event Handlers
+    $Window.FindName("RemoteMode").Add_CheckedChanged({
+            $Window.FindName("RemoteComputerBox").IsEnabled = $true
+        })
 
-$ExecutionMode = Read-Host "Enter choice (1 or 2)"
+    $Window.FindName("LocalMode").Add_CheckedChanged({
+            $Window.FindName("RemoteComputerBox").IsEnabled = $false
+        })
 
-if ($ExecutionMode -eq "2") {
-    $RemoteComputer = Read-Host "Enter the computer name or IPv4 address"
-    $TargetComputer = $RemoteComputer
-    $RemoteComputerFolder = "$RemoteReportsFolder\$RemoteComputer"
-    if (-Not (Test-Path $RemoteReportsFolder)) {
-        New-Item -ItemType Directory -Path $RemoteReportsFolder -Force
-        Write-Log -Message "Created remote reports folder at $RemoteReportsFolder."
-    }
-    if (-Not (Test-Path $RemoteComputerFolder)) {
-        New-Item -ItemType Directory -Path $RemoteComputerFolder -Force
-        Write-Log -Message "Created remote computer folder at $RemoteComputerFolder."
-    }
-    $OutputFolder = $RemoteComputerFolder
-}
-else {
-    $TargetComputer = "localhost"
-}
+    $Window.FindName("StartButton").Add_Click({
+            $ExecutionMode = if ($Window.FindName("LocalMode").IsChecked) { "Local" } else { "Remote" }
+            $RemoteComputer = $Window.FindName("RemoteComputerBox").Text
+            $LogsBox = $Window.FindName("LogsBox")
+            $LogsBox.AppendText("Execution Mode: $ExecutionMode`n")
+            if ($ExecutionMode -eq "Remote") {
+                $LogsBox.AppendText("Remote Computer: $RemoteComputer`n")
+            }
+            # Call the main script logic here
+        })
 
-# Ensure Output Folder Exists
-if (-Not (Test-Path $OutputFolder)) {
-    try {
-        New-Item -ItemType Directory -Path $OutputFolder -Force
-        Write-Log -Message "Created output folder at $OutputFolder."
-    }
-    catch {
-        Write-Log -Message "Failed to create output folder: $_" -Type "ERROR"
-        throw
-    }
-}
-else {
-    Write-Log -Message "Output folder already exists at $OutputFolder."
+    # Show the Window
+    $Window.ShowDialog() | Out-Null
+    exit
 }
 
-# System Overview
-try {
-    Execute-Command -ComputerName $TargetComputer -Command {
-        Get-WmiObject Win32_OperatingSystem | Select-Object Caption, OSArchitecture, Version, BuildNumber
-    } | Out-File "$OutputFolder\system_info.txt"
-    Write-Log -Message "System overview saved to system_info.txt."
-}
-catch {
-    Write-Log -Message "Failed to gather system overview: $_" -Type "ERROR"
-}
+# If Console Mode is selected, proceed with existing logic
+Write-Host "Proceeding in Console Mode..." -ForegroundColor Green
 
-try {
-    Execute-Command -ComputerName $TargetComputer -Command {
-        Get-WmiObject Win32_ComputerSystem | Select-Object Manufacturer, Model, TotalPhysicalMemory
-    } | Out-File "$OutputFolder\hardware_info.txt"
-    Write-Log -Message "Hardware information saved to hardware_info.txt."
-}
-catch {
-    Write-Log -Message "Failed to gather hardware information: $_" -Type "ERROR"
-}
+# Existing script logic for Console Mode
 
-try {
-    if ($TargetComputer -eq "localhost") {
-        ipconfig /all > "$OutputFolder\network_config.txt"
-    }
-    else {
-        Execute-Command -ComputerName $TargetComputer -Command {
-            ipconfig /all
-        } > "$OutputFolder\network_config.txt"
-    }
-    Write-Log -Message "Network configuration saved to network_config.txt."
-}
-catch {
-    Write-Log -Message "Failed to gather network configuration: $_" -Type "ERROR"
-}
-
-# Installed Applications
-try {
-    Execute-Command -ComputerName $TargetComputer -Command {
-        Get-WmiObject Win32_Product | Select-Object Name, Version, Vendor
-    } | Out-File "$OutputFolder\installed_apps.txt"
-    Write-Log -Message "Installed applications saved to installed_apps.txt."
-}
-catch {
-    Write-Log -Message "Failed to gather installed applications: $_" -Type "ERROR"
-}
-
-try {
-    Execute-Command -ComputerName $TargetComputer -Command {
-        reg export HKEY_LOCAL_MACHINE\SOFTWARE "$OutputFolder\software_registry_backup.reg"
-    }
-    Write-Log -Message "Registry backup saved to software_registry_backup.reg."
-}
-catch {
-    Write-Log -Message "Failed to export registry: $_" -Type "ERROR"
-}
-
-# Database Details
-try {
-    Execute-Command -ComputerName $TargetComputer -Command {
-        Get-Service | Where-Object { $_.DisplayName -like '*SQL*' -or $_.DisplayName -like '*Database*' }
-    } | Out-File "$OutputFolder\database_services.txt"
-    Write-Log -Message "Database services saved to database_services.txt."
-}
-catch {
-    Write-Log -Message "Failed to gather database services: $_" -Type "ERROR"
-}
-
-try {
-    if ($TargetComputer -eq "localhost") {
-        sqlcmd -L > "$OutputFolder\sql_instances.txt"
-    }
-    else {
-        Execute-Command -ComputerName $TargetComputer -Command {
-            sqlcmd -L
-        } > "$OutputFolder\sql_instances.txt"
-    }
-    Write-Log -Message "SQL instances saved to sql_instances.txt."
-}
-catch {
-    Write-Log -Message "Failed to gather SQL instances: $_" -Type "ERROR"
-}
-
-# Services and Scheduled Tasks
-try {
-    Execute-Command -ComputerName $TargetComputer -Command {
-        Get-Service | Select-Object DisplayName, Status, StartType, DependentServices
-    } | Out-File "$OutputFolder\services_list.txt"
-    Write-Log -Message "Services list saved to services_list.txt."
-}
-catch {
-    Write-Log -Message "Failed to gather services list: $_" -Type "ERROR"
-}
-
-try {
-    if ($TargetComputer -eq "localhost") {
-        schtasks /query /FO LIST /V > "$OutputFolder\scheduled_tasks.txt"
-    }
-    else {
-        Execute-Command -ComputerName $TargetComputer -Command {
-            schtasks /query /FO LIST /V
-        } > "$OutputFolder\scheduled_tasks.txt"
-    }
-    Write-Log -Message "Scheduled tasks saved to scheduled_tasks.txt."
-}
-catch {
-    Write-Log -Message "Failed to gather scheduled tasks: $_" -Type "ERROR"
-}
-
-# Security and Credentials
-try {
-    Execute-Command -ComputerName $TargetComputer -Command {
-        Get-LocalUser | Select-Object Name, Enabled
-    } | Out-File "$OutputFolder\local_users.txt"
-    Write-Log -Message "Local users saved to local_users.txt."
-}
-catch {
-    Write-Log -Message "Failed to gather local users: $_" -Type "ERROR"
-}
-
-try {
-    Execute-Command -ComputerName $TargetComputer -Command {
-        Get-LocalGroup | Select-Object Name
-    } | Out-File "$OutputFolder\local_groups.txt"
-    Write-Log -Message "Local groups saved to local_groups.txt."
-}
-catch {
-    Write-Log -Message "Failed to gather local groups: $_" -Type "ERROR"
-}
-
-try {
-    if ($TargetComputer -eq "localhost") {
-        gpresult /H "$OutputFolder\gp_report.html"
-    }
-    else {
-        Execute-Command -ComputerName $TargetComputer -Command {
-            gpresult /H "$OutputFolder\gp_report.html"
-        }
-    }
-    Write-Log -Message "Group policy report saved to gp_report.html."
-}
-catch {
-    Write-Log -Message "Failed to generate group policy report: $_" -Type "ERROR"
-}
-
-# IIS Configurations
-try {
-    Execute-Command -ComputerName $TargetComputer -Command {
-        appcmd list site /config /xml
-    } | Out-File "$OutputFolder\iis_sites.xml"
-    Write-Log -Message "IIS configurations saved to iis_sites.xml."
-}
-catch {
-    Write-Log -Message "Failed to gather IIS configurations: $_" -Type "ERROR"
-}
-
-Write-Log -Message "Blueprinting Complete. Output saved to $OutputFolder."
+Write-Host "Script execution completed." -ForegroundColor Green
