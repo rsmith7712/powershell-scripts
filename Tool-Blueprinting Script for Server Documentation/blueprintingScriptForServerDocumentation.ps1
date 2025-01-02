@@ -41,6 +41,7 @@
 
 # Create output folder
 $OutputFolder = "C:\Blueprint"
+$RemoteReportsFolder = "$OutputFolder\Remote-Reports"
 $LogFile = "$OutputFolder\blueprint_log.txt"
 
 # Initialize Logging Function
@@ -91,6 +92,16 @@ $ExecutionMode = Read-Host "Enter choice (1 or 2)"
 if ($ExecutionMode -eq "2") {
     $RemoteComputer = Read-Host "Enter the computer name or IPv4 address"
     $TargetComputer = $RemoteComputer
+    $RemoteComputerFolder = "$RemoteReportsFolder\$RemoteComputer"
+    if (-Not (Test-Path $RemoteReportsFolder)) {
+        New-Item -ItemType Directory -Path $RemoteReportsFolder -Force
+        Write-Log -Message "Created remote reports folder at $RemoteReportsFolder."
+    }
+    if (-Not (Test-Path $RemoteComputerFolder)) {
+        New-Item -ItemType Directory -Path $RemoteComputerFolder -Force
+        Write-Log -Message "Created remote computer folder at $RemoteComputerFolder."
+    }
+    $OutputFolder = $RemoteComputerFolder
 }
 else {
     $TargetComputer = "localhost"
