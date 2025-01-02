@@ -99,7 +99,6 @@ function Run-Blueprinting {
         Write-Log -Message "Output folder already exists at $OutputFolder."
     }
 
-    # Example logic (extend with your actual blueprinting logic)
     if ($ExecutionMode -eq "Remote") {
         Write-Log -Message "Connecting to remote computer: $RemoteComputer."
         Write-Host "Connecting to remote computer: $RemoteComputer..." -ForegroundColor Green
@@ -172,6 +171,16 @@ if ($InterfaceMode -eq "2") {
     exit
 }
 
-# If Console Mode is selected, proceed with existing logic
+# If Console Mode is selected, proceed with interactive prompt
 Write-Host "Proceeding in Console Mode..." -ForegroundColor Green
-Run-Blueprinting -ExecutionMode "Local"
+Write-Host "Select Execution Mode:" -ForegroundColor Green
+Write-Host "1. Local" -ForegroundColor Yellow
+Write-Host "2. Remote" -ForegroundColor Yellow
+$ExecutionModeInput = Read-Host "Enter choice (1 or 2)"
+if ($ExecutionModeInput -eq "2") {
+    $RemoteComputer = Read-Host "Enter the remote computer name or IPv4 address"
+    Run-Blueprinting -ExecutionMode "Remote" -RemoteComputer $RemoteComputer
+}
+else {
+    Run-Blueprinting -ExecutionMode "Local"
+}
