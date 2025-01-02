@@ -38,6 +38,7 @@
 .NOTES
 
 #>
+# Blueprinting Script for Server Documentation with Logging and Remote Capability
 
 # Create output folder
 $OutputFolder = "C:\Blueprint"
@@ -50,6 +51,13 @@ function Write-Log {
         [string]$Message,
         [string]$Type = "INFO"
     )
+    # Ensure log file path exists
+    if (-Not (Test-Path (Split-Path -Path $LogFile))) {
+        New-Item -ItemType Directory -Path (Split-Path -Path $LogFile) -Force
+    }
+    if (-Not (Test-Path $LogFile)) {
+        New-Item -ItemType File -Path $LogFile -Force
+    }
     $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $LogMessage = "[$Timestamp] [$Type] $Message"
     Add-Content -Path $LogFile -Value $LogMessage
