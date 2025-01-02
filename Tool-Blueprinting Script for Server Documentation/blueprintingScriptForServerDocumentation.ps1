@@ -54,6 +54,19 @@ function Write-Log {
     Add-Content -Path $LogFile -Value $LogMessage
 }
 
+# Check if running as administrator
+function Check-Admin {
+    $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+    if (-not $isAdmin) {
+        Write-Host "This script must be run as an Administrator. Relaunching..." -ForegroundColor Red
+        Write-Log -Message "Script was not run as Administrator. Relaunching." -Type "ERROR"
+        Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+        exit
+    }
+}
+
+Check-Admin
+
 # Function to Run Commands Locally or Remotely
 function Execute-Command {
     param (
