@@ -38,7 +38,6 @@
 .NOTES
 
 #>
-# Blueprinting Script for Server Documentation with Logging and Remote Capability
 
 # Create output folder
 $OutputFolder = "C:\Blueprint"
@@ -69,7 +68,7 @@ function Check-Admin {
     if (-not $isAdmin) {
         Write-Host "This script must be run as an Administrator. Relaunching..." -ForegroundColor Red
         Write-Log -Message "Script was not run as Administrator. Relaunching." -Type "ERROR"
-        Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+        Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -WindowStyle Hidden" -Verb RunAs
         exit
     }
 }
