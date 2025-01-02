@@ -17,7 +17,7 @@
 #>
 
 # Capture the list of Wireless profiles by only their names as an Array
-$list=((netsh.exe wlan show profiles) -match '\s{2,}:\s') -replace '.*:\s' , ''
+$list = ((netsh.exe wlan show profiles) -match '\s{2,}:\s') -replace '.*:\s' , ''
 
 # Purge everything with one loop; Extreme but works
 #Foreach ($item in $list){
@@ -27,35 +27,36 @@ $list=((netsh.exe wlan show profiles) -match '\s{2,}:\s') -replace '.*:\s' , ''
 ## OR ##
 
 # Function to show us the profiles
-function Get-WifiProfile{
+function Get-WifiProfile {
     [cmdletbinding()]
     param(
-        [System.Array]$Name=$NULL
+        [System.Array]$Name = $NULL
     )
 
     # Get list of WLAN profiles
-    Begin{
-        $list=((netsh.exe wlan show profiles) -match '\s{2,}:\s') -replace '.*:\s' , ''
+    Begin {
+        $list = ((netsh.exe wlan show profiles) -match '\s{2,}:\s') -replace '.*:\s' , ''
 
         # Rebuild array as a PowerShell Customobject
-        $ProfileList=$List | Foreach-object {[pscustomobject]@{Name=$_}}
-        }
-
-        # Show profiles which match names in the array
-        Process{
-            Foreach ($WLANProfile in $Name){
-                $ProfileList | Where-Object {$_.Name -match $WLANProfile}
-            }
-        }
-        
-        # If nothing is provided; Return ALL available WLAN Profiles 
-        End{
-            If ($Name -eq $NULL){
-                $Profilelist
-            }
-        }
+        $ProfileList = $List | Foreach-object { [pscustomobject]@{Name = $_ } }
     }
 
+    # Show profiles which match names in the array
+    Process {
+        Foreach ($WLANProfile in $Name) {
+            $ProfileList | Where-Object { $_.Name -match $WLANProfile }
+        }
+    }
+        
+    # If nothing is provided; Return ALL available WLAN Profiles 
+    End {
+        If ($Name -eq $NULL) {
+            $Profilelist
+        }
+    }
+}
+
+<#
 # Function to delete defined list of WLAN profiles
 function Remove-WifiProfile{
     [cmdletbinding()]
@@ -84,3 +85,4 @@ function Remove-WifiProfile{
 
     }
 }
+#>
