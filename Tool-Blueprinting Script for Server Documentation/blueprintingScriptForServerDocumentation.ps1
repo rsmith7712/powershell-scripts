@@ -76,12 +76,27 @@ function Check-Admin {
 
 Check-Admin
 
+# Execute command function
+function Execute-Command {
+    param (
+        [string]$ComputerName,
+        [ScriptBlock]$Command
+    )
+    if ($ComputerName -eq "localhost") {
+        Invoke-Command -ScriptBlock $Command
+    }
+    else {
+        Invoke-Command -ComputerName $ComputerName -ScriptBlock $Command
+    }
+}
+
 # Core logic for blueprinting
 function Run-Blueprinting {
     param (
         [string]$ExecutionMode,
         [string]$RemoteComputer = ""
     )
+    $TargetComputer = if ($ExecutionMode -eq "Remote") { $RemoteComputer } else { "localhost" }
     Write-Log -Message "Starting blueprinting process. Execution Mode: $ExecutionMode."
     Write-Host "Starting blueprinting process in $ExecutionMode Mode..." -ForegroundColor Green
 
@@ -99,15 +114,160 @@ function Run-Blueprinting {
         Write-Log -Message "Output folder already exists at $OutputFolder."
     }
 
-    if ($ExecutionMode -eq "Remote") {
-        Write-Log -Message "Connecting to remote computer: $RemoteComputer."
-        Write-Host "Connecting to remote computer: $RemoteComputer..." -ForegroundColor Green
-        # Add remote execution logic here
+    # System Overview
+    try {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            Get-WmiObject Win32_OperatingSystem | Select-Object Caption, OSArchitecture, Version, BuildNumber
+        } | Out-File "$OutputFolder\system_info.txt"
+        Write-Log -Message "System overview saved to system_info.txt."
     }
-    else {
-        Write-Log -Message "Running locally."
-        Write-Host "Running locally..." -ForegroundColor Green
-        # Add local execution logic here
+    catch {
+        Write-Log -Message "Failed to gather system overview: $_" -Type "ERROR"
+    }
+
+    try {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            Get-WmiObject Win32_ComputerSystem | Select-Object Manufacturer, Model, TotalPhysicalMemory
+        } | Out-File "$OutputFolder\hardware_info.txt"
+        Write-Log -Message "Hardware information saved to hardware_info.txt."
+    }
+    catch {
+        Write-Log -Message "Failed to gather hardware information: $_" -Type "ERROR"
+    }
+
+    try {
+        if ($TargetComputer -eq "localhost") {
+            ipconfig /all > "$OutputFolder\network_config.txt"
+        }
+        else {
+            Execute-Command -ComputerName $TargetComputer -Command {
+                ipconfig /all
+            } > "$OutputFolder\network_config.txt"
+        }
+        Write-Log -Message "Network configuration saved to network_config.txt."
+    }
+    catch {
+        Write-Log -Message "Failed to gather network configuration: $_" -Type "ERROR"
+    }
+
+    # Installed Applications
+    try {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            Get-WmiObject Win32_Product | Select-Object Name, Version, Vendor
+        } | Out-File "$OutputFolder\installed_apps.txt"
+        Write-Log -Message "Installed applications saved to installed_apps.txt."
+    }
+    catch {
+        Write-Log -Message "Failed to gather installed applications: $_" -Type "ERROR"
+    }
+
+    try {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            reg export HKEY_LOCAL_MACHINE\SOFTWARE "$OutputFolder\software_registry_backup.reg"
+        }
+        Write-Log -Message "Registry backup saved to software_registry_backup.reg."
+    }
+    catch {
+        Write-Log -Message "Failed to export registry: $_" -Type "ERROR"
+    }
+
+    # Database Details
+    try {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            Get-Service | Where-Object { $_.DisplayName -like '*SQL*' -or $_.DisplayName -like '*Database*' }
+        } | Out-File "$OutputFolder\database_services.txt"
+        Write-Log -Message "Database services saved to database_services.txt."
+    }
+    catch {
+        Write-Log -Message "Failed to gather database services: $_" -Type "ERROR"
+    }
+
+    try {
+        if ($TargetComputer -eq "localhost") {
+            sqlcmd -L > "$OutputFolder\sql_instances.txt"
+        }
+        else {
+            Execute-Command -ComputerName $TargetComputer -Command {
+                sqlcmd -L
+            } > "$OutputFolder\sql_instances.txt"
+        }
+        Write-Log -Message "SQL instances saved to sql_instances.txt."
+    }
+    catch {
+        Write-Log -Message "Failed to gather SQL instances: $_" -Type "ERROR"
+    }
+
+    # Services and Scheduled Tasks
+    try {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            Get-Service | Select-Object DisplayName, Status, StartType, DependentServices
+        } | Out-File "$OutputFolder\services_list.txt"
+        Write-Log -Message "Services list saved to services_list.txt."
+    }
+    catch {
+        Write-Log -Message "Failed to gather services list: $_" -Type "ERROR"
+    }
+
+    try {
+        if ($TargetComputer -eq "localhost") {
+            schtasks /query /FO LIST /V > "$OutputFolder\scheduled_tasks.txt"
+        }
+        else {
+            Execute-Command -ComputerName $TargetComputer -Command {
+                schtasks /query /FO LIST /V
+            } > "$OutputFolder\scheduled_tasks.txt"
+        }
+        Write-Log -Message "Scheduled tasks saved to scheduled_tasks.txt."
+    }
+    catch {
+        Write-Log -Message "Failed to gather scheduled tasks: $_" -Type "ERROR"
+    }
+
+    # Security and Credentials
+    try {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            Get-LocalUser | Select-Object Name, Enabled
+        } | Out-File "$OutputFolder\local_users.txt"
+        Write-Log -Message "Local users saved to local_users.txt."
+    }
+    catch {
+        Write-Log -Message "Failed to gather local users: $_" -Type "ERROR"
+    }
+
+    try {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            Get-LocalGroup | Select-Object Name
+        } | Out-File "$OutputFolder\local_groups.txt"
+        Write-Log -Message "Local groups saved to local_groups.txt."
+    }
+    catch {
+        Write-Log -Message "Failed to gather local groups: $_" -Type "ERROR"
+    }
+
+    try {
+        if ($TargetComputer -eq "localhost") {
+            gpresult /H "$OutputFolder\gp_report.html"
+        }
+        else {
+            Execute-Command -ComputerName $TargetComputer -Command {
+                gpresult /H "$OutputFolder\gp_report.html"
+            }
+        }
+        Write-Log -Message "Group policy report saved to gp_report.html."
+    }
+    catch {
+        Write-Log -Message "Failed to generate group policy report: $_" -Type "ERROR"
+    }
+
+    # IIS Configurations
+    try {
+        Execute-Command -ComputerName $TargetComputer -Command {
+            appcmd list site /config /xml
+        } | Out-File "$OutputFolder\iis_sites.xml"
+        Write-Log -Message "IIS configurations saved to iis_sites.xml."
+    }
+    catch {
+        Write-Log -Message "Failed to gather IIS configurations: $_" -Type "ERROR"
     }
 
     Write-Log -Message "Blueprinting process completed."
