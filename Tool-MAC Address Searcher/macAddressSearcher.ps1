@@ -50,13 +50,37 @@
 # Hide the script's code from displaying in the console
 # Removed setting OutputEncoding to avoid invalid handle error
 
+# Define log directory and ensure it exists
+$logDir = "C:\Temp\Logs\MACSearch"
+if (-not (Test-Path -Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
+
+# Create a unique log file for this search
+$timestamp = (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")
+$logFile = "$logDir\log-MACsearch-$timestamp.txt"
+
+# Function to log messages
+function Log-Message {
+    param (
+        [string]$Message
+    )
+    $timestamp = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+    $logEntry = "[$timestamp] $Message"
+    $logEntry | Out-File -FilePath $logFile -Append
+    Write-Host $Message
+}
+
 # Prompt user for input
 $networkRange = Read-Host "Enter the IPv4 network range (e.g., 192.168.1.0/24)"
 $targetMacAddress = Read-Host "Enter the MAC address to search for (e.g., 00-14-22-01-23-45)"
 
+Log-Message "Search initiated. Network range: $networkRange, Target MAC address: $targetMacAddress"
+
 # Validate MAC address format
 if (-not ($targetMacAddress -match "^([0-9A-Fa-f]{2}[-:]){5}([0-9A-Fa-f]{2})$")) {
-    Write-Host "Invalid MAC address format. Please ensure it is in the format 00-14-22-01-23-45." -ForegroundColor Red
+    $errorMsg = "Invalid MAC address format. Please ensure it is in the format 00-14-22-01-23-45."
+    Log-Message $errorMsg
     exit
 }
 
@@ -76,7 +100,8 @@ function Get-MacAddressByIP {
         }
     }
     catch {
-        Write-Host "Error while fetching MAC address for $IPAddress." -ForegroundColor Red
+        $errorMsg = "Error while fetching MAC address for $IPAddress."
+        Log-Message $errorMsg
         return $null
     }
 }
@@ -102,7 +127,8 @@ $baseIP = $networkParts[0]
 $subnetMask = $networkParts[1]
 
 if (-not $subnetMask) {
-    Write-Host "Invalid network range format. Please use CIDR notation, e.g., 192.168.1.0/24." -ForegroundColor Red
+    $errorMsg = "Invalid network range format. Please use CIDR notation, e.g., 192.168.1.0/24."
+    Log-Message $errorMsg
     exit
 }
 
@@ -111,16 +137,18 @@ for ($i = 1; $i -lt 255; $i++) {
     $ipAddresses += "$ipBase.$i"
 }
 
-Write-Host "Scanning the network range: $networkRange" -ForegroundColor Yellow
+Log-Message "Scanning the network range: $networkRange"
 
 # Search for the MAC address in the range
 foreach ($ip in $ipAddresses) {
     $macAddress = Get-MacAddressByIP -IPAddress $ip
     if ($macAddress -and ($macAddress -ieq $targetMacAddress)) {
         $hostname = Get-HostnameByIP -IPAddress $ip
-        Write-Host "Found matching MAC address at IP: $ip (Hostname: $hostname)" -ForegroundColor Green
+        $successMsg = "Found matching MAC address at IP: $ip (Hostname: $hostname)"
+        Log-Message $successMsg
         exit
     }
 }
 
-Write-Host "No matching MAC address found in the specified network range." -ForegroundColor Red
+$noMatchMsg = "No matching MAC address found in the specified network range."
+Log-Message $noMatchMsg
