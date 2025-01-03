@@ -153,7 +153,6 @@ foreach ($ip in $ipAddresses) {
         $executionTime = $endTime - $startTime
         $executionMsg = "Total execution time: $executionTime"
         Log-Message $executionMsg
-        Write-Host $executionMsg -ForegroundColor Green
         exit
     }
 }
@@ -166,4 +165,3 @@ $endTime = Get-Date
 $executionTime = $endTime - $startTime
 $executionMsg = "Total execution time: $executionTime"
 Log-Message $executionMsg
-Write-Host $executionMsg -ForegroundColor Green
