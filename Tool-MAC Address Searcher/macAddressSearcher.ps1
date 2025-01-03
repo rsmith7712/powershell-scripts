@@ -44,7 +44,9 @@
         - Displays a message if no matches are found.
 
 .NOTES
-
+    See location for notes and history:
+    https://github.com/rsmith7712 
+        PowerShell - Tool-MAC Address Searcher
 #>
 
 # Hide the script's code from displaying in the console
