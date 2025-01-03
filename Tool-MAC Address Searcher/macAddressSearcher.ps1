@@ -71,11 +71,13 @@ function Log-Message {
     Write-Host $Message
 }
 
+# Record the start time
+$startTime = Get-Date
+Log-Message "Search initiated. Network range: $networkRange, Target MAC address: $targetMacAddress"
+
 # Prompt user for input
 $networkRange = Read-Host "Enter the IPv4 network range (e.g., 192.168.1.0/24)"
 $targetMacAddress = Read-Host "Enter the MAC address to search for (e.g., 00-14-22-01-23-45)"
-
-Log-Message "Search initiated. Network range: $networkRange, Target MAC address: $targetMacAddress"
 
 # Validate MAC address format
 if (-not ($targetMacAddress -match "^([0-9A-Fa-f]{2}[-:]){5}([0-9A-Fa-f]{2})$")) {
@@ -146,9 +148,22 @@ foreach ($ip in $ipAddresses) {
         $hostname = Get-HostnameByIP -IPAddress $ip
         $successMsg = "Found matching MAC address at IP: $ip (Hostname: $hostname)"
         Log-Message $successMsg
+        # Calculate and log total execution time
+        $endTime = Get-Date
+        $executionTime = $endTime - $startTime
+        $executionMsg = "Total execution time: $executionTime"
+        Log-Message $executionMsg
+        Write-Host $executionMsg -ForegroundColor Green
         exit
     }
 }
 
 $noMatchMsg = "No matching MAC address found in the specified network range."
 Log-Message $noMatchMsg
+
+# Calculate and log total execution time
+$endTime = Get-Date
+$executionTime = $endTime - $startTime
+$executionMsg = "Total execution time: $executionTime"
+Log-Message $executionMsg
+Write-Host $executionMsg -ForegroundColor Green
