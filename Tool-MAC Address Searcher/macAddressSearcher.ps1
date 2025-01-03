@@ -1,5 +1,54 @@
-﻿
+﻿# LEGAL
+<# LICENSE
+    MIT License, Copyright 2025 Richard Smith
 
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+#>
+# GENERAL SCRIPT INFORMATION
+<#
+.NAME
+    macAddressSearcher.ps1
+
+.SYNOPSIS
+    PowerShell script to prompt the user to input an IPv4 network range and a MAC
+    address, then scans the network to identify the domain computer associated
+    with the specified MAC address. Displays results to console.
+
+.FUNCTIONALITY
+    Prompts for Input:
+        - IPv4 network range in CIDR notation (e.g., 192.168.1.0/24).
+        - Target MAC address to search for.
+    Validates the MAC Address Format.
+    Scans the Network:
+        - Iterates through IPs in the specified range.
+        - Uses arp -a to check for MAC addresses.
+    Matches and Displays Results:
+        - Resolves and prints the hostname of the computer with the matching MAC
+            address.
+        - Displays a message if no matches are found.
+
+.NOTES
+
+#>
+
+# Hide the script's code from displaying in the console
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # Prompt user for input
 $networkRange = Read-Host "Enter the IPv4 network range (e.g., 192.168.1.0/24)"
