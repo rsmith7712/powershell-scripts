@@ -1,4 +1,7 @@
-﻿# Prompt user for input
+﻿
+
+
+# Prompt user for input
 $networkRange = Read-Host "Enter the IPv4 network range (e.g., 192.168.1.0/24)"
 $targetMacAddress = Read-Host "Enter the MAC address to search for (e.g., 00-14-22-01-23-45)"
 
