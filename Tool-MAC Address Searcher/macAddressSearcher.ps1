@@ -48,7 +48,7 @@
 #>
 
 # Hide the script's code from displaying in the console
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+# Removed setting OutputEncoding to avoid invalid handle error
 
 # Prompt user for input
 $networkRange = Read-Host "Enter the IPv4 network range (e.g., 192.168.1.0/24)"
@@ -60,53 +60,67 @@ if (-not ($targetMacAddress -match "^([0-9A-Fa-f]{2}[-:]){5}([0-9A-Fa-f]{2})$"))
     exit
 }
 
-# Function to calculate IP range from CIDR
-function Get-IpRange {
-    param ([string]$Cidr)
-    $ipBase, $prefixLength = $Cidr -split '/'
-    $ipBase = [IPAddress]$ipBase
-    $prefixLength = [int]$prefixLength
-    $totalHosts = [math]::Pow(2, (32 - $prefixLength)) - 2
-    1..$totalHosts | ForEach-Object { $ipBase.Address + $_ -as [IPAddress] }
-}
-
-# Run `arp -a` once
-$arpTable = arp -a
-
-# Function to get the MAC address from ARP table
-function Get-MacAddressByARP {
-    param ([string]$IPAddress)
-    $entry = $arpTable | Select-String $IPAddress
-    if ($entry) {
-        return ($entry -split '\s+')[1]
+# Function to get the MAC address of a device by IP
+function Get-MacAddressByIP {
+    param (
+        [string]$IPAddress
+    )
+    try {
+        $arpEntry = arp -a | Select-String $IPAddress
+        if ($arpEntry) {
+            $macAddress = ($arpEntry -split '\s+')[1]
+            return $macAddress
+        }
+        else {
+            return $null
+        }
     }
-    else {
+    catch {
+        Write-Host "Error while fetching MAC address for $IPAddress." -ForegroundColor Red
         return $null
     }
 }
 
+# Function to resolve the hostname of a device by IP
+function Get-HostnameByIP {
+    param (
+        [string]$IPAddress
+    )
+    try {
+        $hostname = [System.Net.Dns]::GetHostEntry($IPAddress).HostName
+        return $hostname
+    }
+    catch {
+        return "Unknown"
+    }
+}
+
 # Scan the network range
-Write-Host "Calculating IP range for: $networkRange" -ForegroundColor Yellow
-$ipAddresses = Get-IpRange -Cidr $networkRange
+$ipAddresses = @()
+$networkParts = $networkRange -split '/'
+$baseIP = $networkParts[0]
+$subnetMask = $networkParts[1]
 
-Write-Host "Scanning the network range..." -ForegroundColor Yellow
+if (-not $subnetMask) {
+    Write-Host "Invalid network range format. Please use CIDR notation, e.g., 192.168.1.0/24." -ForegroundColor Red
+    exit
+}
 
-# Parallel processing for performance
-$results = $ipAddresses | ForEach-Object -Parallel {
-    param ($ip, $targetMacAddress, $arpTable)
-    $macAddress = $arpTable | Select-String $ip | ForEach-Object { ($_ -split '\s+')[1] }
-    if ($macAddress -and ($macAddress -ieq $using:targetMacAddress)) {
-        $hostname = try { [System.Net.Dns]::GetHostEntry($ip).HostName } catch { "Unknown" }
-        [PSCustomObject]@{ IP = $ip; Hostname = $hostname; MAC = $macAddress }
-    }
-} -ArgumentList $targetMacAddress, $arpTable -ThrottleLimit 10
+$ipBase = ($baseIP -split '\.')[0..2] -join '.'
+for ($i = 1; $i -lt 255; $i++) {
+    $ipAddresses += "$ipBase.$i"
+}
 
-# Display results
-if ($results) {
-    foreach ($result in $results) {
-        Write-Host "Found matching MAC address at IP: $($result.IP) (Hostname: $($result.Hostname))" -ForegroundColor Green
+Write-Host "Scanning the network range: $networkRange" -ForegroundColor Yellow
+
+# Search for the MAC address in the range
+foreach ($ip in $ipAddresses) {
+    $macAddress = Get-MacAddressByIP -IPAddress $ip
+    if ($macAddress -and ($macAddress -ieq $targetMacAddress)) {
+        $hostname = Get-HostnameByIP -IPAddress $ip
+        Write-Host "Found matching MAC address at IP: $ip (Hostname: $hostname)" -ForegroundColor Green
+        exit
     }
 }
-else {
-    Write-Host "No matching MAC address found in the specified network range." -ForegroundColor Red
-}
+
+Write-Host "No matching MAC address found in the specified network range." -ForegroundColor Red
