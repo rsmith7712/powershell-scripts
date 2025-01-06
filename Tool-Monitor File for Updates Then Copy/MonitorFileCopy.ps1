@@ -56,21 +56,32 @@ $TargetFolder = "C:\Scripts"
 $LogFolder = "C:\Scripts\Logs"
 $ScriptFullPath = "$TargetFolder\$ScriptName"
 
+# Initialize logging buffer and settings
+$LogBuffer = @()
+$LogFlushInterval = 10  # Flush logs every 10 seconds
+
 # -------------------------------
 # Function: Write Log
 # -------------------------------
 function Write-Log {
     param ([string]$Message)
     $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $LogFile = "$LogFolder\Activity-MonitorFileCopy-$(Get-Date -Format "yyyy-MM-dd").log"
+    $LogEntry = "$Timestamp - $Message"
+    $LogBuffer += $LogEntry
 
-    # Create log folder if it doesn't exist
-    if (-not (Test-Path -Path $LogFolder)) {
+    # Flush buffer periodically to reduce I/O overhead
+    if ($LogBuffer.Count -ge 10) {
+        Flush-Log
+    }
+}
+
+function Flush-Log {
+    $LogFile = "$LogFolder\Activity-MonitorFileCopy-$(Get-Date -Format "yyyy-MM-dd").log"
+    if (-not (Test-Path $LogFolder)) {
         New-Item -Path $LogFolder -ItemType Directory -Force | Out-Null
     }
-
-    # Write to log file
-    Add-Content -Path $LogFile -Value "$Timestamp - $Message"
+    $LogBuffer | Out-File -FilePath $LogFile -Append -Encoding UTF8
+    $LogBuffer = @()  # Clear buffer
 }
 
 # -------------------------------
@@ -102,84 +113,79 @@ if ($PSScriptRoot -ne $TargetFolder) {
 # -------------------------------
 # Step 2: File Paths and Monitoring Setup
 # -------------------------------
-# Define file paths for monitoring and copying
 $SourceFolder = "C:\Planning Report Data Sources"
 $DestinationFolder = "E:\Planning Report Data Sources"
-$FilesToMonitor = @("report1.csv", "report2.csv")  # Files to monitor
 
-Write-Log "Script execution started. Monitoring files: $($FilesToMonitor -join ', ')"
+Write-Log "Script execution started. Monitoring folder: $SourceFolder"
 
 # -------------------------------
 # Step 3: Initial Synchronization
 # -------------------------------
-Write-Log "Starting initial synchronization of files..."
+Write-Log "Starting optimized initial synchronization of files..."
 
-foreach ($file in $FilesToMonitor) {
-    $SourceFile = Join-Path -Path $SourceFolder -ChildPath $file
-    $DestinationFile = Join-Path -Path $DestinationFolder -ChildPath $file
+$SourceFiles = Get-ChildItem -Path $SourceFolder -Filter "*.csv"
 
-    if (Test-Path $SourceFile) {
-        if ((-not (Test-Path $DestinationFile)) -or ((Get-Item $SourceFile).LastWriteTime -gt (Get-Item $DestinationFile).LastWriteTime)) {
-            try {
-                Write-Log "Destination file '$file' is outdated or missing. Copying to destination..."
-                Copy-Item -Path $SourceFile -Destination $DestinationFile -Force
-                Write-Log "File '$file' successfully copied to destination."
-            }
-            catch {
-                Write-Log "Error copying file '$file': $_"
-            }
+foreach ($SourceFile in $SourceFiles) {
+    $DestinationFile = Join-Path -Path $DestinationFolder -ChildPath $SourceFile.Name
+
+    if ((-not (Test-Path $DestinationFile)) -or ($SourceFile.LastWriteTime -gt (Get-Item $DestinationFile).LastWriteTime)) {
+        try {
+            Write-Log "Destination file '$($SourceFile.Name)' is outdated or missing. Copying to destination..."
+            Copy-Item -Path $SourceFile.FullName -Destination $DestinationFile -Force
+            Write-Log "File '$($SourceFile.Name)' successfully copied to destination."
         }
-        else {
-            Write-Log "Destination file '$file' is up-to-date. No action taken."
+        catch {
+            Write-Log "Error copying file '$($SourceFile.Name)': $_"
         }
     }
     else {
-        Write-Log "Source file '$file' does not exist. Skipping."
+        Write-Log "Destination file '$($SourceFile.Name)' is up-to-date. No action taken."
     }
 }
 
-Write-Log "Initial synchronization complete."
+Write-Log "Optimized initial synchronization complete."
 
 # -------------------------------
 # Step 4: File Monitoring Setup
 # -------------------------------
-# Initialize FileSystemWatchers
-$watchers = @()
+# Initialize a single FileSystemWatcher for all CSV files in the folder
+$watcher = New-Object System.IO.FileSystemWatcher
+$watcher.Path = $SourceFolder
+$watcher.Filter = "*.csv"  # Monitor all .csv files
+$watcher.IncludeSubdirectories = $false
+$watcher.NotifyFilter = [System.IO.NotifyFilters]'LastWrite'
 
-foreach ($file in $FilesToMonitor) {
-    $watcher = New-Object System.IO.FileSystemWatcher
-    $watcher.Path = $SourceFolder
-    $watcher.Filter = $file
-    $watcher.NotifyFilter = [System.IO.NotifyFilters]'LastWrite'
-    $watchers += $watcher
+# Action on file change
+Register-ObjectEvent $watcher "Changed" -Action {
+    $ChangedFile = $Event.SourceEventArgs.FullPath
+    $FileName = (Split-Path $ChangedFile -Leaf)
+    $DestinationFile = Join-Path -Path $DestinationFolder -ChildPath $FileName
 
-    # Action on file change
-    Register-ObjectEvent $watcher "Changed" -Action {
-        $ChangedFile = $Event.SourceEventArgs.FullPath
-        $DestinationFile = Join-Path -Path $DestinationFolder -ChildPath (Split-Path $ChangedFile -Leaf)
-        Write-Log "Change detected in $ChangedFile. Copying to $DestinationFile."
+    Write-Log "Change detected in $ChangedFile. Queuing file for copy..."
 
+    # Asynchronous file copy
+    Start-Job -ScriptBlock {
+        param($Source, $Destination, $LogFunction)
         try {
-            # Copy the file explicitly with overwrite
-            Copy-Item -Path $ChangedFile -Destination $DestinationFile -Force
-            Write-Log "File '$($Event.SourceEventArgs.Name)' copied successfully to $DestinationFile."
+            Copy-Item -Path $Source -Destination $Destination -Force
+            &$LogFunction "File '$(Split-Path $Source -Leaf)' copied successfully to $Destination."
         }
         catch {
-            Write-Log "Error copying file '$($Event.SourceEventArgs.Name)': $_"
+            &$LogFunction "Error copying file '$(Split-Path $Source -Leaf)': $_"
         }
-    }
+    } -ArgumentList $ChangedFile, $DestinationFile, ${function:Write-Log}
 }
 
 # -------------------------------
 # Step 5: Continuous Execution
 # -------------------------------
-Write-Host "Monitoring file changes for: $($FilesToMonitor -join ', ')"
+Write-Host "Monitoring folder for changes: $SourceFolder"
 Write-Host "Logs will be stored in: $LogFolder"
-Write-Log "File monitoring initialized for $($FilesToMonitor -join ', ')."
+Write-Log "File monitoring initialized."
 
-# Keep script alive
 while ($true) {
-    Start-Sleep -Seconds 1
+    Start-Sleep -Seconds $LogFlushInterval
+    Flush-Log
 }
 
 # FUNCTIONALITY: STEP 1: PREPARE THE SCRIPT
