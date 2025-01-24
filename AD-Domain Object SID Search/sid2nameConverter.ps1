@@ -1,5 +1,5 @@
-﻿<#
-.LICENSE
+﻿﻿# LEGAL
+<# LICENSE
     MIT License, Copyright 2024 Richard Smith
 
     Permission is hereby granted, free of charge, to any person obtaining a
@@ -19,9 +19,11 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
-
+#>
+# GENERAL SCRIPT INFORMATION
+<#
 .DESCRIPTION
-  sid2nameConverter-v2-1.ps1
+  sid2nameConverter.ps1
 
 .FUNCTIONALITY
   1. List of SIDs: The SIDs are stored in an array for iteration.
@@ -32,18 +34,10 @@
   5. Formatted Table: The results are displayed in a neat table.
 
 .NOTES
-1. `System.Security.Principal.SecurityIdentifier`:
-   - This class is used to translate the SID directly into an NT Account.
-   - It's more reliable than `Win32_SID` in some environments.
-
-2. Error Handling:
-   - If the SID cannot be translated, it captures the error and marks the entry as "Not Found."
-
-3. Domain and Account Separation:
-   - The NT account is split into `Domain` and `Account` parts for better clarity.
-
-Run this script with sufficient permissions to resolve SIDs within your Active Directory environment.
-
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+		
 #>
 
 # List of SIDs

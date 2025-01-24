@@ -1,5 +1,5 @@
-<#
-.LICENSE
+﻿# LEGAL
+<# LICENSE
     MIT License, Copyright 2024 Richard Smith
 
     Permission is hereby granted, free of charge, to any person obtaining a
@@ -19,7 +19,9 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
-
+#>
+# GENERAL SCRIPT INFORMATION
+<#
 .DESCRIPTION
   Import list of computer names from a text file and verify if instances are
   found in Active Directory, DNS, Responds to PING, and LastLogon details.
@@ -38,15 +40,9 @@
     optionally be exported to a CSV file.
 
 .NOTES
-  -LastLogonDate vs LastLogonTimeStamp: The LastLogonDate attribute in Active
-  Directory is not always accurate, as it is not replicated across all domain
-  controllers. The LastLogonTimeStamp attribute is more reliable, but it
-  requires conversion from file time to a readable date and time.
-
-  -Last Activity: Script does not retrieve the last activity time, as it
-  is not directly available in Active Directory. You may need to use other
-  methods, such as event log analysis, to determine the last activity time
-  for a computer.
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
 
 #>
 

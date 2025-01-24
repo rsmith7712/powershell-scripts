@@ -1,5 +1,5 @@
-﻿<#
-.LICENSE
+﻿﻿# LEGAL
+<# LICENSE
     MIT License, Copyright 2024 Richard Smith
 
     Permission is hereby granted, free of charge, to any person obtaining a
@@ -19,7 +19,9 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
-	
+#>
+# GENERAL SCRIPT INFORMATION
+<#
 .DESCRIPTION
     Query remote computer or IP address for its associated MAC information
 
@@ -35,6 +37,9 @@
 		or
     <script name.ps1> -ComputerName Get-ADComputer -Filter *
 
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
 #>
 
 function Query-MACAddress{

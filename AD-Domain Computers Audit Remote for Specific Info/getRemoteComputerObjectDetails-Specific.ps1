@@ -1,5 +1,5 @@
-﻿<#
-.LICENSE
+﻿﻿# LEGAL
+<# LICENSE
     MIT License, Copyright 2024 Richard Smith
 
     Permission is hereby granted, free of charge, to any person obtaining a
@@ -19,7 +19,9 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
-
+#>
+# GENERAL SCRIPT INFORMATION
+<#
 .NAME
     getRemoteComputerObjectDetails-Specific.ps1
 
@@ -40,36 +42,9 @@
     Error Handling: Catches and displays errors if the query fails.
 
 .NOTES
-2024-12-10:[ADDED]
-    Script Updates:
-        -Includes a check to ensure it is being run with 
-        administrator privileges. If not, it will display a message and 
-        exit. This ensures proper permissions for querying computer information.
-        
-        -Prompts the user to enter domain administrator credentials
-        using Get-Credential before proceeding with execution. The provided
-        credentials are used for querying the necessary computer details,
-        ensuring secure and authenticated operations.
-
-        -Added functionality to ask the user if they want to perform
-        another search after displaying the results. If the user enters anything
-        other than "y" or "yes," the script exits to the console prompt.
-
-        -Saves the domain administrator credentials entered during the
-        first search and reuses them for subsequent searches. This avoids
-        prompting the user to re-enter credentials until they choose to exit or
-        close the console window.
-
-        -Requires domain administrator credentials to be entered before
-        execution begins. The credentials are prompted at the start and reused
-        for subsequent searches. Additionally, it checks for administrator
-        privileges early on to ensure proper permissions.
-
-2024-12-10:[CREATED]
-    ask user to input the computer object to query, add trailing $ to user
-        input, get computer object return current user, os version,
-        computer name, objectSID, format table and output to console
-
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
 #>
 
 # Require domain administrator credentials before script execution
