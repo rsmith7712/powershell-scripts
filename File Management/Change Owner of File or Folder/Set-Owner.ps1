@@ -215,14 +215,19 @@ Function Set-Owner {
     }
 }
 
-Get-ChildItem $directory | ForEach {   
+
+Get-ChildItem $directory | ForEach {
+    
     $userSAM=$_.Name
-    $useraccount="<DOMAIN>\$userSAM"
+    $useraccount="ZUMIEZ_2000\$userSAM"
     $userfolder = $directory + $_.Name
  
+
     write-host $userfolder
     write-host $useraccount
 
-	Set-Owner $userfolder -Recurse -Verbose -Account $useraccount   
-	#break
+
+Set-Owner $userfolder -Recurse -Verbose -Account $useraccount   
+
+ #break
  }
