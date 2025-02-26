@@ -7,7 +7,6 @@ website:        o365reports.com
 
 Script Highlights:
 ~~~~~~~~~~~~~~~~~
-
 1.A single script allows you to generate eight different Teams reports.
 2.The script can be executed with MFA enabled accounts too.
 3.Exports output to CSV.
@@ -15,11 +14,9 @@ Script Highlights:
 5.The script is scheduler friendly. I.e., Credential can be passed as a parameter instead of saving inside the script.
 6.The script supports certificate-based authentication.
 
-
 For detailed Script execution: https://o365reports.com/2020/05/28/microsoft-teams-reporting-using-powershell/
 ============================================================================================
 #>
-
 #Accept input paramenters
 param(
     [string]$UserName,
@@ -29,7 +26,6 @@ param(
     [string]$CertificateThumbprint,
     [int]$Action
 )
-
 #Connect to Microsoft Teams
 $Module=Get-Module -Name MicrosoftTeams -ListAvailable
 if($Module.count -eq 0){
@@ -45,9 +41,7 @@ if($Module.count -eq 0){
 }
 Write-Host Importing Microsoft Teams module... -ForegroundColor Yellow
 
-
 ### Authentication using non-MFA ###
-
 #Storing credential in script for scheduling purpose/ Passing credential as parameter
 if(($UserName -ne "") -and ($Password -ne "")){
     $SecuredPassword = ConvertTo-SecureString -AsPlainText $Password -Force
@@ -60,7 +54,6 @@ if(($UserName -ne "") -and ($Password -ne "")){
     else{
         $Team=Connect-MicrosoftTeams
 }
-
 #Check for Teams connectivity
 If($Team -ne $null){
     Write-host `nSuccessfully connected to Microsoft Teams -ForegroundColor Green
@@ -69,7 +62,6 @@ If($Team -ne $null){
         Write-Host Error occurred while creating Teams session. Please try again -ForegroundColor Red
     exit
 }
-
 [boolean]$Delay=$false
 Do {
     if($Action -eq ""){
@@ -91,13 +83,11 @@ Do {
         Write-Host  "    0.Exit" -ForegroundColor Cyan
         Write-Host `nPrivate Channel Management and Reporting -ForegroundColor Yellow
         Write-Host  "    You can download the script from https://blog.admindroid.com/managing-private-channels-in-microsoft-teams/" -ForegroundColor Cyan
-
         $i = Read-Host `n'Please choose the action to continue'
     }
     else{
         $i=$Action
     }
-
     Switch ($i){
         1 {
             $Result=""
@@ -152,7 +142,6 @@ Do {
                 Write-Host `nReport available in $Path -ForegroundColor Green
                 }
             }
-
         3 {
             $Result=""
             $Results=@()
@@ -172,7 +161,6 @@ Do {
                 Write-Host `nReport available in $Path -ForegroundColor Green
                 }
             }
-
         4 {
             $Result=""
             $Results=@()
@@ -197,7 +185,6 @@ Do {
                 Write-Host `nReport available in $Path -ForegroundColor Green
                 }
             }
-
         5 {
             $Result=""
             $Results=@()
@@ -216,7 +203,6 @@ Do {
                 Write-Host `nReport available in $Path -ForegroundColor Green
                 }
             }
-
         6 {
             $Result=""
             $Results=@()
@@ -246,7 +232,6 @@ Do {
                 Write-Host `nReport available in $Path -ForegroundColor Green
                 }
             }
-
         7 {
             $TeamName=Read-Host Enter Teams name "(Case Sensitive)"
             Write-Host Exporting Channels report...
@@ -271,7 +256,6 @@ Do {
                 Write-Host `nReport available in $Path -ForegroundColor Green
                 }
             }
-
         8 {
             $Result=""
             $Results=@()
@@ -296,7 +280,6 @@ Do {
                 Write-Host "~~ Check out " -NoNewline -ForegroundColor Green; Write-Host "admindroid.com" -ForegroundColor Yellow -NoNewline; Write-Host " to get access to 1800+ Microsoft 365 reports. ~~" -ForegroundColor Green `n`n 
                 }
             }
-
     }
     if($Action -ne "")
     {exit}
