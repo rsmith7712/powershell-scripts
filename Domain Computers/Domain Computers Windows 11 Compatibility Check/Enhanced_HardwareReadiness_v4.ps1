@@ -1,133 +1,4 @@
-﻿#Requires -Version 5.1
-# LEGAL
-<# LICENSE
-    MIT License, Copyright 2024 Richard Smith
-
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the “Software”),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
-    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-    IN THE SOFTWARE.
-#>
-# GENERAL SCRIPT INFORMATION
-<#
-.NAME
-    Enhanced_HardwareReadiness_v3.ps1
-
-.SUMMARY
-    Checks the computer if is capable of upgrading to Windows 11.
-
-.DESCRIPTION
-    Checks the computer if is capable of upgrading to Windows 11 and returns the results.
-
-.FUNCTIONALITY
-    This PowerShell script merges the original hardware readiness logic (as provided in
-    the “Get-HardwareReadiness” function from Microsoft) with remote computer processing,
-    WinRM enabling, and detailed logging and CSV result output. In this unified script:
-
-    The script is defined with a CmdletBinding and an optional parameter (-CustomField);
-    if an environment variable ($env:customFieldName) is set and not “null”, it is used.
-
-    In the begin block the script creates the required log directory (C:\temp), sets up
-    the log and result file paths, and defines a helper function (Write-Log) for logging
-    with a timestamp.
-
-    The domain administrator credentials are prompted once to allow remote modifications.
-
-    The provided hardware readiness function, Get-HardwareReadiness, is defined (using
-    the complete Microsoft code block as provided) along with its helper routines.
-
-    In the process block the script reads a list of remote computers from
-    C:\temp\Computers.txt, tests if each is reachable, and if so:
-
-    Checks (via a remote Invoke-Command) whether WinRM is enabled on the remote host and
-    enables it if not already running.
-
-    Then remotely executes the Get-HardwareReadiness function on the target.
-
-    Logs each action (with date and 24‑hour time stamps) to
-    C:\temp\log_hardwareReadiness.txt and collects output information into an object.
-
-    Finally, if a custom field was provided, a placeholder command (Ninja-Property-Set)
-    is invoked to update that property.
-
-    Results from each computer are appended to an array that is exported as CSV to
-    C:\temp\results_hardwareReadiness.csv.
-
-    The end block is provided (currently empty) if any cleanup is needed.
-
-.PARAMETERS
-    None
-
-.EXAMPLE
-    -No Parameters Needed.
-        -Will return an exit code of 0 if the computer is capable.
-        -Will return an exit code of 1 if the computer is not capable.
-        -Will return an exit code of -1 if the computer is undetermined.
-        -Will return an exit code of -2 if the computer failed to run the check.
-
-.EXAMPLE
-    -CustomField "Windows11Upgrade"
-        -Will attempt to set the example custom field named "Windows11Upgrade" with one
-        of the possible results:
-            -Capable
-            -Not Capable
-            -Undetermined
-            -Failed To Run
-
-.FAQ
-    Q1: Is this script compatible with all Windows versions?  
-    A1: The script is designed for Windows 10 systems and above.
-
-    Q2: What happens if the TPM chip is not present?  
-    A2: The script will return a ‘Not Capable’ status if the TPM chip is missing or
-        incompatible.
-
-    Q3: Can this script be run on multiple machines at once?  
-    A3: Yes, it can be integrated into larger automation workflows to run on multiple
-        machines.
-
-.NOTE
-    Prerequisites:
-        –Ensure that C:\temp\Computers.txt exists and contains one computer name per line.
-        –The script assumes the remote machines allow PowerShell remoting.
-        –The placeholder command Ninja-Property-Set is expected to be defined in your
-            environment; otherwise, replace or remove that call.
-
-    Execution:
-        -Launch the script in an elevated PowerShell prompt. It will prompt for domain
-            admin credentials which are used for remote operations.
-
-    Logging & Output:
-        -All actions are logged in C:\temp\log_hardwareReadiness.txt
-            (with YYYY-MM-DD HH:mm timestamps), and the final summary is exported to
-            C:\temp\results_hardwareReadiness.csv.
-
-.URL
-    See location for notes and history:
-    https://github.com/rsmith7712
-        PowerShell Scripts
-
-    Microsoft Source (minus signatures):
-    https://aka.ms/HWReadinessScript
-
-    Microsoft Article Referenced:
-    https://techcommunity.microsoft.com/t5/microsoft-endpoint-manager-blog/understanding-readiness-for-windows-11-with-microsoft-endpoint/ba-p/2770866
-#>
-
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param (
     [Parameter()]
     [string]$CustomField
@@ -139,7 +10,7 @@ begin {
         $CustomField = $env:customFieldName 
     }
     
-    # Import the ActiveDirectory module (for querying AD) if available.
+    # Import the Active Directory module (for querying AD) if available.
     Import-Module ActiveDirectory -ErrorAction SilentlyContinue
 
     # Ensure the working directory exists
@@ -148,8 +19,8 @@ begin {
         New-Item -Path $tempDir -ItemType Directory -Force | Out-Null
     }
     # Define log and CSV file paths.
-    $logFile    = "$tempDir\log_hardwareReadiness_v3.txt"
-    $resultsCSV = "$tempDir\Enhanced_Winn11_HardwareReadiness_v3.csv"
+    $logFile    = "$tempDir\log_hardwareReadiness_v4.txt"
+    $resultsCSV = "$tempDir\Enhanced_Winn11_HardwareReadiness_v4.csv"
 
     # Write-Log helper function for logging with a timestamp.
     function Write-Log {
@@ -171,22 +42,21 @@ begin {
     $optionChoice = Read-Host "Select an option: (1) Import computer list from file, (2) Query Active Directory for all computers"
     if ($optionChoice -eq "2") {
         # For option 2, prepare export folder and file.
-        $exportDir = "$tempDir\Enhanced_Winn11_HardwareReadiness"
-        if (-not (Test-Path $exportDir)) {
-            New-Item -Path $exportDir -ItemType Directory -Force | Out-Null
-        }
-        $global:resultsCSV = "$exportDir\Enhanced_Win11_HardwareReadiness_v3.csv"
+        #$exportDir = "$tempDir\Enhanced_Winn11_HardwareReadiness"
+        #if (-not (Test-Path $exportDir)) {
+        #    New-Item -Path $exportDir -ItemType Directory -Force | Out-Null
+        #}
+        $global:resultsCSV = "$tempDir\Enhanced_Win11_HardwareReadiness_v4.csv"
     }
     else {
         # Option 1: use file-based list.
-        $global:resultsCSV = "$tempDir\results_hardwareReadiness_option1.csv"
+        $global:resultsCSV = "$tempDir\results_hardwareReadiness_v4_option1.csv"
     }
 
     # Define the Get-HardwareReadiness function.
     function Get-HardwareReadiness {
         # --- Begin Hardware Readiness Function Definition ---
-        # (Modified copy of the HW Readiness script from Microsoft)
-        #$exitCode = 0
+        $exitCode = 0
         [int]$MinOSDiskSizeGB = 64
         [int]$MinMemoryGB     = 4
         [Uint32]$MinClockSpeedMHz = 1000
@@ -213,21 +83,20 @@ begin {
         $SECUREBOOT_STRING = "SecureBoot"
         $I7_7820HQ_CPU_STRING = "i7-7820hq CPU"
 
-        # Format strings for logging.
+        # Format strings.
         $logFormat = '{0}: {1}={2}. {3}; '
         $logFormatWithUnit = '{0}: {1}={2}{3}. {4}; '
         $logFormatReturnReason = '{0}, '
         $logFormatException = '{0}; '
         $logFormatWithBlob = '{0}: {1}. {2}; '
-        
-        # Output object.
+
         $outObject = @{
             returnCode   = -2
             returnResult = $FAILED_TO_RUN_STRING
             returnReason = ""
             logging      = ""
         }
-        # Helper to update return code (NOT CAPABLE takes precedence over UNDETERMINED)
+
         function Private:UpdateReturnCode {
             param(
                 [Parameter(Mandatory = $true)]
@@ -240,16 +109,7 @@ begin {
                 -1 { if ($outObject.returnCode -ne 1) { $outObject.returnCode = $ReturnCode } }
             }
         }
-    <#
-        The expression below, $variable = @" "@, assigns a here-string
-        to the variable $variable. Here-strings are a way to define
-        multi-line strings without the need for escape characters or
-        concatenation. The @ symbols combined with double quotes ("")
-        denote the start and end of the here-string. Anything between
-        these markers, including line breaks and special characters,
-        is treated as a literal string.
-    #>
-        # CPU family validation code (sourced from Microsoft)
+
         $Source = @"
 using Microsoft.Win32;
 using System;
@@ -342,16 +202,16 @@ using System.Runtime.InteropServices;
                         try {
                             cpuFamilyResult.IsValid = true;
                             cpuFamilyResult.Message = "";
-                            if (cpuFamily >= 6 && cpuModel <= 95 && !(cpuFamily == 6 && cpuModel == 85))
+                            if (cpuFamily >= 6 -and cpuModel <= 95 -and !(cpuFamily -eq 6 -and cpuModel -eq 85))
                             {
                                 cpuFamilyResult.IsValid = false;
                                 cpuFamilyResult.Message = "";
                             }
-                            else if (cpuFamily == 6 && (cpuModel == 142 || cpuModel == 158) && cpuStepping == 9)
+                            else if (cpuFamily -eq 6 -and (cpuModel -eq 142 -or cpuModel -eq 158) -and cpuStepping -eq 9)
                             {
                                 string registryName = "Platform Specific Field 1";
                                 int registryValue = (int)Registry.GetValue(registryPath, registryName, -1);
-                                if ((cpuModel == 142 -and registryValue -ne 16) -or (cpuModel == 158 -and registryValue -ne 8))
+                                if ((cpuModel -eq 142 -and registryValue -ne 16) -or (cpuModel -eq 158 -and registryValue -ne 8))
                                 {
                                     cpuFamilyResult.IsValid = false;
                                 }
@@ -395,13 +255,13 @@ using System.Runtime.InteropServices;
                 UpdateReturnCode -ReturnCode 1
                 $outObject.returnReason += $logFormatReturnReason -f $STORAGE_STRING
                 $outObject.logging += $logFormatWithBlob -f $STORAGE_STRING, "Storage is null", $FAIL_STRING
-                #$exitCode = 1
+                $exitCode = 1
             }
             elseif ($osDriveSize.SizeGB -lt $MinOSDiskSizeGB) {
                 UpdateReturnCode -ReturnCode 1
                 $outObject.returnReason += $logFormatReturnReason -f $STORAGE_STRING
                 $outObject.logging += $logFormatWithUnit -f $STORAGE_STRING, $OS_DISK_SIZE_STRING, ($osDriveSize.SizeGB), $GB_UNIT_STRING, $FAIL_STRING
-                #$exitCode = 1
+                $exitCode = 1
             }
             else {
                 $outObject.logging += $logFormatWithUnit -f $STORAGE_STRING, $OS_DISK_SIZE_STRING, ($osDriveSize.SizeGB), $GB_UNIT_STRING, $PASS_STRING
@@ -412,7 +272,7 @@ using System.Runtime.InteropServices;
             UpdateReturnCode -ReturnCode -1
             $outObject.logging += $logFormat -f $STORAGE_STRING, $OS_DISK_SIZE_STRING, $UNDETERMINED_STRING, $UNDETERMINED_CAPS_STRING
             $outObject.logging += $logFormatException -f "$($_.Exception.GetType().Name) $($_.Exception.Message)"
-            #$exitCode = 1
+            $exitCode = 1
         }
 
         # Memory check.
@@ -423,13 +283,13 @@ using System.Runtime.InteropServices;
                 UpdateReturnCode -ReturnCode 1
                 $outObject.returnReason += $logFormatReturnReason -f $MEMORY_STRING
                 $outObject.logging += $logFormatWithBlob -f $MEMORY_STRING, "Memory is null", $FAIL_STRING
-                #$exitCode = 1
+                $exitCode = 1
             }
             elseif ($memory.SizeGB -lt $MinMemoryGB) {
                 UpdateReturnCode -ReturnCode 1
                 $outObject.returnReason += $logFormatReturnReason -f $MEMORY_STRING
                 $outObject.logging += $logFormatWithUnit -f $MEMORY_STRING, $SYSTEM_MEMORY_STRING, ($memory.SizeGB), $GB_UNIT_STRING, $FAIL_STRING
-                #$exitCode = 1
+                $exitCode = 1
             }
             else {
                 $outObject.logging += $logFormatWithUnit -f $MEMORY_STRING, $SYSTEM_MEMORY_STRING, ($memory.SizeGB), $GB_UNIT_STRING, $PASS_STRING
@@ -441,7 +301,7 @@ using System.Runtime.InteropServices;
             $outObject.returnReason += $logFormatReturnReason -f $MEMORY_STRING
             $outObject.logging += $logFormat -f $MEMORY_STRING, $SYSTEM_MEMORY_STRING, $UNDETERMINED_STRING, $UNDETERMINED_CAPS_STRING
             $outObject.logging += $logFormatException -f "$($_.Exception.GetType().Name) $($_.Exception.Message)"
-            #$exitCode = 1
+            $exitCode = 1
         }
 
         # TPM check.
@@ -451,7 +311,7 @@ using System.Runtime.InteropServices;
                 UpdateReturnCode -ReturnCode 1
                 $outObject.returnReason += $logFormatReturnReason -f $TPM_STRING
                 $outObject.logging += $logFormatWithBlob -f $TPM_STRING, "TPM is null", $FAIL_STRING
-                #$exitCode = 1
+                $exitCode = 1
             }
             elseif ($tpm.TpmPresent) {
                 $tpmVersion = Get-CimInstance -Class Win32_Tpm -Namespace root\CIMV2\Security\MicrosoftTpm | `
@@ -460,14 +320,14 @@ using System.Runtime.InteropServices;
                     UpdateReturnCode -ReturnCode 1
                     $outObject.returnReason += $logFormatReturnReason -f $TPM_STRING
                     $outObject.logging += $logFormat -f $TPM_STRING, $TPM_VERSION_STRING, "null", $FAIL_STRING
-                    #$exitCode = 1
+                    $exitCode = 1
                 }
                 $majorVersion = $tpmVersion.SpecVersion.Split(",")[0] -as [int]
                 if ($majorVersion -lt 2) {
                     UpdateReturnCode -ReturnCode 1
                     $outObject.returnReason += $logFormatReturnReason -f $TPM_STRING
                     $outObject.logging += $logFormat -f $TPM_STRING, $TPM_VERSION_STRING, ($tpmVersion.SpecVersion), $FAIL_STRING
-                    #$exitCode = 1
+                    $exitCode = 1
                 }
                 else {
                     $outObject.logging += $logFormat -f $TPM_STRING, $TPM_VERSION_STRING, ($tpmVersion.SpecVersion), $PASS_STRING
@@ -485,14 +345,14 @@ using System.Runtime.InteropServices;
                     $outObject.returnReason += $logFormatReturnReason -f $TPM_STRING
                     $outObject.logging += $logFormat -f $TPM_STRING, $TPM_VERSION_STRING, ($tpm.TpmPresent), $FAIL_STRING
                 }
-                #$exitCode = 1
+                $exitCode = 1
             }
         }
         catch {
             UpdateReturnCode -ReturnCode -1
             $outObject.logging += $logFormat -f $TPM_STRING, $TPM_VERSION_STRING, $UNDETERMINED_STRING, $UNDETERMINED_CAPS_STRING
             $outObject.logging += $logFormatException -f "$($_.Exception.GetType().Name) $($_.Exception.Message)"
-            #$exitCode = 1
+            $exitCode = 1
         }
 
         # CPU details and validation.
@@ -501,7 +361,7 @@ using System.Runtime.InteropServices;
             $cpuDetails = @(Get-CimInstance -Class Win32_Processor)[0]
             if ($null -eq $cpuDetails) {
                 UpdateReturnCode -ReturnCode 1
-                #$exitCode = 1
+                $exitCode = 1
                 $outObject.returnReason += $logFormatReturnReason -f $PROCESSOR_STRING
                 $outObject.logging += $logFormatWithBlob -f $PROCESSOR_STRING, "CpuDetails is null", $FAIL_STRING
             }
@@ -510,17 +370,17 @@ using System.Runtime.InteropServices;
                 if ($null -eq $cpuDetails.AddressWidth -or $cpuDetails.AddressWidth -ne $RequiredAddressWidth) {
                     UpdateReturnCode -ReturnCode 1
                     $processorCheckFailed = $true
-                    #$exitCode = 1
+                    $exitCode = 1
                 }
                 if ($null -eq $cpuDetails.MaxClockSpeed -or $cpuDetails.MaxClockSpeed -le $MinClockSpeedMHz) {
                     UpdateReturnCode -ReturnCode 1
                     $processorCheckFailed = $true
-                    #$exitCode = 1
+                    $exitCode = 1
                 }
                 if ($null -eq $cpuDetails.NumberOfLogicalProcessors -or $cpuDetails.NumberOfLogicalProcessors -lt $MinLogicalCores) {
                     UpdateReturnCode -ReturnCode 1
                     $processorCheckFailed = $true
-                    #$exitCode = 1
+                    $exitCode = 1
                 }
                 Add-Type -TypeDefinition $Source
                 $cpuFamilyResult = [CpuFamily]::Validate([String]$cpuDetails.Manufacturer, [uint16]$cpuDetails.Architecture)
@@ -528,7 +388,7 @@ using System.Runtime.InteropServices;
                 if (-not $cpuFamilyResult.IsValid) {
                     UpdateReturnCode -ReturnCode 1
                     $processorCheckFailed = $true
-                    #$exitCode = 1
+                    $exitCode = 1
                 }
                 if ($processorCheckFailed) {
                     $outObject.returnReason += $logFormatReturnReason -f $PROCESSOR_STRING
@@ -544,7 +404,7 @@ using System.Runtime.InteropServices;
             UpdateReturnCode -ReturnCode -1
             $outObject.logging += $logFormat -f $PROCESSOR_STRING, $PROCESSOR_STRING, $UNDETERMINED_STRING, $UNDETERMINED_CAPS_STRING
             $outObject.logging += $logFormatException -f "$($_.Exception.GetType().Name) $($_.Exception.Message)"
-            #$exitCode = 1
+            $exitCode = 1
         }
 
         # SecureBoot check.
@@ -557,19 +417,19 @@ using System.Runtime.InteropServices;
             UpdateReturnCode -ReturnCode 1
             $outObject.returnReason += $logFormatReturnReason -f $SECUREBOOT_STRING
             $outObject.logging += $logFormatWithBlob -f $SECUREBOOT_STRING, $NOT_CAPABLE_STRING, $FAIL_STRING
-            #$exitCode = 1
+            $exitCode = 1
         }
         catch [System.UnauthorizedAccessException] {
             UpdateReturnCode -ReturnCode -1
             $outObject.logging += $logFormatWithBlob -f $SECUREBOOT_STRING, $UNDETERMINED_STRING, $UNDETERMINED_CAPS_STRING
             $outObject.logging += $logFormatException -f "$($_.Exception.GetType().Name) $($_.Exception.Message)"
-            #$exitCode = 1
+            $exitCode = 1
         }
         catch {
             UpdateReturnCode -ReturnCode -1
             $outObject.logging += $logFormatWithBlob -f $SECUREBOOT_STRING, $UNDETERMINED_STRING, $UNDETERMINED_CAPS_STRING
             $outObject.logging += $logFormatException -f "$($_.Exception.GetType().Name) $($_.Exception.Message)"
-            #$exitCode = 1
+            $exitCode = 1
         }
 
         # i7-7820hq CPU check.
@@ -582,7 +442,7 @@ using System.Runtime.InteropServices;
                     if ($supportedDevices -contains $modelOrSKUCheckLog) {
                         $outObject.logging += $logFormatWithBlob -f $I7_7820HQ_CPU_STRING, $modelOrSKUCheckLog, $PASS_STRING
                         $outObject.returnCode = 0
-                        #$exitCode = 0
+                        $exitCode = 0
                     }
                 }
             }
@@ -592,7 +452,7 @@ using System.Runtime.InteropServices;
                 UpdateReturnCode -ReturnCode -1
                 $outObject.logging += $logFormatWithBlob -f $I7_7820HQ_CPU_STRING, $UNDETERMINED_STRING, $UNDETERMINED_CAPS_STRING
                 $outObject.logging += $logFormatException -f "$($_.Exception.GetType().Name) $($_.Exception.Message)"
-                #$exitCode = 1
+                $exitCode = 1
             }
         }
 
@@ -619,12 +479,12 @@ process {
             Write-Log "Discovered $($remoteComputers.Count) computer(s) from Active Directory."
         }
         catch {
-            Write-Log "Error querying Active Directory: $($_)"
+            Write-Log "Error querying Active Directory: $($_.Exception.Message)"
             exit
         }
     }
     else {
-        # Option 1: Import the list of computers from the text file.
+        # Option 1: Import the list from a text file.
         $computersFile = "C:\Temp\Computers.txt"
         if (-not (Test-Path $computersFile)) {
             Write-Log "Computers file not found at $computersFile. Exiting."
@@ -641,10 +501,8 @@ process {
     foreach ($computer in $remoteComputers) {
         $computer = $computer.Trim()
         
-        # For Option 1, we already may have performed AD validation;
-        # for Option 2, the computer list comes from AD so we need only check DNS.
+        # For Option 1, perform AD validation; Option 2 already comes from AD.
         if ($optionChoice -ne "2") {
-            # Validate the computer exists in AD.
             try {
                 $adComputer = Get-ADComputer -Identity $computer -ErrorAction SilentlyContinue
             }
@@ -652,9 +510,15 @@ process {
                 $adComputer = $null
             }
             if (-not $adComputer) {
-                Write-Log "Computer '$($computer)' was not found in Active Directory. Skipping testing."
+                Write-Log "Computer '$($computer)' was NOT found in Active Directory. Skipping testing."
                 continue
             }
+            else {
+                Write-Log "Computer '$($computer)' was found in Active Directory."
+            }
+        }
+        else {
+            Write-Log "Computer '$($computer)' (from AD query) confirmed in Active Directory."
         }
         
         # Validate DNS resolution.
@@ -665,17 +529,20 @@ process {
             $dnsRecord = $null
         }
         if (-not $dnsRecord) {
-            Write-Log "Computer '$($computer)' could not be resolved via DNS. Skipping testing."
+            Write-Log "Computer '$($computer)' could NOT be resolved via DNS. Skipping testing."
             continue
         }
+        else {
+            Write-Log "Computer '$($computer)' was resolved via DNS."
+        }
 
-        Write-Log "Processing computer: $($computer)"
+        Write-Log "Processing computer: '$($computer)'"
         $actionTaken = ""
         $resultObject = $null
 
-        # Test remote connectivity.
+        # Test remote connectivity using Test-Connection.
         if (Test-Connection -ComputerName $computer -Count 2 -Quiet) {
-            Write-Log "Computer '$($computer)' is reachable."
+            Write-Log "Computer '$($computer)' is reachable (ping successful)."
             # Check/enable WinRM on remote if necessary.
             try {
                 $winrmStatus = Invoke-Command -ComputerName $computer -Credential $DomainAdminCred -ScriptBlock {
@@ -687,7 +554,7 @@ process {
                     $actionTaken = "No change; WinRM running"
                 }
                 else {
-                    Write-Log "WinRM is not running on '$($computer)'. Enabling..."
+                    Write-Log "WinRM is not running on '$($computer)'. Attempting to enable..."
                     Invoke-Command -ComputerName $computer -Credential $DomainAdminCred -ScriptBlock {
                         Enable-PSRemoting -Force -SkipNetworkProfileCheck
                     } -ErrorAction Stop
@@ -696,8 +563,8 @@ process {
                 }
             }
             catch {
-                Write-Log "Error processing WinRM on '$($computer)': $($_)"
-                $actionTaken = "WinRM error: $($_)"
+                Write-Log "Error processing WinRM on '$($computer)': $($_.Exception.Message)"
+                $actionTaken = "WinRM error: $($_.Exception.Message)"
             }
 
             # Invoke Get-HardwareReadiness remotely.
@@ -713,27 +580,27 @@ process {
                 Write-Log "Hardware readiness for '$($computer)': Result=$($resultObject.returnResult), Code=$($resultObject.returnCode)"
             }
             catch {
-                Write-Log "Error executing Get-HardwareReadiness on '$($computer)': $($_)"
+                Write-Log "Error executing Get-HardwareReadiness on '$($computer)': $($_.Exception.Message)"
                 $resultObject = @{
                     returnCode   = -2
-                    returnResult = "Failed to run remotely"
+                    returnResult = "Failed to run remotely - $($_.Exception.Message)"
                     returnReason = ""
                     logging      = ""
                 }
             }
         }
         else {
-            Write-Log "Computer '$($computer)' is unreachable."
+            Write-Log "Computer '$($computer)' is unreachable (Test-Connection failed)."
             $resultObject = @{
                 returnCode   = -2
-                returnResult = "Unreachable"
+                returnResult = "Unreachable - No ping response"
                 returnReason = ""
                 logging      = ""
             }
             $actionTaken = "Unreachable"
         }
 
-        # If CustomField is provided, update it.
+        # If CustomField is provided, update it accordingly.
         if ($CustomField -and -not [string]::IsNullOrEmpty($CustomField) -and -not [string]::IsNullOrWhiteSpace($CustomField)) {
             switch ($resultObject.returnCode) {
                 0  { Ninja-Property-Set -Name $CustomField -Value "Capable" }
@@ -744,7 +611,7 @@ process {
             }
         }
 
-        # Display the result.
+        # Display the result on screen.
         Write-Host "Result for '$($computer)': $($resultObject.returnResult)"
 
         # Append result to CSV export list.
