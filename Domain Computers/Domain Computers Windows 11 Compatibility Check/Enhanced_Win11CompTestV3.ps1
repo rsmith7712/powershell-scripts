@@ -30,243 +30,154 @@
     Checks the computer if is capable of upgrading to Windows 11.
 
 .DESCRIPTION
-    Checks the computer if is capable of upgrading to Windows 11 and returns the results.
-
-.FUNCTIONALITY
-    Preparation and Setup:
-        -The script starts by ensuring the destination folder (C:\temp\Win11CompTestV3) exists. If not, it creates the folder.
-        -It then defines paths for the logging transcript and results file.
-        -The script also specifies the input file (C:\temp\Computers.txt) containing the list of remote computers.
-
-    Logging Start:
-        -Start-Transcript is used so that every action is logged into the provided log file. This helps in tracing the script’s execution.
-
-    Reading the Computer List:
-        -The script reads the list of remote computers. In case the file is empty or missing, the script logs a warning or error and then exits.
-
-    Processing Each Computer:
-        -Connectivity Check: Uses Test-Connection to check if the computer is online.
-        -OS Information: Uses Invoke-Command with a script block that retrieves the operating system caption via Get-CimInstance. This is used to determine if the system is Windows 11.
-        -Error Handling: If any error occurs during processing, it’s caught, logged and recorded in the results.
-
-    Exporting Results:
-        -After processing all computers, the script exports the collected results to a CSV file.
-
-    Finalization:
-        -The script outputs completion messages and then stops the transcript logging with Stop-Transcript.
-
-.PARAMETERS
-    None
-
-.EXAMPLE
-    None
-
-.FAQ
-    Q1: Is this script compatible with all Windows versions?  
-    A1: The script is designed for Windows 10 systems and above.
-
-    Q2: What happens if the TPM chip is not present?  
-    A2: The script will return a ‘Not Capable’ status if the TPM chip is missing or
-        incompatible.
-
-    Q3: Can this script be run on multiple machines at once?  
-    A3: Yes, it can be integrated into larger automation workflows to run on multiple
-        machines.
-
-.NOTE
-    Prerequisites:
-        –Ensure that C:\temp\Computers.txt exists and contains one computer name per line.
-        –The script assumes the remote machines allow PowerShell remoting.
-
-    Execution:
-        -Launch the script in an elevated PowerShell prompt. It will prompt for domain
-            admin credentials which are used for remote operations.
-
-    Logging & Output:
-        -All actions are logged in C:\temp\log_hardwareReadiness.txt
-            (with YYYY-MM-DD HH:mm timestamps), and the final summary is exported to
-            C:\temp\results_hardwareReadiness.csv.
+  Deployment Script for Windows 11 Compatibility Check.
+  This script will:
+    1. Read a list of computer names.
+    2. Copy a working compatibility-check script to each remote computer.
+    3. Create and run a scheduled task on each remote computer to execute the script locally.
+    4. Wait for the tasks to run and then copy the resulting output file back to a central share.
+    
+  Prerequisites: 
+    - Administrative rights on remote computers.
+    - SMB access (via the C$ share) to each remote computer.
+    - Scheduled Tasks can be created remotely.
+    - The compatibility-check script (this script file) is fully functional when run locally.
+    
+  Adjust the paths below as needed.
 
 .URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
+
+# Define directories and file paths
+$destFolder    = "C:\temp\Enhanced_Win11CompTestV3"
+$logPath       = Join-Path $destFolder "log_win11CompTestV3.txt"
+$resultsPath   = Join-Path $destFolder "results_win11CompTestV3.csv"
+$computersFile = "C:\temp\ComputerList_Validation\validated_Computers_Online_v2.txt"
 #>
 
-# Ensure the destination folder exists
-$destFolder = "C:\temp\Enhanced_Win11CompTestV3"
-if (!(Test-Path -Path $destFolder)) {
-    New-Item -Path $destFolder -ItemType Directory -Force | Out-Null
-}
+#region Variables and Setup
 
-# Define paths for logging, results, and computer list
-$logPath = "$destFolder\log_win11CompTestV3.txt"
-$resultsPath = "$destFolder\results_win11CompTestV3.csv"
-#$computersFile = "C:\temp\Computers.txt"
-$computersFile = "C:\temp\ComputerList_Validation\validated_Computers.txt"
+# Path to the computer list (one computer name per line)
+$computersFile = "C:\temp\ComputerList_Validation\validated_Computers_Online_v2.txt"
 
-# Start detailed logging (transcript)
-Start-Transcript -Path $logPath -Append
+# Folder on local computer where the results will be collected
+$centralResultsFolder = "\\rsmith-lt01\results"
 
-Write-Output "Starting Windows 11 Compatibility Test on remote computers..."
-Write-Output "Reading computer list from: $computersFile"
+# Local path of the compatibility-check script that needs to be deployed.
+# (Assumes this current script file is the working version.)
+$localScriptPath = $MyInvocation.MyCommand.Path
 
-# Attempt to read the list of computer names
+# Remote folder in which to copy the script and where results will be saved
+$remoteFolder = "C:\temp\Win11CompTestV3"
+$remoteScriptName = "Enhanced_Win11CompTestV3.ps1"
+# The result file that the compatibility-check script produces on the remote machine:
+$resultFileName = "results_win11CompTestV3.csv"
+
+# Name of the scheduled task to create on remote computers
+$scheduledTaskName = "Run_Win11CompTest"
+
+#endregion Variables and Setup
+
+#region Read Computer List
+
 try {
-    $computerList = Get-Content -Path $computersFile -ErrorAction Stop
+    $computerList = Get-Content -Path $computersFile -ErrorAction Stop | Where-Object { $_ -and $_.Trim() -ne "" }
     if ($computerList.Count -eq 0) {
-        Write-Warning "No computer names found in $computersFile. Exiting script."
-        Stop-Transcript
+        Write-Error "No computer names found in $computersFile. Exiting."
         exit
     }
 }
 catch {
-    Write-Error "Failed to read $computersFile. $_"
-    Stop-Transcript
+    Write-Error "Failed to read computer list from $computersFile: $($_.Exception.Message)"
     exit
 }
 
-# Create an array to collect results from each computer
-$allResults = @()
+#endregion Read Computer List
+
+#region Process Each Computer
 
 foreach ($computer in $computerList) {
+    $computer = $computer.Trim()
     Write-Output "Processing computer: $computer"
-
+    
     try {
-        # Test connectivity to the remote computer
-        $isOnline = Test-Connection -ComputerName $computer -Count 2 -Quiet
-        if (-not $isOnline) {
-            Write-Warning "$computer is not reachable."
-            $allResults += [pscustomobject]@{
-                Computer       = $computer
-                Processor      = "N/A"
-                RAM            = "N/A"
-                Storage        = "N/A"
-                TPM            = "N/A"
-                UEFI_SecureBoot= "N/A"
-                Graphics       = "N/A"
-                Display        = "N/A"
-                Overall        = "Unreachable"
-            }
-            continue
+        # Define remote UNC path for the target folder: \\<computer>\C$\temp\Win11CompTestV3
+        $remoteUncFolder = "\\$computer\C$\temp\Win11CompTestV3"
+        
+        # Create the remote folder if it does not exist.
+        if (!(Test-Path -Path $remoteUncFolder)) {
+            Write-Output "Creating remote folder on $computer: $remoteUncFolder"
+            New-Item -Path $remoteUncFolder -ItemType Directory -Force | Out-Null
         }
-
-        # Invoke remote command to perform the compatibility tests
-        $result = Invoke-Command -ComputerName $computer -ErrorAction Stop -ScriptBlock {
-            # Define each check as provided
-
-            function Check-Processor {
-                $processor = Get-WmiObject -Class Win32_Processor
-                $cores = $processor.NumberOfCores
-                $speed = $processor.MaxClockSpeed / 1000  # Convert to GHz
-                return ($cores -ge 2 -and $speed -ge 1.0)
-            }
-
-            function Check-RAM {
-                $ram = (Get-WmiObject -Class Win32_ComputerSystem).TotalPhysicalMemory / 1GB  # Convert to GB
-                return ($ram -ge 4)
-            }
-
-            function Check-Storage {
-                $storage = (Get-WmiObject -Class Win32_LogicalDisk -Filter "DeviceID='C:'").Size / 1GB  # Convert to GB
-                return ($storage -ge 64)
-            }
-
-            function Check-TPM {
-                try {
-                    $tpm = Get-WmiObject -Namespace "root\cimv2\security\microsofttpm" -Class Win32_Tpm
-                    return ($tpm.IsActivated_InitialValue -and $tpm.SpecVersion -ge "2.0")
-                } catch {
-                    return $false
-                }
-            }
-
-            function Check-UEFI-SecureBoot {
-                try {
-                    $secureBootState = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecureBoot\State" -Name "UEFISecureBootEnabled"
-                    return ($secureBootState -eq 1)
-                } catch {
-                    return $false
-                }
-            }
-
-            function Check-Graphics {
-                $gpu = Get-WmiObject -Class Win32_VideoController
-                foreach ($adapter in $gpu) {
-                    if ($adapter.DriverVersion -ge "12.0" -or $adapter.VideoModeDescription -like "*DirectX 12*") {
-                        return $true
-                    }
-                }
-                return $false
-            }
-
-            function Check-Display {
-                # Basic check; assumes the display meets requirements
-                return $true
-            }
-
-            # Build a hashtable of check results
-            $checks = @{
-                "Processor"         = Check-Processor
-                "RAM"               = Check-RAM
-                "Storage"           = Check-Storage
-                "TPM"               = Check-TPM
-                "UEFI_SecureBoot"   = Check-UEFI-SecureBoot
-                "Graphics"          = Check-Graphics
-                "Display"           = Check-Display
-            }
-
-            # Convert Boolean results into PASS/FAIL strings and compute overall status
-            $results = @{}
-            $allPassed = $true
-            foreach ($item in $checks.GetEnumerator()) {
-                if ($item.Value) {
-                    $results[$item.Key] = "PASS"
-                } else {
-                    $results[$item.Key] = "FAIL"
-                    $allPassed = $false
-                }
-            }
-            $overallStatus = if ($allPassed) { "Compatible" } else { "Not Compatible" }
-
-            # Return the results as a PSCustomObject (include the remote computer's name)
-            [PSCustomObject]@{
-                Computer        = $env:COMPUTERNAME
-                Processor       = $results.Processor
-                RAM             = $results.RAM
-                Storage         = $results.Storage
-                TPM             = $results.TPM
-                UEFI_SecureBoot = $results.UEFI_SecureBoot
-                Graphics        = $results.Graphics
-                Display         = $results.Display
-                Overall         = $overallStatus
-            }
-        } -ErrorAction Stop
-
-        Write-Output "Results for $computer received: Overall Status - $($result.Overall)"
-        $allResults += $result
+        
+        # Copy the local compatibility-check script to the remote folder.
+        $remoteScriptPath = Join-Path $remoteUncFolder $remoteScriptName
+        Write-Output "Copying script to $computer: $remoteScriptPath"
+        Copy-Item -Path $localScriptPath -Destination $remoteScriptPath -Force
+        
+        # Set scheduled task parameters.
+        # Use the remote local path for the script.
+        $taskAction = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"C:\temp\Win11CompTestV3\$remoteScriptName`""
+        
+        # Determine start time as current time + 1 minute (format HH:mm).
+        $startTime = (Get-Date).AddMinutes(1).ToString("HH:mm")
+        
+        Write-Output "Creating scheduled task on $computer to run at $startTime"
+        # Create the scheduled task on the remote computer.
+        # Use schtasks.exe with the /S parameter to specify the target computer.
+        $schtaskCreateCmd = "schtasks /Create /S $computer /TN $scheduledTaskName /TR `"$taskAction`" /SC ONCE /ST $startTime /RL HIGHEST /F"
+        Write-Output "Executing: $schtaskCreateCmd"
+        Invoke-Expression $schtaskCreateCmd
+        
+        # Optionally, you may trigger the task immediately. Uncomment the next two lines if desired.
+        Write-Output "Running scheduled task on $computer"
+        $schtaskRunCmd = "schtasks /Run /S $computer /TN $scheduledTaskName"
+        Invoke-Expression $schtaskRunCmd
+        
     }
     catch {
-        Write-Error "Error processing $($computer): $($_.Exception.Message)"
-        $allResults += [pscustomobject]@{
-            Computer        = $computer
-            Processor       = "Error"
-            RAM             = "Error"
-            Storage         = "Error"
-            TPM             = "Error"
-            UEFI_SecureBoot = "Error"
-            Graphics        = "Error"
-            Display         = "Error"
-            Overall         = "Error"
-        }
+        Write-Error "Error processing $computer: $($_.Exception.Message)"
     }
 }
 
-# Export all results to CSV
-Write-Output "Exporting all results to: $resultsPath"
-$allResults | Export-Csv -Path $resultsPath -NoTypeInformation -Force
+#endregion Process Each Computer
 
-Write-Output "Script execution completed. Detailed logs and results are saved."
+#region Wait for Remote Tasks to Complete
 
-# Stop transcript logging
-Stop-Transcript
+# Wait long enough for all remote tasks to complete.
+# Adjust the sleep time as needed (in seconds). Here, we wait 3 minutes.
+Write-Output "Waiting 3 minutes for remote tasks to complete..."
+Start-Sleep -Seconds 180
+
+#endregion Wait for Remote Tasks to Complete
+
+#region Collect Results from Remote Computers
+
+foreach ($computer in $computerList) {
+    $computer = $computer.Trim()
+    Write-Output "Collecting results from $computer..."
+    
+    $remoteUncFolder = "\\$computer\C$\temp\Win11CompTestV3"
+    $remoteResultPath = Join-Path $remoteUncFolder $resultFileName
+    $localResultDest = Join-Path $centralResultsFolder ("{0}_results.csv" -f $computer)
+    
+    try {
+        if (Test-Path -Path $remoteResultPath) {
+            Write-Output "Copying results from $computer"
+            Copy-Item -Path $remoteResultPath -Destination $localResultDest -Force
+        }
+        else {
+            Write-Warning "Result file not found on $computer at $remoteResultPath"
+        }
+    }
+    catch {
+        Write-Error "Error copying results from $computer: $($_.Exception.Message)"
+    }
+}
+
+#endregion Collect Results from Remote Computers
+
+Write-Output "Deployment and collection complete. Results saved to $centralResultsFolder"
