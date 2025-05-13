@@ -37,7 +37,7 @@
     3. Create and run a scheduled task on each remote computer to execute the script locally.
     4. Wait for the tasks to run and then copy the resulting output file back to a central share.
     
-  Prerequisites: 
+  Prerequisites:
     - Administrative rights on remote computers.
     - SMB access (via the C$ share) to each remote computer.
     - Scheduled Tasks can be created remotely.
@@ -91,7 +91,7 @@ try {
     }
 }
 catch {
-    Write-Error "Failed to read computer list from $computersFile: $($_.Exception.Message)"
+    Write-Error "Failed to read computer list from ${computersFile}: $($_.Exception.Message)"
     exit
 }
 
@@ -109,13 +109,13 @@ foreach ($computer in $computerList) {
         
         # Create the remote folder if it does not exist.
         if (!(Test-Path -Path $remoteUncFolder)) {
-            Write-Output "Creating remote folder on $computer: $remoteUncFolder"
+            Write-Output "Creating remote folder on ${computer}: $remoteUncFolder"
             New-Item -Path $remoteUncFolder -ItemType Directory -Force | Out-Null
         }
         
         # Copy the local compatibility-check script to the remote folder.
         $remoteScriptPath = Join-Path $remoteUncFolder $remoteScriptName
-        Write-Output "Copying script to $computer: $remoteScriptPath"
+        Write-Output "Copying script to ${computer}: $remoteScriptPath"
         Copy-Item -Path $localScriptPath -Destination $remoteScriptPath -Force
         
         # Set scheduled task parameters.
@@ -139,7 +139,7 @@ foreach ($computer in $computerList) {
         
     }
     catch {
-        Write-Error "Error processing $computer: $($_.Exception.Message)"
+        Write-Error "Error processing ${computer}: $($_.Exception.Message)"
     }
 }
 
@@ -174,7 +174,7 @@ foreach ($computer in $computerList) {
         }
     }
     catch {
-        Write-Error "Error copying results from $computer: $($_.Exception.Message)"
+        Write-Error "Error copying results from ${computer}: $($_.Exception.Message)"
     }
 }
 
