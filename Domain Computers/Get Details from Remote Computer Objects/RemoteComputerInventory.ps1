@@ -23,10 +23,11 @@
 # GENERAL SCRIPT INFORMATION
 <#
 .NAME
-    RemoteComputerInventory.ps1
+    Remote_Computer_Inventory_wTPM.ps1
 
 .SYNOPSIS
-    Query remote computers for specific inventory data and dump to a csv
+    Queries remote computers for OS, system, and TPM information using Domain
+    Admin credentials and exports results to CSV
 
 .FUNCTIONALITY
 
@@ -43,8 +44,8 @@ Import-Module ActiveDirectory
 $cred = Get-Credential -Message 'Enter Domain Admin credentials for remote CIM queries'
 
 # Establish Export and Logging Variables
-$exportPath = 'C:\Temp\RemoteComputerInventory.csv'
-$logPath    = 'C:\Temp\RemoteComputerInventory.log'
+$exportPath = 'C:\Temp\Remote_Computer_Inventory_wTPM.csv'
+$logPath    = 'C:\Temp\Remote_Computer_Inventory_wTPM.log'
 
 # Logging Function
 function Write-Log {
@@ -70,8 +71,9 @@ function Write-Log {
 # Retrieve all computer names from Active Directory
 $computers = Get-ADComputer -Filter * | Select-Object -Expand Name
 
+# LOOP THROUGH REMOTE COMPUTERS PULLED FROM ACTIVE DIRECTORY
 $results = foreach ($comp in $computers) {
-
+    # TEST IF REMOTE COMPUTER IS ONLINE OR OFFLINE
     if (-not (Test-Connection -ComputerName $comp -Count 1 -Quiet)) {
         Write-Log "[$comp] Offline or not responding to ping." -IsError
         [PSCustomObject]@{
@@ -85,10 +87,12 @@ $results = foreach ($comp in $computers) {
             Model                  = $null
             SerialNumber           = $null
             ErrorMessage           = 'Ping failed'
+            TPMPresent             = $null
+            TPMReady               = $null
         }
         continue
     }
-
+    # ESTABLISH CIM SESSION TO EACH REMOTE COMPUTER
     try {
         $opt = New-CimSessionOption -Protocol Dcom
         $cs  = New-CimSession -ComputerName $comp -Credential $cred -SessionOption $opt -ErrorAction Stop
@@ -107,14 +111,21 @@ $results = foreach ($comp in $computers) {
             Model                  = $null
             SerialNumber           = $null
             ErrorMessage           = "CIM session error: $($_.Exception.Message)"
+            TPMPresent             = $null
+            TPMReady               = $null
         }
         continue
     }
-
+    # QUERY EACH REMOTE COMPUTER FOR SPECIFIC DATA POINTS
     try {
         $os   = Get-CimInstance -ClassName Win32_OperatingSystem -CimSession $cs -ErrorAction Stop
         $sys  = Get-CimInstance -ClassName Win32_ComputerSystem  -CimSession $cs -ErrorAction Stop
-        $bios = Get-CimInstance -ClassName Win32_BIOS           -CimSession $cs -ErrorAction Stop
+        $bios = Get-CimInstance -ClassName Win32_BIOS            -CimSession $cs -ErrorAction Stop
+        $tpm = Get-CimInstance `
+            -Namespace 'root\CIMv2\Security\MicrosoftTpm' `
+            -ClassName Win32_Tpm `
+            -CimSession $cs `
+            -ErrorAction Stop
 
         [PSCustomObject]@{
             DNSHostName            = $comp
@@ -127,6 +138,8 @@ $results = foreach ($comp in $computers) {
             Model                  = $sys.Model
             SerialNumber           = $bios.SerialNumber
             ErrorMessage           = $null
+            TPMPresent             = $tpm.IsEnabled_InitialValue
+            TPMReady               = $tpm.IsActivated_InitialValue
         }
     }
     catch {
@@ -142,6 +155,8 @@ $results = foreach ($comp in $computers) {
             Model                  = '<error>'
             SerialNumber           = '<error>'
             ErrorMessage           = $_.Exception.Message
+            TPMPresent             = '<error>'
+            TPMReady               = '<error>'
         }
     }
     finally {
