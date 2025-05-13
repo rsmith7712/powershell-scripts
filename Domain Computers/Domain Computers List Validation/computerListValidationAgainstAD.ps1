@@ -50,7 +50,7 @@
 Import-Module ActiveDirectory -ErrorAction SilentlyContinue
 
 # Read computer names from a text file
-$computerNames = Get-Content -Path "C:\temp\Source\computernamesFullList.txt"
+$computerNames = Get-Content -Path "C:\temp\Computers.txt"
 
 # Create an output array to store results
 $results = @()
@@ -103,4 +103,4 @@ foreach ($computerName in $computerNames) {
 $results | Format-Table -AutoSize
 
 # Optionally, export the results to a CSV file
-$results | Export-Csv -Path "C:\temp\Results\results-cn-validation.csv" -NoTypeInformation -Force
+$results | Export-Csv -Path "C:\temp\results-cn-validation.csv" -NoTypeInformation -Force

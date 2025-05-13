@@ -50,7 +50,7 @@
 Import-Module ActiveDirectory -ErrorAction SilentlyContinue 
 
 # Read computer names from a text file
-$computerNames = Get-Content -Path "C:\temp\Source\computernames.txt"
+$computerNames = Get-Content -Path "C:\temp\Computers.txt"
 
 # Create an output array to store results
 $results = @()

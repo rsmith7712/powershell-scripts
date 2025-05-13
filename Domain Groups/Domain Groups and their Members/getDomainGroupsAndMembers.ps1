@@ -1,5 +1,5 @@
 ﻿$list = @()
-$Groups = get-adgroup -filter * -SearchBase "OU=,DC=,DC="
+$Groups = get-adgroup -filter * -SearchBase "DC=corp,DC=symetrix,DC=com"
 foreach ($Group in $Groups){
     $members = get-adgroupmember -identity $group
     foreach ($member in $members){
@@ -14,4 +14,4 @@ foreach ($Group in $Groups){
     }
 
 }
-    $list | export-csv "d:\GroupsandUsers.csv" -NoTypeInformation
+    $list | export-csv "C:\Temp\GroupsandUsers.csv" -NoTypeInformation
