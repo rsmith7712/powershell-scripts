@@ -15,12 +15,19 @@
         .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -Csv -Verbose
     (Optional) -OutDir "D:\Reports"
 
-    Common Error Solution:
+  Common Error Solution:
     -Write-Warning "Could not install ${Name}: $($_)"
 
 .USAGE
   .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -Csv -Verbose -OutDir C:\Temp\Logs
-#>
+
+  Save as Get-M365UserAudit.ps1, then run for example:
+  .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -GraphAuth Browser -Csv -Verbose -OutDir C:\Temp\Logs
+
+  or (device code with automatic one-time retry):
+  .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -GraphAuth DeviceCode -Csv -Verbose -OutDir C:\Temp\Logs
+
+  #>
 
 [CmdletBinding()]
 param(
@@ -93,7 +100,8 @@ Write-Host "Connecting to Microsoft Graph (Device Code prompt will appear)..." -
 $graphScopes = @('User.Read.All','Directory.Read.All','Policy.Read.All','AuditLog.Read.All')
 try {
   # NOTE: Graph does not accept PSCredential for delegated sign-in; use device code for a guaranteed console prompt
-  Connect-MgGraph -Scopes $graphScopes -UseDeviceCode -NoWelcome | Out-Null
+  #Connect-MgGraph -Scopes $graphScopes -UseDeviceCode -NoWelcome | Out-Null
+  Connect-MgGraph -Scopes $graphScopes -NoWelcome | Out-Null
   Select-MgProfile -Name 'v1.0'
   Write-Host "Connected to Graph." -ForegroundColor Green
 } catch {
