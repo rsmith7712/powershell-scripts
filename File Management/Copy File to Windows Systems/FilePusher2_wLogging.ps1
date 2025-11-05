@@ -9,7 +9,7 @@ $computers = Get-ADComputer -Filter {OperatingSystem -like "*Windows*"} |
              Select-Object -ExpandProperty Name
 
 # Local source file and remote path
-$sourceFile = "C:\temp\WhyNotWin11.exe"
+$sourceFile = "C:\temp\Win11CompTestV3.ps1"
 $remotePath = "C:\temp"
 
 # Prepare an array to hold log entries
@@ -17,6 +17,19 @@ $results = @()
 
 foreach ($computer in $computers) {
     $timestamp = Get-Date -Format o
+
+    Write-Host "Applying ExecutionPolicy change on $computer…" -ForegroundColor Cyan
+    try {
+        Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock {
+            Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
+        } -ErrorAction Stop
+
+        Write-Host "✅ Success on $computer" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "❌ Failed on ${computer}: $_" -ForegroundColor Red
+    }
+
     if (Test-Connection -ComputerName $computer -Count 1 -Quiet) {
         try {
             # Establish a remoting session using the provided credentials
