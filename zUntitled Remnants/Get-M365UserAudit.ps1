@@ -34,16 +34,23 @@ param(
   [Parameter(Mandatory=$true)]
   [string]$UserPrincipalName,
 
+  [ValidateSet('Browser','DeviceCode')]
+  [string]$GraphAuth = 'Browser',
+
   [switch]$Csv,
 
-  [string]$OutDir = 'C:\Temp\Logs'
+  [string]$OutDir = 'C:\Temp\Logs',
+
+  # Optional: set your tenant to avoid cross-tenant prompts (GUID or domain)
+  [string]$TenantId
 )
 
-# Make verbose messages print without requiring -Verbose
-$VerbosePreference = 'Continue'
+# ---------- Preferences ----------
+$VerbosePreference = 'Continue'              # show Write-Verbose without -Verbose flag
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
+# ---------- Helpers ----------
 function Ensure-Module {
   param([Parameter(Mandatory)][string]$Name)
   Write-Verbose "Checking for module ${Name}..."
@@ -58,65 +65,73 @@ function Ensure-Module {
   Import-Module $Name -ErrorAction Stop | Out-Null
   Write-Verbose "Module ${Name} imported."
 }
+function Write-Section { param([string]$Title) Write-Host "`n=== $Title ===" -ForegroundColor Cyan }
 
-function Write-Section {
-  param([string]$Title)
-  Write-Host "`n=== $Title ===" -ForegroundColor Cyan
-}
+#function Bool-Icon { param([bool]$Value) if ($Value) { '✅' } else { '❌' } }
 
-function Bool-Icon { param([bool]$Value) if ($Value) { '✅' } else { '❌' } }
-
-# ----- Logging / Transcript -----
-if (-not (Test-Path $OutDir)) {
-  Write-Verbose "Creating output directory $OutDir"
-  New-Item -Path $OutDir -ItemType Directory -Force | Out-Null
-}
-
-# Build a filesystem-safe timestamp: "YYYY-MM-DD HHmm"
+# ---------- Logging / Transcript ----------
+if (-not (Test-Path $OutDir)) { New-Item -Path $OutDir -ItemType Directory -Force | Out-Null }
+# "YYYY-MM-DD HHmm" for screen; filesystem-safe "YYYY-MM-DD_HHmm" for filenames
 $TimeStamp   = (Get-Date).ToString('yyyy-MM-dd HHmm')
-$TimeStampFN = $TimeStamp -replace '[:/\\]','-' -replace ' ','_'
+$TimeStampFN = (Get-Date).ToString('yyyy-MM-dd_HHmm')
 $LogFile     = Join-Path $OutDir ("Get-M365UserAudit_{0}.log" -f $TimeStampFN)
+$FilePrefix  = "{0}__{1}" -f $TimeStampFN, ($UserPrincipalName -replace '[^a-zA-Z0-9@._-]','_')
 
 Write-Host "Starting transcript: $LogFile" -ForegroundColor Yellow
 try { Start-Transcript -Path $LogFile -Append | Out-Null } catch { Write-Warning "Transcript could not be started: $($_.Exception.Message)" }
 
-Write-Host "Starting audit for $UserPrincipalName ..." -ForegroundColor Green
+Write-Host "Starting audit for $UserPrincipalName @ $TimeStamp" -ForegroundColor Green
+Write-Verbose "Output directory: $OutDir"
+if ($TenantId) { Write-Verbose "Target tenant: $TenantId" }
 
-# ----- Modules -----
+# ---------- Modules ----------
 Ensure-Module Microsoft.Graph
 Ensure-Module ExchangeOnlineManagement
 $HasMSOnline = $false
-if (Get-Module -ListAvailable MSOnline) { $HasMSOnline = $true; Import-Module MSOnline -ErrorAction SilentlyContinue | Out-Null; Write-Verbose "MSOnline found and imported." }
-else { Write-Verbose "MSOnline module not found; legacy per-user MFA view will be skipped." }
+if (Get-Module -ListAvailable MSOnline) { $HasMSOnline = $true; Import-Module MSOnline -ErrorAction SilentlyContinue | Out-Null; Write-Verbose "MSOnline imported." }
+else { Write-Verbose "MSOnline not found; legacy per-user MFA view will be skipped." }
 
-# ----- CSV prep -----
-$pref = "{0}__{1}" -f $TimeStampFN, ($UserPrincipalName -replace '[^a-zA-Z0-9@._-]','_')
-if ($Csv) {
-  Write-Host "CSV output enabled. Directory: ${OutDir}" -ForegroundColor Yellow
-}
+# ---------- CSV prep ----------
+if ($Csv) { Write-Host "CSV output enabled. Directory: ${OutDir}" -ForegroundColor Yellow }
 
-# -------------------- Connect Microsoft Graph (delegated) --------------------
-Write-Host "Connecting to Microsoft Graph (Device Code prompt will appear)..." -ForegroundColor Yellow
+# ---------- Connect: Microsoft Graph ----------
 $graphScopes = @('User.Read.All','Directory.Read.All','Policy.Read.All','AuditLog.Read.All')
 try {
-  # NOTE: Graph does not accept PSCredential for delegated sign-in; use device code for a guaranteed console prompt
-  #Connect-MgGraph -Scopes $graphScopes -UseDeviceCode -NoWelcome | Out-Null
-  Connect-MgGraph -Scopes $graphScopes -NoWelcome | Out-Null
-  Select-MgProfile -Name 'v1.0'
-  Write-Host "Connected to Graph." -ForegroundColor Green
+  if ($GraphAuth -eq 'Browser') {
+    Write-Host "Connecting to Microsoft Graph (interactive browser)..." -ForegroundColor Yellow
+    if ($TenantId) { Connect-MgGraph -Scopes $graphScopes -TenantId $TenantId -NoWelcome | Out-Null }
+    else           { Connect-MgGraph -Scopes $graphScopes -NoWelcome              | Out-Null }
+    Select-MgProfile -Name 'v1.0'
+    Write-Host "Connected to Graph." -ForegroundColor Green
+  } else {
+    Write-Host "Connecting to Microsoft Graph (device code)..." -ForegroundColor Yellow
+    try {
+      if ($TenantId) { Connect-MgGraph -Scopes $graphScopes -TenantId $TenantId -UseDeviceCode -NoWelcome | Out-Null }
+      else           { Connect-MgGraph -Scopes $graphScopes                -UseDeviceCode -NoWelcome | Out-Null }
+      Select-MgProfile -Name 'v1.0'
+      Write-Host "Connected to Graph." -ForegroundColor Green
+    } catch {
+      if ($_.Exception.Message -match 'Authentication timed out') {
+        Write-Warning "Device code timed out after 120s. Retrying once..."
+        if ($TenantId) { Connect-MgGraph -Scopes $graphScopes -TenantId $TenantId -UseDeviceCode -NoWelcome | Out-Null }
+        else           { Connect-MgGraph -Scopes $graphScopes                -UseDeviceCode -NoWelcome | Out-Null }
+        Select-MgProfile -Name 'v1.0'
+        Write-Host "Connected to Graph." -ForegroundColor Green
+      } else { throw }
+    }
+  }
 } catch {
   Write-Error "Failed to connect to Graph. $($_.Exception.Message)"
   Stop-Transcript | Out-Null
   return
 }
 
-# -------------------- Connect Exchange Online --------------------
+# ---------- Connect: Exchange Online ----------
 Write-Host "Connecting to Exchange Online (interactive web sign-in)..." -ForegroundColor Yellow
-# Prompt for GA UPN to steer EXO sign-in window to the right account
 $GaUpn = Read-Host "Enter Global Admin UPN (e.g., admin@contoso.com)"
 try {
-  # Modern EXO uses interactive web auth; -UserPrincipalName hints the login username
-  Connect-ExchangeOnline -UserPrincipalName $GaUpn -ShowBanner:$false | Out-Null
+  if ($TenantId) { Connect-ExchangeOnline -UserPrincipalName $GaUpn -Organization $TenantId -ShowBanner:$false | Out-Null }
+  else           { Connect-ExchangeOnline -UserPrincipalName $GaUpn                 -ShowBanner:$false | Out-Null }
   Write-Host "Connected to Exchange Online." -ForegroundColor Green
 } catch {
   Write-Error "Failed to connect to Exchange Online. $($_.Exception.Message)"
@@ -125,12 +140,11 @@ try {
   return
 }
 
-# -------------------- (Optional) Connect MSOnline for legacy per-user MFA --------------------
+# ---------- Optional: MSOnline (legacy per-user MFA) ----------
 $MsolConnected = $false
 if ($HasMSOnline) {
   try {
     Write-Host "Connecting to MSOnline (legacy per-user MFA view)..." -ForegroundColor Yellow
-    # MSOnline DOES support PSCredential; prompt explicitly
     $GlobalAdminCred = Get-Credential -Message "Enter Global Admin credentials (for MSOnline legacy API)"
     Connect-MsolService -Credential $GlobalAdminCred -ErrorAction Stop
     $MsolConnected = $true
@@ -140,7 +154,7 @@ if ($HasMSOnline) {
   }
 }
 
-# -------------------- Queries --------------------
+# ---------- Queries ----------
 try {
   Write-Host "Querying Graph user object..." -ForegroundColor Gray
   $user = Get-MgUser -UserId $UserPrincipalName -Property `
@@ -176,7 +190,7 @@ try {
     }
   }
 
-  # -------------------- Console Output --------------------
+  # ---------- Console Output ----------
   Write-Section "USER (Entra ID)"
   $user | Select-Object DisplayName,UserPrincipalName,AccountEnabled,UserType,CreatedDateTime,OnPremisesSyncEnabled | Format-List
 
@@ -223,7 +237,7 @@ try {
     Write-Host "`n(Legacy per-user MFA state unavailable or MSOnline not connected.)" -ForegroundColor DarkYellow
   }
 
-  # -------------------- Verdict --------------------
+  # ---------- Verdict ----------
   $orgSmtpDisabled   = $orgTx.SmtpClientAuthenticationDisabled
   $mbxSmtpDisabled   = $casMbx.SmtpClientAuthenticationDisabled
   $isUserMailbox     = ($mbx.RecipientTypeDetails -eq 'UserMailbox')
@@ -252,7 +266,7 @@ try {
   }
   $verdict | Format-List
 
-  # -------------------- CSV Exports --------------------
+  # ---------- CSV Exports ----------
   if ($Csv) {
     # user
     $userRow = [pscustomobject]@{
@@ -267,14 +281,15 @@ try {
       LastSignInDateTime       = $user.SignInActivity.LastSignInDateTime
       LastNonInteractiveSignIn = $user.SignInActivity.LastNonInteractiveSignInDateTime
     }
-    $userRow | Export-Csv -Path (Join-Path $OutDir "${pref}__user.csv") -NoTypeInformation -Encoding UTF8 -Force
+    $userRow | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__user.csv") -NoTypeInformation -Encoding UTF8 -Force
 
     # licensing / plans
     [pscustomobject]@{ AssignedLicensesSkuIds = ($user.AssignedLicenses.SkuId -join ';') } |
-      Export-Csv -Path (Join-Path $OutDir "${pref}__licensing.csv") -NoTypeInformation -Encoding UTF8 -Force
+      Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__licensing.csv") -NoTypeInformation -Encoding UTF8 -Force
     if ($user.AssignedPlans) {
-      $user.AssignedPlans | Select-Object Service,CapabilityStatus,AssignedDateTime |
-        Export-Csv -Path (Join-Path $OutDir "${pref}__assignedPlans.csv") -NoTypeInformation -Encoding UTF8 -Force
+      $user.AssignedPlans |
+        Select-Object Service,CapabilityStatus,AssignedDateTime |
+        Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__assignedPlans.csv") -NoTypeInformation -Encoding UTF8 -Force
     }
 
     # mailbox
@@ -285,7 +300,7 @@ try {
       DeliverToMailboxAndForward= $mbx.DeliverToMailboxAndForward
       EmailAddresses            = ($mbx.EmailAddresses | Sort-Object | Out-String).Trim()
     }
-    $mbxRow  | Export-Csv -Path (Join-Path $OutDir "${pref}__mailbox.csv") -NoTypeInformation -Encoding UTF8 -Force
+    $mbxRow  | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__mailbox.csv") -NoTypeInformation -Encoding UTF8 -Force
 
     # CAS/Protocols
     $casRow = [pscustomobject]@{
@@ -297,15 +312,15 @@ try {
       PopEnabled                     = $casMbx.PopEnabled
       ActiveSyncEnabled              = $casMbx.ActiveSyncEnabled
     }
-    $casRow | Export-Csv -Path (Join-Path $OutDir "${pref}__cas.csv") -NoTypeInformation -Encoding UTF8 -Force
+    $casRow | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__cas.csv") -NoTypeInformation -Encoding UTF8 -Force
 
     # auth methods + security defaults + verdict
-    $authSummary | Export-Csv -Path (Join-Path $OutDir "${pref}__authMethods.csv") -NoTypeInformation -Encoding UTF8 -Force
+    $authSummary | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__authMethods.csv") -NoTypeInformation -Encoding UTF8 -Force
     [pscustomobject]@{ SecurityDefaultsEnabled = $secDefaults.IsEnabled } |
-      Export-Csv -Path (Join-Path $OutDir "${pref}__securityDefaults.csv") -NoTypeInformation -Encoding UTF8 -Force
-    $verdict | Export-Csv -Path (Join-Path $OutDir "${pref}__verdict.csv") -NoTypeInformation -Encoding UTF8 -Force
+      Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__securityDefaults.csv") -NoTypeInformation -Encoding UTF8 -Force
+    $verdict | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__verdict.csv") -NoTypeInformation -Encoding UTF8 -Force
 
-    Write-Host "`nCSV files written to ${OutDir} (prefix ${pref})." -ForegroundColor Green
+    Write-Host "`nCSV files written to ${OutDir} (prefix ${FilePrefix})." -ForegroundColor Green
   }
 
 } catch {
