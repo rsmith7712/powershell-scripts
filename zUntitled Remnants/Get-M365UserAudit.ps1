@@ -95,34 +95,44 @@ else { Write-Verbose "MSOnline not found; legacy per-user MFA view will be skipp
 if ($Csv) { Write-Host "CSV output enabled. Directory: ${OutDir}" -ForegroundColor Yellow }
 
 # ---------- Connect: Microsoft Graph ----------
+# Ensure the Authentication submodule (where Select-MgProfile lives) is present
+try { Import-Module Microsoft.Graph.Authentication -ErrorAction Stop } catch { Write-Verbose "Graph auth submodule not found; continuing without explicit import." }
+
 $graphScopes = @('User.Read.All','Directory.Read.All','Policy.Read.All','AuditLog.Read.All')
+
 try {
   if ($GraphAuth -eq 'Browser') {
     Write-Host "Connecting to Microsoft Graph (interactive browser)..." -ForegroundColor Yellow
     if ($TenantId) { Connect-MgGraph -Scopes $graphScopes -TenantId $TenantId -NoWelcome | Out-Null }
-    else           { Connect-MgGraph -Scopes $graphScopes -NoWelcome              | Out-Null }
-    Select-MgProfile -Name 'v1.0'
-    Write-Host "Connected to Graph." -ForegroundColor Green
+    else           { Connect-MgGraph -Scopes $graphScopes                -NoWelcome | Out-Null }
   } else {
     Write-Host "Connecting to Microsoft Graph (device code)..." -ForegroundColor Yellow
     try {
       if ($TenantId) { Connect-MgGraph -Scopes $graphScopes -TenantId $TenantId -UseDeviceCode -NoWelcome | Out-Null }
       else           { Connect-MgGraph -Scopes $graphScopes                -UseDeviceCode -NoWelcome | Out-Null }
-      Select-MgProfile -Name 'v1.0'
-      Write-Host "Connected to Graph." -ForegroundColor Green
     } catch {
       if ($_.Exception.Message -match 'Authentication timed out') {
         Write-Warning "Device code timed out after 120s. Retrying once..."
         if ($TenantId) { Connect-MgGraph -Scopes $graphScopes -TenantId $TenantId -UseDeviceCode -NoWelcome | Out-Null }
         else           { Connect-MgGraph -Scopes $graphScopes                -UseDeviceCode -NoWelcome | Out-Null }
-        Select-MgProfile -Name 'v1.0'
-        Write-Host "Connected to Graph." -ForegroundColor Green
       } else { throw }
     }
   }
-} catch {
+
+  # Set profile ONLY if the cmdlet exists (prevents crash when submodule/cmdlet is missing)
+  $selectProfile = Get-Command Select-MgProfile -ErrorAction SilentlyContinue
+  if ($selectProfile) {
+    Select-MgProfile -Name 'v1.0'
+    Write-Host "Graph profile set to v1.0." -ForegroundColor Green
+  } else {
+    Write-Host "Select-MgProfile not available; proceeding with default profile." -ForegroundColor Yellow
+  }
+
+  Write-Host "Connected to Graph." -ForegroundColor Green
+}
+catch {
   Write-Error "Failed to connect to Graph. $($_.Exception.Message)"
-  Stop-Transcript | Out-Null
+  try { Stop-Transcript | Out-Null } catch {}
   return
 }
 
