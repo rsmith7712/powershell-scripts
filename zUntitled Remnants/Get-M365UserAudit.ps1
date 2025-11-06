@@ -91,7 +91,7 @@ Ensure-Module ExchangeOnlineManagement
 try { Import-Module Microsoft.Graph.Authentication -ErrorAction Stop | Out-Null } catch { Write-Verbose "Graph Authentication submodule not found; proceeding." }
 
 # ---------- Connect: Microsoft Graph ----------
-$graphScopes = @('User.Read.All','Directory.Read.All','Policy.Read.All','AuditLog.Read.All')
+$graphScopes = @('User.Read.All','Directory.Read.All','Policy.Read.All','AuditLog.Read.All','UserAuthenticationMethod.Read.All')
 try {
   if ($GraphAuth -eq 'Browser') {
     Write-Host "Connecting to Microsoft Graph (interactive browser)..." -ForegroundColor Yellow
