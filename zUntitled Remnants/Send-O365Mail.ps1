@@ -1,4 +1,4 @@
-#Send-O365Mail.ps1
+# Send-O365Mail.ps1
 <#
 .SYNOPSIS
   Production PowerShell Sender (retry/backoff + logging to C:\Temp\Logs)
