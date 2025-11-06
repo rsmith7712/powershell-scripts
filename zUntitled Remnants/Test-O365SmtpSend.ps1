@@ -6,7 +6,6 @@
 .EXAMPLE
   .\Test-O365SmtpSend.ps1 -Username 'userA@domain.com' -From 'userA@domain.com' -To 'userB@domain.com' -Verbose
 
-
 #>
 [CmdletBinding()]
 param(
