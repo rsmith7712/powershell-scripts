@@ -1,8 +1,8 @@
 # Get-M365UserAudit.ps1
 <#
 .SYNOPSIS
-  Audit key Microsoft 365 user + mailbox details (Entra ID, EXO, SMTP AUTH, MFA flags),
-  emit a single SMTP readiness verdict, and (optionally) export CSVs.
+  Audits an Entra ID / M365 user + mailbox (SMTP AUTH, Security Defaults, etc.),
+  with verbose output, transcript logging, CSV export, and selectable Graph auth flow.
 
   Adds:
   -Global Admin credential prompt
@@ -11,16 +11,15 @@
   -Csv switch to write results to files
   -OutDir (default C:\Temp\Logs) and timestamped filename prefix
   -Separate CSVs for User, Mailbox, CAS/Protocols, Licensing, Auth Methods, and the SMTP Verdict
-    Save as Get-M365UserAudit.ps1, then run:
-        .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -Csv -Verbose
-    (Optional) -OutDir "D:\Reports"
 
   Common Error Solution:
     -Write-Warning "Could not install ${Name}: $($_)"
 
-.USAGE
-  .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -Csv -Verbose -OutDir C:\Temp\Logs
+.EXAMPLE
+    .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com
+      [-GraphAuth Browser|DeviceCode] [-Csv] [-OutDir C:\Temp\Logs] [-TenantId <tenantGuidOrDomain>] [-Verbose]
 
+.OUTPUTS
   Save as Get-M365UserAudit.ps1, then run for example:
   .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -GraphAuth Browser -Csv -Verbose -OutDir C:\Temp\Logs
 
@@ -41,14 +40,14 @@ param(
 
   [string]$OutDir = 'C:\Temp\Logs',
 
-  # Optional: set your tenant to avoid cross-tenant prompts (GUID or domain)
+  # Optional: set your tenant to avoid cross-tenant prompts (GUID or verified domain)
   [string]$TenantId
 )
 
 # ---------- Preferences ----------
-$VerbosePreference = 'Continue'              # show Write-Verbose without -Verbose flag
-$ErrorActionPreference = 'Stop'
-$ProgressPreference = 'SilentlyContinue'
+$VerbosePreference       = 'Continue'          # show Write-Verbose without needing -Verbose
+$ErrorActionPreference   = 'Stop'
+$ProgressPreference      = 'SilentlyContinue'
 
 # ---------- Helpers ----------
 function Ensure-Module {
@@ -65,13 +64,13 @@ function Ensure-Module {
   Import-Module $Name -ErrorAction Stop | Out-Null
   Write-Verbose "Module ${Name} imported."
 }
-function Write-Section { param([string]$Title) Write-Host "`n=== $Title ===" -ForegroundColor Cyan }
 
-#function Bool-Icon { param([bool]$Value) if ($Value) { '✅' } else { '❌' } }
+function Write-Section { param([string]$Title) Write-Host "`n=== $Title ===" -ForegroundColor Cyan }
+#function Bool-Icon   { param([bool]$Value) if ($Value) { '✅' } else { '❌' } }
 
 # ---------- Logging / Transcript ----------
 if (-not (Test-Path $OutDir)) { New-Item -Path $OutDir -ItemType Directory -Force | Out-Null }
-# "YYYY-MM-DD HHmm" for screen; filesystem-safe "YYYY-MM-DD_HHmm" for filenames
+# Screen uses "YYYY-MM-DD HHmm"; files use "YYYY-MM-DD_HHmm" (safe for filenames)
 $TimeStamp   = (Get-Date).ToString('yyyy-MM-dd HHmm')
 $TimeStampFN = (Get-Date).ToString('yyyy-MM-dd_HHmm')
 $LogFile     = Join-Path $OutDir ("Get-M365UserAudit_{0}.log" -f $TimeStampFN)
@@ -83,23 +82,16 @@ try { Start-Transcript -Path $LogFile -Append | Out-Null } catch { Write-Warning
 Write-Host "Starting audit for $UserPrincipalName @ $TimeStamp" -ForegroundColor Green
 Write-Verbose "Output directory: $OutDir"
 if ($TenantId) { Write-Verbose "Target tenant: $TenantId" }
+if ($Csv)      { Write-Host "CSV output enabled. Directory: ${OutDir}" -ForegroundColor Yellow }
 
 # ---------- Modules ----------
 Ensure-Module Microsoft.Graph
 Ensure-Module ExchangeOnlineManagement
-$HasMSOnline = $false
-if (Get-Module -ListAvailable MSOnline) { $HasMSOnline = $true; Import-Module MSOnline -ErrorAction SilentlyContinue | Out-Null; Write-Verbose "MSOnline imported." }
-else { Write-Verbose "MSOnline not found; legacy per-user MFA view will be skipped." }
-
-# ---------- CSV prep ----------
-if ($Csv) { Write-Host "CSV output enabled. Directory: ${OutDir}" -ForegroundColor Yellow }
+# Best-effort: import Authentication submodule (where Select-MgProfile lives)
+try { Import-Module Microsoft.Graph.Authentication -ErrorAction Stop | Out-Null } catch { Write-Verbose "Graph Authentication submodule not found; proceeding." }
 
 # ---------- Connect: Microsoft Graph ----------
-# Ensure the Authentication submodule (where Select-MgProfile lives) is present
-try { Import-Module Microsoft.Graph.Authentication -ErrorAction Stop } catch { Write-Verbose "Graph auth submodule not found; continuing without explicit import." }
-
 $graphScopes = @('User.Read.All','Directory.Read.All','Policy.Read.All','AuditLog.Read.All')
-
 try {
   if ($GraphAuth -eq 'Browser') {
     Write-Host "Connecting to Microsoft Graph (interactive browser)..." -ForegroundColor Yellow
@@ -119,7 +111,7 @@ try {
     }
   }
 
-  # Set profile ONLY if the cmdlet exists (prevents crash when submodule/cmdlet is missing)
+  # Set profile ONLY if the cmdlet exists (prevents crash if submodule/cmdlet unavailable)
   $selectProfile = Get-Command Select-MgProfile -ErrorAction SilentlyContinue
   if ($selectProfile) {
     Select-MgProfile -Name 'v1.0'
@@ -146,32 +138,24 @@ try {
 } catch {
   Write-Error "Failed to connect to Exchange Online. $($_.Exception.Message)"
   try { Disconnect-MgGraph | Out-Null } catch {}
-  Stop-Transcript | Out-Null
+  try { Stop-Transcript | Out-Null } catch {}
   return
 }
-<#
-# ---------- Optional: MSOnline (legacy per-user MFA) ----------
-$MsolConnected = $false
-if ($HasMSOnline) {
-  try {
-    Write-Host "Connecting to MSOnline (legacy per-user MFA view)..." -ForegroundColor Yellow
-    $GlobalAdminCred = Get-Credential -Message "Enter Global Admin credentials (for MSOnline legacy API)"
-    Connect-MsolService -Credential $GlobalAdminCred -ErrorAction Stop
-    $MsolConnected = $true
-    Write-Host "Connected to MSOnline." -ForegroundColor Green
-  } catch {
-    Write-Warning "MSOnline connection failed; legacy per-user MFA state will be skipped. $($_.Exception.Message)"
-  }
-}
-#>
+
 # ---------- Queries ----------
 try {
+  # Resolve UPN -> GUID (avoid 400 "Get By Key only supports UserId GUID")
+  Write-Host "Resolving user by UPN via Graph filter..." -ForegroundColor Gray
+  $resolvedUser = Get-MgUser -Filter "userPrincipalName eq '$UserPrincipalName'" -ConsistencyLevel eventual -CountVariable _ | Select-Object -First 1
+  if (-not $resolvedUser) { throw "User '$UserPrincipalName' not found in Graph." }
+  $userId = $resolvedUser.Id
+
   Write-Host "Querying Graph user object..." -ForegroundColor Gray
-  $user = Get-MgUser -UserId $UserPrincipalName -Property `
+  $user = Get-MgUser -UserId $userId -Property `
     Id,UserPrincipalName,DisplayName,Mail,AccountEnabled,UserType,CreatedDateTime,OnPremisesSyncEnabled,ProxyAddresses,AssignedLicenses,AssignedPlans,SignInActivity
 
   Write-Host "Querying Graph auth methods + tenant security defaults..." -ForegroundColor Gray
-  $authMethods = Get-MgUserAuthenticationMethod -UserId $user.Id
+  $authMethods = Get-MgUserAuthenticationMethod -UserId $userId
   $secDefaults = Get-MgPolicyIdentitySecurityDefaultEnforcementPolicy
 
   $authSummary = [pscustomobject]@{
@@ -186,19 +170,6 @@ try {
   $mbx    = Get-EXOMailbox -Identity $UserPrincipalName -Properties PrimarySmtpAddress,RecipientTypeDetails,EmailAddresses,ForwardingSmtpAddress,DeliverToMailboxAndForward
   $casMbx = Get-EXOCASMailbox -Identity $UserPrincipalName -Properties SmtpClientAuthenticationDisabled,PopEnabled,ImapEnabled,MAPIEnabled,OWAEnabled,ActiveSyncEnabled
   $orgTx  = Get-TransportConfig | Select-Object SmtpClientAuthenticationDisabled
-
-  # Legacy MFA
-  $legacyMfa = $null
-  if ($MsolConnected) {
-    Write-Host "Querying legacy per-user MFA state..." -ForegroundColor Gray
-    $msol = Get-MsolUser -UserPrincipalName $UserPrincipalName -ErrorAction SilentlyContinue
-    if ($msol) {
-      $legacyMfa = [pscustomobject]@{
-        LegacyMfaState = $msol.StrongAuthenticationRequirements.State
-        MethodsCount   = ($msol.StrongAuthenticationMethods | Measure-Object).Count
-      }
-    }
-  }
 
   # ---------- Console Output ----------
   Write-Section "USER (Entra ID)"
@@ -240,27 +211,14 @@ try {
   Write-Section "AUTH METHODS (Registered in Entra)"
   $authSummary | Format-List
 
-  if ($legacyMfa) {
-    Write-Section "LEGACY PER-USER MFA (MSOnline)"
-    $legacyMfa | Format-List
-  } else {
-    Write-Host "`n(Legacy per-user MFA state unavailable or MSOnline not connected.)" -ForegroundColor DarkYellow
-  }
-
   # ---------- Verdict ----------
   $orgSmtpDisabled   = $orgTx.SmtpClientAuthenticationDisabled
   $mbxSmtpDisabled   = $casMbx.SmtpClientAuthenticationDisabled
   $isUserMailbox     = ($mbx.RecipientTypeDetails -eq 'UserMailbox')
   $secDefaultsOn     = $secDefaults.IsEnabled
-  $legacyMfaState    = $null
-  $legacyMfaEnabled  = $false
-  if ($legacyMfa) {
-    $legacyMfaState   = $legacyMfa.LegacyMfaState
-    $legacyMfaEnabled = @('Enabled','Enforced') -contains ($legacyMfa.LegacyMfaState)
-  }
 
   $smtpAuthAllowed = (-not $orgSmtpDisabled) -and (-not $mbxSmtpDisabled) -and $isUserMailbox
-  $mfaBlocksSmtp   = $secDefaultsOn -or $legacyMfaEnabled
+  $mfaBlocksSmtp   = $secDefaultsOn            # legacy per-user MFA removed with MSOnline
   $smtpReady       = $smtpAuthAllowed -and (-not $mfaBlocksSmtp) -and $user.AccountEnabled
 
   Write-Section "SMTP READINESS VERDICT"
@@ -269,10 +227,9 @@ try {
     SMTP_Auth_Allowed_Mailbox   = (-not $mbxSmtpDisabled)
     Mailbox_Is_UserMailbox      = $isUserMailbox
     SecurityDefaults_Off        = (-not $secDefaultsOn)
-    Legacy_PerUser_MFA_Off      = (-not $legacyMfaEnabled)
     User_Account_Enabled        = $user.AccountEnabled
     RESULT_Ready_for_SMTP587    = $smtpReady
-    Notes                       = "OrgDisabled=$orgSmtpDisabled; MbxDisabled=$mbxSmtpDisabled; SecDefaultsOn=$secDefaultsOn; LegacyMFA=$legacyMfaState"
+    Notes                       = "OrgDisabled=$orgSmtpDisabled; MbxDisabled=$mbxSmtpDisabled; SecDefaultsOn=$secDefaultsOn"
   }
   $verdict | Format-List
 
@@ -324,11 +281,11 @@ try {
     }
     $casRow | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__cas.csv") -NoTypeInformation -Encoding UTF8 -Force
 
-    # auth methods + security defaults + verdict
-    $authSummary | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__authMethods.csv") -NoTypeInformation -Encoding UTF8 -Force
+    # verdict + security defaults + auth summary
     [pscustomobject]@{ SecurityDefaultsEnabled = $secDefaults.IsEnabled } |
       Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__securityDefaults.csv") -NoTypeInformation -Encoding UTF8 -Force
-    $verdict | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__verdict.csv") -NoTypeInformation -Encoding UTF8 -Force
+    $authSummary | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__authMethods.csv") -NoTypeInformation -Encoding UTF8 -Force
+    $verdict     | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__verdict.csv") -NoTypeInformation -Encoding UTF8 -Force
 
     Write-Host "`nCSV files written to ${OutDir} (prefix ${FilePrefix})." -ForegroundColor Green
   }
@@ -339,7 +296,6 @@ try {
   Write-Verbose "Disconnecting sessions..."
   try { Disconnect-ExchangeOnline -Confirm:$false | Out-Null } catch {}
   try { Disconnect-MgGraph | Out-Null } catch {}
-  # MSOnline has no disconnect
   try { Stop-Transcript | Out-Null } catch {}
   Write-Verbose "All done."
 }
