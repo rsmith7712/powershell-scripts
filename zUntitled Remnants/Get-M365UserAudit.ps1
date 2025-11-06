@@ -45,7 +45,7 @@ param(
 )
 
 # ---------- Preferences ----------
-$VerbosePreference       = 'Continue'          # show Write-Verbose without needing -Verbose
+$VerbosePreference       = 'Continue'
 $ErrorActionPreference   = 'Stop'
 $ProgressPreference      = 'SilentlyContinue'
 
@@ -70,9 +70,8 @@ function Write-Section { param([string]$Title) Write-Host "`n=== $Title ===" -Fo
 
 # ---------- Logging / Transcript ----------
 if (-not (Test-Path $OutDir)) { New-Item -Path $OutDir -ItemType Directory -Force | Out-Null }
-# Screen uses "YYYY-MM-DD HHmm"; files use "YYYY-MM-DD_HHmm" (safe for filenames)
-$TimeStamp   = (Get-Date).ToString('yyyy-MM-dd HHmm')
-$TimeStampFN = (Get-Date).ToString('yyyy-MM-dd_HHmm')
+$TimeStamp   = (Get-Date).ToString('yyyy-MM-dd HHmm')   # screen
+$TimeStampFN = (Get-Date).ToString('yyyy-MM-dd_HHmm')   # filename-safe
 $LogFile     = Join-Path $OutDir ("Get-M365UserAudit_{0}.log" -f $TimeStampFN)
 $FilePrefix  = "{0}__{1}" -f $TimeStampFN, ($UserPrincipalName -replace '[^a-zA-Z0-9@._-]','_')
 
@@ -87,11 +86,16 @@ if ($Csv)      { Write-Host "CSV output enabled. Directory: ${OutDir}" -Foregrou
 # ---------- Modules ----------
 Ensure-Module Microsoft.Graph
 Ensure-Module ExchangeOnlineManagement
-# Best-effort: import Authentication submodule (where Select-MgProfile lives)
 try { Import-Module Microsoft.Graph.Authentication -ErrorAction Stop | Out-Null } catch { Write-Verbose "Graph Authentication submodule not found; proceeding." }
 
 # ---------- Connect: Microsoft Graph ----------
-$graphScopes = @('User.Read.All','Directory.Read.All','Policy.Read.All','AuditLog.Read.All','UserAuthenticationMethod.Read.All')
+$graphScopes = @(
+  'User.Read.All',
+  'Directory.Read.All',
+  'Policy.Read.All',
+  'AuditLog.Read.All',
+  'UserAuthenticationMethod.Read.All'  # <-- required to read other users’ auth methods
+)
 try {
   if ($GraphAuth -eq 'Browser') {
     Write-Host "Connecting to Microsoft Graph (interactive browser)..." -ForegroundColor Yellow
@@ -111,7 +115,6 @@ try {
     }
   }
 
-  # Set profile ONLY if the cmdlet exists (prevents crash if submodule/cmdlet unavailable)
   $selectProfile = Get-Command Select-MgProfile -ErrorAction SilentlyContinue
   if ($selectProfile) {
     Select-MgProfile -Name 'v1.0'
@@ -144,7 +147,7 @@ try {
 
 # ---------- Queries ----------
 try {
-  # Resolve UPN -> GUID (avoid 400 "Get By Key only supports UserId GUID")
+  # Resolve UPN -> GUID
   Write-Host "Resolving user by UPN via Graph filter..." -ForegroundColor Gray
   $resolvedUser = Get-MgUser -Filter "userPrincipalName eq '$UserPrincipalName'" -ConsistencyLevel eventual -CountVariable _ | Select-Object -First 1
   if (-not $resolvedUser) { throw "User '$UserPrincipalName' not found in Graph." }
@@ -154,17 +157,27 @@ try {
   $user = Get-MgUser -UserId $userId -Property `
     Id,UserPrincipalName,DisplayName,Mail,AccountEnabled,UserType,CreatedDateTime,OnPremisesSyncEnabled,ProxyAddresses,AssignedLicenses,AssignedPlans,SignInActivity
 
+  # Auth methods (resilient: handle 403 gracefully)
   Write-Host "Querying Graph auth methods + tenant security defaults..." -ForegroundColor Gray
-  $authMethods = Get-MgUserAuthenticationMethod -UserId $userId
-  $secDefaults = Get-MgPolicyIdentitySecurityDefaultEnforcementPolicy
-
-  $authSummary = [pscustomobject]@{
-    FIDO2            = ($authMethods | Where-Object {$_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.fido2AuthenticationMethod'}).Count
-    AuthenticatorApp = ($authMethods | Where-Object {$_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.microsoftAuthenticatorAuthenticationMethod'}).Count
-    Phone            = ($authMethods | Where-Object {$_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.phoneAuthenticationMethod'}).Count
-    Email            = ($authMethods | Where-Object {$_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.emailAuthenticationMethod'}).Count
-    TAP              = ($authMethods | Where-Object {$_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.temporaryAccessPassAuthenticationMethod'}).Count
+  $authMethods = $null
+  $authSummary = $null
+  try {
+    $authMethods = Get-MgUserAuthenticationMethod -UserId $userId -ErrorAction Stop
+    $authSummary = [pscustomobject]@{
+      FIDO2            = ($authMethods | Where-Object { $_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.fido2AuthenticationMethod' }).Count
+      AuthenticatorApp = ($authMethods | Where-Object { $_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.microsoftAuthenticatorAuthenticationMethod' }).Count
+      Phone            = ($authMethods | Where-Object { $_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.phoneAuthenticationMethod' }).Count
+      Email            = ($authMethods | Where-Object { $_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.emailAuthenticationMethod' }).Count
+      TAP              = ($authMethods | Where-Object { $_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.temporaryAccessPassAuthenticationMethod' }).Count
+    }
+  } catch {
+    if ($_.Exception.Message -match '403' -or $_.Exception.Message -match 'accessDenied') {
+      Write-Warning "Graph denied access to user auth methods. Add/consent scope: UserAuthenticationMethod.Read.All"
+      $authSummary = [pscustomobject]@{ FIDO2='N/A'; AuthenticatorApp='N/A'; Phone='N/A'; Email='N/A'; TAP='N/A' }
+    } else { throw }
   }
+
+  $secDefaults = Get-MgPolicyIdentitySecurityDefaultEnforcementPolicy
 
   Write-Host "Querying Exchange Online mailbox and CAS settings..." -ForegroundColor Gray
   $mbx    = Get-EXOMailbox -Identity $UserPrincipalName -Properties PrimarySmtpAddress,RecipientTypeDetails,EmailAddresses,ForwardingSmtpAddress,DeliverToMailboxAndForward
@@ -218,7 +231,7 @@ try {
   $secDefaultsOn     = $secDefaults.IsEnabled
 
   $smtpAuthAllowed = (-not $orgSmtpDisabled) -and (-not $mbxSmtpDisabled) -and $isUserMailbox
-  $mfaBlocksSmtp   = $secDefaultsOn            # legacy per-user MFA removed with MSOnline
+  $mfaBlocksSmtp   = $secDefaultsOn
   $smtpReady       = $smtpAuthAllowed -and (-not $mfaBlocksSmtp) -and $user.AccountEnabled
 
   Write-Section "SMTP READINESS VERDICT"
@@ -235,7 +248,6 @@ try {
 
   # ---------- CSV Exports ----------
   if ($Csv) {
-    # user
     $userRow = [pscustomobject]@{
       DisplayName              = $user.DisplayName
       UserPrincipalName        = $user.UserPrincipalName
@@ -250,7 +262,6 @@ try {
     }
     $userRow | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__user.csv") -NoTypeInformation -Encoding UTF8 -Force
 
-    # licensing / plans
     [pscustomobject]@{ AssignedLicensesSkuIds = ($user.AssignedLicenses.SkuId -join ';') } |
       Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__licensing.csv") -NoTypeInformation -Encoding UTF8 -Force
     if ($user.AssignedPlans) {
@@ -259,7 +270,6 @@ try {
         Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__assignedPlans.csv") -NoTypeInformation -Encoding UTF8 -Force
     }
 
-    # mailbox
     $mbxRow = [pscustomobject]@{
       PrimarySmtpAddress        = $mbx.PrimarySmtpAddress
       RecipientTypeDetails      = $mbx.RecipientTypeDetails
@@ -269,7 +279,6 @@ try {
     }
     $mbxRow  | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__mailbox.csv") -NoTypeInformation -Encoding UTF8 -Force
 
-    # CAS/Protocols
     $casRow = [pscustomobject]@{
       Org_SmtpClientAuthDisabled     = $orgTx.SmtpClientAuthenticationDisabled
       Mailbox_SmtpClientAuthDisabled = $casMbx.SmtpClientAuthenticationDisabled
@@ -281,7 +290,6 @@ try {
     }
     $casRow | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__cas.csv") -NoTypeInformation -Encoding UTF8 -Force
 
-    # verdict + security defaults + auth summary
     [pscustomobject]@{ SecurityDefaultsEnabled = $secDefaults.IsEnabled } |
       Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__securityDefaults.csv") -NoTypeInformation -Encoding UTF8 -Force
     $authSummary | Export-Csv -Path (Join-Path $OutDir "${FilePrefix}__authMethods.csv") -NoTypeInformation -Encoding UTF8 -Force
