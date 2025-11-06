@@ -149,7 +149,7 @@ try {
   Stop-Transcript | Out-Null
   return
 }
-
+<#
 # ---------- Optional: MSOnline (legacy per-user MFA) ----------
 $MsolConnected = $false
 if ($HasMSOnline) {
@@ -163,7 +163,7 @@ if ($HasMSOnline) {
     Write-Warning "MSOnline connection failed; legacy per-user MFA state will be skipped. $($_.Exception.Message)"
   }
 }
-
+#>
 # ---------- Queries ----------
 try {
   Write-Host "Querying Graph user object..." -ForegroundColor Gray
