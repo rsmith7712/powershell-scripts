@@ -25,16 +25,19 @@
 .NAME
     Remote_Computer_Inventory_wTPM.ps1
 
-.SYNOPSIS
+.DESCRIPTION
     Queries remote computers for OS, system, and TPM information using Domain
     Admin credentials and exports results to CSV
 
 .FUNCTIONALITY
+    Retrieves information from remote computers in the domain, including TPM status.
+    The script handles errors gracefully and logs all operations.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 # Import Active Directory module

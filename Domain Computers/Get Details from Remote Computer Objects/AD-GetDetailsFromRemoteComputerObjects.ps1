@@ -25,7 +25,7 @@
 .NAME
     AD-GetDetailsFromRemoteComputerObjects.ps1
 
-.SYNOPSIS
+.DESCRIPTION
     Script takes user input for a computer object name, adds a trailing $, queries
     the specified computer object, and retrieves details such as the current
     user, OS version, computer name, and object SID. The output is formatted
@@ -40,10 +40,11 @@
         -Get-ADComputer retrieves the ObjectSID of the computer object from Active Directory.
     Error Handling: Catches and displays errors if the query fails.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts - AD-Get Details from Remote Computer Objects
+
 #>
 
 # Require domain administrator credentials before script execution

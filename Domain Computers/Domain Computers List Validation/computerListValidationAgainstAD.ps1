@@ -22,6 +22,9 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.NAME
+    computerListValidationAgainstAD.ps1
+
 .DESCRIPTION
   Import list of computer names from a text file and verify if instances are
   found in Active Directory, DNS, Responds to PING, and LastLogon details.

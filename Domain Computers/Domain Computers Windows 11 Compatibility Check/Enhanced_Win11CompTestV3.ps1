@@ -26,45 +26,46 @@
 .NAME
     Enhanced_Win11CompTestV3.ps1
 
-.SUMMARY
-    Checks the computer if is capable of upgrading to Windows 11.
-
 .DESCRIPTION
-  Deployment Script for Windows 11 Compatibility Check.
-  This script will:
+    This script is designed to be deployed to multiple remote computers to perform
+    a Windows 11 compatibility check. It copies itself to each remote computer,
+    creates a scheduled task to run the script locally, and then collects the
+    results back to a central location.
+
+.FUNCTIONALITY
+    This script will:
     1. Read a list of computer names.
     2. Copy a working compatibility-check script to each remote computer.
     3. Create and run a scheduled task on each remote computer to execute the script locally.
     4. Wait for the tasks to run and then copy the resulting output file back to a central share.
     
-  Prerequisites:
+    Prerequisites:
     - Administrative rights on remote computers.
     - SMB access (via the C$ share) to each remote computer.
     - Scheduled Tasks can be created remotely.
     - The compatibility-check script (this script file) is fully functional when run locally.
     
-  Adjust the paths below as needed.
+    Adjust the paths below as needed.
+
+    # Define directories and file paths
+    $destFolder    = "C:\temp\Enhanced_Win11CompTestV3"
+    $logPath       = Join-Path $destFolder "log_win11CompTestV3.txt"
+    $resultsPath   = Join-Path $destFolder "results_win11CompTestV3.csv"
+    $computersFile = "C:\temp\ComputerList_Validation\validated_Computers_Online_v2.txt"
 
 .URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
 
-
-# Define directories and file paths
-$destFolder    = "C:\temp\Enhanced_Win11CompTestV3"
-$logPath       = Join-Path $destFolder "log_win11CompTestV3.txt"
-$resultsPath   = Join-Path $destFolder "results_win11CompTestV3.csv"
-$computersFile = "C:\temp\ComputerList_Validation\validated_Computers_Online_v2.txt"
 #>
 
 #region Variables and Setup
-
 # Path to the computer list (one computer name per line)
 $computersFile = "C:\temp\ComputerList_Validation\validated_Computers_Online_v2.txt"
 
 # Folder on local computer where the results will be collected
-$centralResultsFolder = "\\rsmith-lt01\results"
+$centralResultsFolder = "\\JFU-LT01\results"
 
 # Local path of the compatibility-check script that needs to be deployed.
 # (Assumes this current script file is the working version.)
@@ -78,11 +79,9 @@ $resultFileName = "results_win11CompTestV3.csv"
 
 # Name of the scheduled task to create on remote computers
 $scheduledTaskName = "Run_Win11CompTest"
-
 #endregion Variables and Setup
 
 #region Read Computer List
-
 try {
     $computerList = Get-Content -Path $computersFile -ErrorAction Stop | Where-Object { $_ -and $_.Trim() -ne "" }
     if ($computerList.Count -eq 0) {
@@ -94,11 +93,9 @@ catch {
     Write-Error "Failed to read computer list from ${computersFile}: $($_.Exception.Message)"
     exit
 }
-
 #endregion Read Computer List
 
 #region Process Each Computer
-
 foreach ($computer in $computerList) {
     $computer = $computer.Trim()
     Write-Output "Processing computer: $computer"
@@ -142,20 +139,16 @@ foreach ($computer in $computerList) {
         Write-Error "Error processing ${computer}: $($_.Exception.Message)"
     }
 }
-
 #endregion Process Each Computer
 
 #region Wait for Remote Tasks to Complete
-
 # Wait long enough for all remote tasks to complete.
 # Adjust the sleep time as needed (in seconds). Here, we wait 3 minutes.
 Write-Output "Waiting 3 minutes for remote tasks to complete..."
 Start-Sleep -Seconds 180
-
 #endregion Wait for Remote Tasks to Complete
 
 #region Collect Results from Remote Computers
-
 foreach ($computer in $computerList) {
     $computer = $computer.Trim()
     Write-Output "Collecting results from $computer..."
@@ -177,7 +170,6 @@ foreach ($computer in $computerList) {
         Write-Error "Error copying results from ${computer}: $($_.Exception.Message)"
     }
 }
-
 #endregion Collect Results from Remote Computers
 
 Write-Output "Deployment and collection complete. Results saved to $centralResultsFolder"

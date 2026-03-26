@@ -23,10 +23,7 @@
 # GENERAL SCRIPT INFORMATION
 <#
 .NAME
-    Enhanced-Win11Compatibility.ps1
-
-.SYNOPSIS
-    Enhanced Windows 11 Compatibility Check Script
+    Enhanced-Win11Compatibility_v1.ps1
 
 .DESCRIPTION
     This script performs a Windows 11 compatibility check on remote computers.
@@ -74,10 +71,9 @@
 
 .EXAMPLE
     .\Enhanced-Win11Compatibility.ps1
-
-.FAQ
-
-.NOTES
+        -This runs the script using the specified configuration. It will prompt
+            for Domain Admin credentials, then process each computer in the list,
+            logging progress and exporting results to the CSV file.
 
 .URL
     See location for notes and history:

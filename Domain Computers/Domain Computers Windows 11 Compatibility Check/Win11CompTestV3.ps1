@@ -1,13 +1,53 @@
-# Windows 11 Compatibility Checker Script
-# This script checks if a machine meets the minimum requirements for Windows 11.
-# Requires -RunAsAdministrator.
-# It must be inside a root directory; "C:\temp" is known to work.
-# PS1 execution must not be restricted. 
-# Run "Set-ExecutionPolicy RemoteSigned" then "Y" to ensure PS1 file execution is enabled.
-# If the PS1 file is located inside the temp folder, use "C:\Temp\Win11CompTestV3.ps1" to run the test.
-# After completion, test results will be displayed in PowerShell. 
-# The script will also create a .txt file named after the machine name with the results in the same folder where it was run.
+# LEGAL
+<# LICENSE
+    MIT License, Copyright 2024 Richard Smith
 
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+#>
+# GENERAL SCRIPT INFORMATION
+<#
+.NAME
+    Win11CompTestV3.ps1
+
+.DESCRIPTION
+    Windows 11 Compatibility Checker Script
+
+.FUNCTIONALITY
+    This is a little script used to check Windows 11 compatibility. It evaluates
+    whether the machine meets the minimum requirements for Windows 11.
+    It checks the processor, RAM, storage, TPM 2.0, UEFI & Secure Boot, graphics card,
+    and display. After running the script, it will display the results in PowerShell
+    and save them to a .txt file in the same directory.
+
+    Prerequisites:
+    - Run the script as an administrator.
+    - The script must be located in a root directory (e.g., "C:\temp").
+    - PowerShell execution policy must allow running scripts (use "Set-ExecutionPolicy RemoteSigned
+    - Run the script using the full path (e.g., "C:\Temp\Win11CompTestV3.ps1").
+    - After completion, the results will be displayed in PowerShell and saved to a .txt file named after the machine.
+    
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
+#>
 
 function Check-Processor {
     $processor = Get-WmiObject -Class Win32_Processor

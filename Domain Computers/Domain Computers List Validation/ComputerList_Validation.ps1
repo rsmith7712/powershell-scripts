@@ -25,13 +25,6 @@
 .NAME
     ComputerList_Validation.ps1
 
-.SUMMARY
-    PowerShell script that reads computer names from a text file, checks if each
-    computer exists in Active Directory using the ActiveDirectory module, verifies
-    DNS registration via the Resolve-DnsName cmdlet, logs all actions, and finally
-    exports a summary CSV report. You can save the script as, for example,
-    ComputerList_Validation.ps1 and run it with the necessary privileges.
-
 .DESCRIPTION
     PowerShell script to validate a list of remote computers against Active Directory
     and DNS then outputs results to CSV
@@ -67,9 +60,6 @@
     None
 
 .EXAMPLE
-    None
-
-.FAQ
     None
 
 .NOTE

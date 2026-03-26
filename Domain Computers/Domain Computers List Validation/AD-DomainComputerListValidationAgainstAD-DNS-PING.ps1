@@ -24,9 +24,8 @@
 <#
 .NAME
     AD-DomainComputersListValidationAgainstAD-DNS-PING.ps1
-.ps1
 
-.SYNOPSIS
+.DESCRIPTION
   Import list of computer names from a text file and verify if instances are
   found in Active Directory, DNS, Responds to PING.
 
@@ -40,10 +39,11 @@
   -Create result object: A custom object is created to store the results for each computer.
   -Output and Export: The results are displayed in a table format and can optionally be exported to a CSV file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - AD-Domain Computers List Validation Against AD-DNS-PING
+        PowerShell Scripts
+
 #>
 
 # Import the ActiveDirectory module if not already loaded
