@@ -62,7 +62,7 @@ Enhancements:
 Add-PSSnapin VeeamPSSnapIn
 
 # Connect to Veeam Backup & Replication Server
-Connect-VBRServer -Server "SYMUTILITY.corp.symetrix.co"
+Connect-VBRServer -Server "SERVER.DOMAIN.com" #Replace with current server & domain
 
 # Function to get job progress
 function Get-JobProgress {
