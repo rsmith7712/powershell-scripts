@@ -1,6 +1,6 @@
 ﻿# LEGAL
 <# LICENSE
-    MIT License, Copyright 2023 Richard Smith
+    MIT License, Copyright 2015 Richard Smith
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the “Software”),
@@ -25,24 +25,27 @@
 .NAME
    - Find-Empty-Active-Directory-Groups.ps1
 
-.SYNOPSIS
+.DESCRIPTION
    - Code will produce all the empty groups in your
     domain and export it to a csv file.
 
 .FUNCTIONALITY
-   - URL #1 
+    - Active Directory, Group Management, Reporting
+
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
+.   URL #1
     https://www.enterprisedaddy.com/2015/02/find-empty-groups-in-active-directory-using-powershell/
 
     REFERENCE URL: MICROSOFT, Global Catalog and LDAP Searches
     https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc978012(v=technet.10)?redirectedfrom=MSDN
 
-    URL #2 
+    URL #2
     https://www.techcrafters.com/portal/en/kb/articles/cleanup-empty-groups-active-directory-powershell#Cleanup_Empty_AD_Groups_with_PowerShell
 
-.NOTES
-    See location for notes and history:
-    https://github.com/rsmith7712
-        PowerShell Scripts
 #>
 
 Import-Module ActiveDirectory

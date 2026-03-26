@@ -1,14 +1,45 @@
-﻿<#	
-	.NOTES
-	===========================================================================
-	 Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2016 v5.2.129
-	 Created on:   	8/9/2016 10:54 AM
-	 Created by:   	Richard Smith
-	 Organization: 	
-	 Filename:     	find_SpecificGroupMembers.ps1
-	===========================================================================
-	.DESCRIPTION
-		Search AD and report all members of a specific group
+﻿# LEGAL
+<# LICENSE
+    MIT License, Copyright 2016 Richard Smith
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+#>
+# GENERAL SCRIPT INFORMATION
+<#
+.NAME
+    find_SpecificGroupMembers.ps1
+
+.DESCRIPTION
+    Search AD and report all members of a specific group
+
+.FUNCTIONALITY
+    This script is designed to find all members of a specific group in Active
+	Directory and export the results to a CSV file.
+
+	The script uses the Get-ADGroupMember cmdlet to retrieve the members of the
+	specified group and then exports the results to a CSV file for further analysis.
+
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 Import-Module Activedirectory;
