@@ -1,32 +1,68 @@
-# Get-M365UserAudit.ps1
+# LEGAL
+<# LICENSE
+    MIT License, Copyright 2025 Richard Smith
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+#>
+# GENERAL SCRIPT INFORMATION
 <#
-.SYNOPSIS
-  Audits an Entra ID / M365 user + mailbox (SMTP AUTH, Security Defaults, etc.),
-  with verbose output, transcript logging, CSV export, and selectable Graph auth flow.
+.NAME
+    Get-M365UserAudit.ps1
 
-  Adds:
-  -Global Admin credential prompt
-  -Auto-install/import of modules
-  -Clean, colorized outputs
-  -Csv switch to write results to files
-  -OutDir (default C:\Temp\Logs) and timestamped filename prefix
-  -Separate CSVs for User, Mailbox, CAS/Protocols, Licensing, Auth Methods, and the SMTP Verdict
+.DESCRIPTION
+    Audits an Entra ID / M365 user + mailbox (SMTP AUTH, Security Defaults, etc.),
+    with verbose output, transcript logging, CSV export, and selectable Graph auth flow.
 
-  Common Error Solution:
-    -Write-Warning "Could not install ${Name}: $($_)"
+    Adds:
+    -Global Admin credential prompt
+    -Auto-install/import of modules
+    -Clean, colorized outputs
+    -Csv switch to write results to files
+    -OutDir (default C:\Temp\Logs) and timestamped filename prefix
+    -Separate CSVs for User, Mailbox, CAS/Protocols, Licensing, Auth Methods,
+      and the SMTP Verdict
 
-.EXAMPLE
+.FUNCTIONALITY
+    This script is designed to audit an Entra ID / M365 user and their mailbox,
+    checking for settings related to SMTP AUTH, Security Defaults, and more. The
+    script provides verbose output in the console, logs the session to a transcript
+    file, and can export results to CSV files. It also allows the user to choose
+    between interactive browser authentication or device code flow for connecting
+    to Microsoft Graph.
+
+    .EXAMPLE
     .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com
       [-GraphAuth Browser|DeviceCode] [-Csv] [-OutDir C:\Temp\Logs] [-TenantId <tenantGuidOrDomain>] [-Verbose]
 
-.OUTPUTS
-  Save as Get-M365UserAudit.ps1, then run for example:
-  .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -GraphAuth Browser -Csv -Verbose -OutDir C:\Temp\Logs
+    .OUTPUTS
+    Save as Get-M365UserAudit.ps1, then run for example:
+    .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -GraphAuth Browser -Csv -Verbose -OutDir C:\Temp\Logs
 
-  or (device code with automatic one-time retry):
-  .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -GraphAuth DeviceCode -Csv -Verbose -OutDir C:\Temp\Logs
+    or (device code with automatic one-time retry):
+    .\Get-M365UserAudit.ps1 -UserPrincipalName user@domain.com -GraphAuth DeviceCode -Csv -Verbose -OutDir C:\Temp\Logs
 
-  #>
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
+#>
 
 [CmdletBinding()]
 param(

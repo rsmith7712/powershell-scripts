@@ -38,7 +38,7 @@ FUNCTIONALITY
     https://github.com/rsmith7712
         PowerShell Scripts
 
-        URL #1
+    URL #1
     https://www.enterprisedaddy.com/2015/02/find-empty-groups-in-active-directory-using-powershell/
 
     REFERENCE URL: MICROSOFT, Global Catalog and LDAP Searches

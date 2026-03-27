@@ -22,8 +22,11 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
-.DESCRIPTION
+.NAME
     name2SIDConverter.ps1
+
+.DESCRIPTION
+    Converts user, computer, or group names to their corresponding SIDs.
 
 .FUNCTIONALITY
     1. Interactive Selection:
@@ -37,7 +40,7 @@
        - Displays results in the console
        - Exports results to a CSV file (AD_Object_SIDs.csv)
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts

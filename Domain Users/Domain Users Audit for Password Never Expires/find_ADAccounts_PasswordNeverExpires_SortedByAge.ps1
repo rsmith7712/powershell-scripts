@@ -22,6 +22,9 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.NAME
+    find_ADComputerAccounts_InactiveLongerThan90days.ps1
+    
 .DESCRIPTION
   find_ADAccounts_PasswordNeverExpires_SortedByAge.ps1
 

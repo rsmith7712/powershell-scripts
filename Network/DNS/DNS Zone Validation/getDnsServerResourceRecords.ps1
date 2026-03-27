@@ -23,25 +23,26 @@
 # GENERAL SCRIPT INFORMATION
 <#
 .NAME
-   - getDnsServerResourceRecords.ps1
+    getDnsServerResourceRecords.ps1
 
-.SYNOPSIS
-    - 
+.DESCRIPTION
+    Get DNS Server Resource Records
 
 .FUNCTIONALITY
-    Prompts for Input, or Does It?
+    This script is designed to be used as part of an audit of DNS Server Resource Records.  The
+    script will query the DNS Server for all zones and their associated resource records and export the results to a CSV file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 import-module DNSServer
-$DNSReport = 
+$DNSReport =
 foreach($record in Get-DnsServerZone){
     $DNSInfo = Get-DnsServerResourceRecord $record.zoneName
-    
     foreach($info in $DNSInfo){
         [pscustomobject]@{
             ZoneName   = $record.zoneName
@@ -52,7 +53,7 @@ foreach($record in Get-DnsServerZone){
                              $info.RecordData.IPv4Address.IPAddressToString}
                          else{
                              try{$info.RecordData.NameServer.ToUpper()}catch{}
-                         }
+            }
         }
     }
 }

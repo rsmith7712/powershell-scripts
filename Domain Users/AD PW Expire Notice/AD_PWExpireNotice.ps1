@@ -25,12 +25,12 @@
 .NAME
    - AD_PWExpireNotice.ps1
 
-.SYNOPSIS
-    - The purpose of this script is to find all users in AD that have 5 days
+.DESCRIPTION
+    The purpose of this script is to find all users in AD that have 5 days
 	until AD PW Expiration, and send them a reminder email.
 
 .FUNCTIONALITY
-    - This Tool will scan AD and query a list of accounts that have 5 days until
+    This Tool will scan AD and query a list of accounts that have 5 days until
 	the users AD PW Expires. The tool then emails each person on this list a
 	detailed message explaining that their PW will expire and how to go about
 	changing the password, by different connection methods.
@@ -38,19 +38,20 @@
 	Requirements: Active Directory Module - **which is installed with RSAT.
 
 	Create a scheduled task to run it daily at the time you wish.
-	
+
 	The action of the scheduled task should have the "Program/script" field as
 	the path to PowerShell on that server.
 	eg: %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe
-	
+
 	The arguments line should have "-ExecutionPolicy Bypass " and then the
 	path to this script.
 	eg: -ExecutionPolicy Bypass C:\Scripts\Email-PasswordExpiry.ps1
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 ################################

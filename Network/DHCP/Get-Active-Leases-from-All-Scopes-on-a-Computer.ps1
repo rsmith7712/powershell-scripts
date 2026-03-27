@@ -25,18 +25,20 @@
 .NAME
    Get-Active-Leases-from-All-Scopes-on-a-Computer.ps1
 
-.SYNOPSIS
+.DESCRIPTION
     - Get-Active-Leases-from-All-Scopes-on-a-Computer
     - Break out on individual lines per audit policy
-    - Obtain written approval prior to execution against IC privack sources
+    - Obtain written approval prior to execution against IC PrivAck sources
 
 .FUNCTIONALITY
-    Prompts for Input
+    - This script is designed to get all active leases from all scopes on a
+    specified DHCP server and export the results to a CSV file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 #Get-Active-Leases-from-All-Scopes-on-a-Computer

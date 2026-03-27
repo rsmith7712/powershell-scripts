@@ -23,20 +23,22 @@
 # GENERAL SCRIPT INFORMATION
 <#
 .NAME
-   Get-All-DHCP-Scopes-on-a-Computer.ps1
+    Get-All-DHCP-Scopes-on-a-Computer.ps1
 
-.SYNOPSIS
+.DESCRIPTION
     - Get-All-DHCP-Scopes-on-a-Computer
     - Break out on individual lines per audit policy
-    - Obtain written approval prior to execution against IC privack sources
+    - Obtain written approval prior to execution against IC PrivAck sources
 
 .FUNCTIONALITY
-    Prompts for Input
+    - This script is designed to get all scopes from a specified DHCP server and
+    export the results to a CSV file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 #Get-All-Scopes-on-a-Computer

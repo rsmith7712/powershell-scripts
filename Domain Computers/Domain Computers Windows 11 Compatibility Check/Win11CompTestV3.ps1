@@ -26,7 +26,7 @@
     Win11CompTestV3.ps1
 
 .DESCRIPTION
-    Windows 11 Compatibility Checker Script
+    Windows 11 Compatibility Checker Script.
 
 .FUNCTIONALITY
     This is a little script used to check Windows 11 compatibility. It evaluates
@@ -41,7 +41,7 @@
     - PowerShell execution policy must allow running scripts (use "Set-ExecutionPolicy RemoteSigned
     - Run the script using the full path (e.g., "C:\Temp\Win11CompTestV3.ps1").
     - After completion, the results will be displayed in PowerShell and saved to a .txt file named after the machine.
-    
+
 .URL
     See location for notes and history:
     https://github.com/rsmith7712

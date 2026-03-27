@@ -27,7 +27,7 @@
 
 .DESCRIPTION
     Queries Active Directory for Windows XP Professional workstations and
-    exports results to CSV
+    exports results to CSV.
 
 .FUNCTIONALITY
     Retrieves Windows XP Professional workstation information from Active Directory
@@ -37,6 +37,7 @@
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 Get-ADComputer -Filter {OperatingSystem -like "*Windows XP Professional*"} -Properties * -SearchBase "OU=Workstations,DC=Zumiez,dc=com" | select name, @{N='lastLogonTimestamp'; E={[DateTime]::FromFileTime($_.lastLogonTimestamp)}}| Export-csv -path C:\Temp\XPWorkstations.csv -NoTypeInformation

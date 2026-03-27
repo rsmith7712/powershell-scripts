@@ -26,18 +26,25 @@
     AD-DomainComputersListValidationAgainstAD-DNS-PING.ps1
 
 .DESCRIPTION
-  Import list of computer names from a text file and verify if instances are
-  found in Active Directory, DNS, Responds to PING.
+    Import list of computer names from a text file and verify if instances
+    are found in Active Directory, DNS, Responds to PING.
 
 .FUNCTIONALITY
-  -Import ActiveDirectory module: This is needed to interact with Active Directory.
-  -Read computer names: The script reads computer names from a text file.
-  -Iterate through computer names: The script loops through each computer name.
-  -Check in AD: The Get-ADComputer cmdlet is used to check if the computer exists in AD.
-  -Check in DNS: The Resolve-DnsName cmdlet is used to check if the computer name has a DNS record.
-  -Check PING: If computer is found in Active Directory, script checks if it responds to ping using the Test-Connection cmdlet.
-  -Create result object: A custom object is created to store the results for each computer.
-  -Output and Export: The results are displayed in a table format and can optionally be exported to a CSV file.
+    -Import ActiveDirectory module: This is needed to interact with Active
+    Directory.
+    -Read computer names: The script reads computer names from a text file.
+    -Iterate through computer names: The script loops through each computer
+    name.
+    -Check in AD: The Get-ADComputer cmdlet is used to check if the computer
+    exists in AD.
+    -Check in DNS: The Resolve-DnsName cmdlet is used to check if the computer
+    name has a DNS record.
+    -Check PING: If computer is found in Active Directory, script checks if it
+    responds to ping using the Test-Connection cmdlet.
+    -Create result object: A custom object is created to store the results for
+    each computer.
+    -Output and Export: The results are displayed in a table format and can
+    optionally be exported to a CSV file.
 
 .URL
     See location for notes and history:

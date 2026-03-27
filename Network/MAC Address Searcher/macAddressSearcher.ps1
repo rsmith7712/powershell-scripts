@@ -25,28 +25,26 @@
 .NAME
     macAddressSearcher.ps1
 
-.SYNOPSIS
-    PowerShell script to prompt the user to input an IPv4 network range and a MAC
-    address, then scans the network to identify the domain computer associated
-    with the specified MAC address. Displays results to console.
+.DESCRIPTION
+    This script is designed to be used as part of a network audit or troubleshooting
+    process to identify which domain computer is associated with a specific MAC
+    address within a given IPv4 network range. The script prompts the user for
+    input, validates the MAC address format, and then scans the specified network
+    range to find any matches. If a match is found, it resolves and displays the
+    hostname of the associated computer.
 
 .FUNCTIONALITY
-    Prompts for Input:
-        - IPv4 network range in CIDR notation (e.g., 192.168.1.0/24).
-        - Target MAC address to search for.
-    Validates the MAC Address Format.
-    Scans the Network:
-        - Iterates through IPs in the specified range.
-        - Uses arp -a to check for MAC addresses.
-    Matches and Displays Results:
-        - Resolves and prints the hostname of the computer with the matching MAC
-            address.
-        - Displays a message if no matches are found.
+    - Prompts the user for an IPv4 network range and a target MAC address.
+    - Validates the format of the entered MAC address.
+    - Scans the specified network range to find any devices with the matching MAC address.
+    - If a match is found, resolves and displays the hostname of the associated computer.
+    - Logs all actions and results to a timestamped log file for auditing purposes.
 
-.NOTES
+.URL
     See location for notes and history:
-    https://github.com/rsmith7712 
-        PowerShell - Tool-MAC Address Searcher
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 # Hide the script's code from displaying in the console

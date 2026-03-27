@@ -26,7 +26,7 @@
     AD-windowsClientRegistryAddTrustedSitesRemotely.ps1
 
 .DESCRIPTION
-    Script copies files to remote systems and adds Trusted Sites to Windows Registry
+    Script copies files to remote systems and adds Trusted Sites to Windows Registry.
 
 .FUNCTIONALITY
     Prompts for Input
@@ -34,7 +34,7 @@
 .URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - AD Windows Client Registry Add Trusted Sites Remotely
+        PowerShell Scripts
 
 #>
 

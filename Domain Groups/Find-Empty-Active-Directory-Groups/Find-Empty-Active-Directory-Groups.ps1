@@ -23,14 +23,13 @@
 # GENERAL SCRIPT INFORMATION
 <#
 .NAME
-   - Find-Empty-Active-Directory-Groups.ps1
+    Find-Empty-Active-Directory-Groups.ps1
 
 .DESCRIPTION
-   - Code will produce all the empty groups in your
-    domain and export it to a csv file.
+    Code will produce all the empty groups in your domain and export it to a csv file.
 
 .FUNCTIONALITY
-    - Active Directory, Group Management, Reporting
+    Active Directory, Group Management, Reporting
 
 .URL
     See location for notes and history:

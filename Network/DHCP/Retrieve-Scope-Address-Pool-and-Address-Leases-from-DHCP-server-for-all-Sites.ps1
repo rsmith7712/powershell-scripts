@@ -25,18 +25,22 @@
 .NAME
    Retrieve-Scope-Address-Pool-and-Address-Leases-from-DHCP-server-for-all-Sites.ps1
 
-.SYNOPSIS
+.DESCRIPTION
     - Retrieve Scope, Address Pool, and Address Leases from DHCP server for all Sites
     - Break out on individual lines per audit policy
-    - Obtain written approval prior to execution against IC privack sources
+    - Obtain written approval prior to execution against IC PrivAck sources
+    - This script is designed to retrieve scope, address pool, and address leases
+    from a specified DHCP server for all sites.
 
 .FUNCTIONALITY
-    Prompts for Input
+    - This script is designed to retrieve scope, address pool, and address leases
+    from a specified DHCP server for all sites.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 $dhcpServer = "SVR.SUB.DOMAIN.gov"

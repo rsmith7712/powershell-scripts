@@ -25,18 +25,23 @@
 .NAME
 	AD-getPasswordStatusForEnterpriseAdmins.ps1
 
-.SYNOPSIS
-    - Get the members of the "Enterprise Admins" group
-	- Query password expiration status
-	- Results to console
+.DESCRIPTION
+    This script is designed to be used as part of an audit of Active Directory
+    User Accounts that are members of the "Enterprise Admins" group.  The script
+    will query Active Directory for the members of the "Enterprise Admins" group
+    and retrieve their password expiration status, then output the results to
+    the console.
 
 .FUNCTIONALITY
-    Prompts for Input
+    This script retrieves the members of the "Enterprise Admins" group and
+    checks their password expiration status. It outputs the member's display
+    name and their password expiration date or status.
 
 .NOTES
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 # Get the members of the "Enterprise Admins" group

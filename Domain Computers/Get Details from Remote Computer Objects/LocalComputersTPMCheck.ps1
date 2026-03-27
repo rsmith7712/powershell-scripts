@@ -26,7 +26,7 @@
     LocalComputersTPMCheck.ps1
 
 .DESCRIPTION
-    Script to Check TPM Status on Local Computers
+    Script to Check TPM Status on Local Computers.
 
 .FUNCTIONALITY
     Retrieves the TPM status of the local machine. The output is formatted as a

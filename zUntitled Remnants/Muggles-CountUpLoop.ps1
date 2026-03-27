@@ -25,15 +25,17 @@
 .NAME
     Muggles-CountUpLoop.ps1
 
-.SYNOPSIS
+.DESCRIPTION
     Loop a specific command multiple times (time kill)
 
 .FUNCTIONALITY
+    Loop a specific command multiple times (time kill)
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - Muggles-Count Up Loop
+        PowerShell Scripts
+
 #>
 
 Function Count-Up
@@ -43,9 +45,7 @@ Function Count-Up
         Get-WmiObject -List | Where-Object {$_.name -Match 'Network'}
         $i++
         Count-Up
-    }
-    else
-    {
+    }else{
         Write-Host “Count complete - We have counted up to $i”
     }
 }

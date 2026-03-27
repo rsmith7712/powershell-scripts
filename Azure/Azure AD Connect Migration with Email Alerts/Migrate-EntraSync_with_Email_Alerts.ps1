@@ -22,18 +22,26 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.NAME
+    Migrate-EntraSync_with_Email_Alerts.ps1
+
 .DESCRIPTION
-  Migrate-EntraSync_with_Email_Alerts.ps1
+    PowerShell Script to Migrate Microsoft Azure AD Connect from Server1 to Server2
+    Includes optional email alerts for sync failures
 
 .FUNCTIONALITY
-  PowerShell Script to Migrate Microsoft Azure AD Connect from Server1 to Server2
-  Includes optional email alerts for sync failures
+    This script is designed to assist with the migration of Microsoft Azure AD Connect
+    from an existing server (Server1) to a new server (Server2).  The script will
+    disable sync on Server1, install and configure Azure AD Connect on Server2,
+    enable sync on Server2, and then uninstall Azure AD Connect from Server1.
+    Additionally, the script includes optional email alerts for any sync failures
+    that may occur during the migration process.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
-		
+
 #>
 
 # Define Variables

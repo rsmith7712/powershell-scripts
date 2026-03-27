@@ -23,14 +23,13 @@
 # GENERAL SCRIPT INFORMATION
 <#
 .NAME
-   - find_EmptyDomainGroups.ps1
+    find_EmptyDomainGroups.ps1
 
 .DESCRIPTION
     Search AD and report all empty domain groups
 
 .FUNCTIONALITY
-    Code will produce all the empty groups in your
-    domain and export it to a csv file.
+    Code will produce all the empty groups in your domain and export it to a csv file.
 
 .URL
     See location for notes and history:
@@ -49,7 +48,5 @@
 #>
 
 Import-Module Activedirectory;
-
 Get-ADGroup -filter * -Properties members, DistinguishedName | where {-Not $_.members} | Select Name, DistinguishedName |
-
 Export-Csv -NoTypeInformation C:\report_EmptyDomainGroups.csv;

@@ -3,7 +3,7 @@
     MIT License, Copyright 2016 Richard Smith
 
     Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the “Software”),
+    copy of this software and associated documentation files (the ï¿½Softwareï¿½),
     to deal in the Software without restriction, including without limitation
     the rights to use, copy, modify, merge, publish, distribute, sublicense,
     and/or sell copies of the Software, and to permit persons to whom the
@@ -12,7 +12,7 @@
     The above copyright notice and this permission notice shall be included
     in all copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    THE SOFTWARE IS PROVIDED ï¿½AS ISï¿½, WITHOUT WARRANTY OF ANY KIND, EXPRESS
     OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -25,16 +25,19 @@
 .NAME
    - ADUserAttributes_PartnerAccounts.ps1
 
-.SYNOPSIS
-   - 
+.DESCRIPTION
+    This script is designed to be used as part of an audit of Active Directory
+    User Accounts in the Domain.  The script will query Active Directory for
+    user accounts in the Domain and export the results to a CSV file.
 
 .FUNCTIONALITY
-    Prompts for Input, or Does It?
 
-.NOTES
+
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 $outfile = "c:\logs\ADUserAttributes_PartnerAccounts.csv"

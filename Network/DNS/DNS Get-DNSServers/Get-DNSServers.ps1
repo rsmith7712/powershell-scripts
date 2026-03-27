@@ -25,22 +25,26 @@
 .NAME
    Get-DNSServers.ps1
 
-.SYNOPSIS
-    - Get the DNS servers list of each IP enabled network connection
+.DESCRIPTION
+	This script is designed to retrieve the DNS servers list of each IP enabled
+	network connection on a local or remote computer.  The script will query the
+	specified computer for its network adapter configuration and return the DNS
+	servers associated with each adapter.
 
 .FUNCTIONALITY
     Computer Name(s) from which you want to query the DNS server details.
 	If this parameter is not used, the the script gets the DNS servers
 	from local computer network adapaters.
-        
+
     .Example 1
         Get-DNSServers.ps1 -ComputerName MYTESTPC21
 		Get the DNS servers information from a remote computer MYTESTPC21.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 [cmdletbinding()]

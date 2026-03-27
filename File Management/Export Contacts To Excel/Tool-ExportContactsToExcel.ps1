@@ -25,15 +25,20 @@
 .NAME
    Tool-ExportContactsToExcel.ps1
 
-.SYNOPSIS
-    Use Powershell to Export Contact Information to Microsoft Excel
+.DESCRIPTION
+    This script is designed to be used to export contact information from
+    Microsoft Outlook to Microsoft Excel.  The script will create a new Excel
+    workbook, add the contact information to the workbook, and then save the
+    workbook to a specified location.
 
 .FUNCTIONALITY
+    .
 
 .NOTES
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - Tool-Export Contacts To Excel
+        PowerShell Scripts
+
 #>
 
 #-----------------------------------------------------

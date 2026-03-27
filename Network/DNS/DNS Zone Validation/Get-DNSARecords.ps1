@@ -1,12 +1,36 @@
-﻿# Get-DNSARecords.ps1
+﻿# LEGAL
+<# LICENSE
+    MIT License, Copyright 2021 Richard Smith
 
-function Get-DNSARecords {
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-    <#
-    .SYNOPSIS
-        Dumps A Records from a Microsoft Windows DNS server.
-    .DESCRIPTION
-        This script dumps the conent of MicrosoftDNS_AType to a CSV file.
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+#>
+# GENERAL SCRIPT INFORMATION
+<#
+.NAME
+    Get-DNSARecords.ps1
+
+.DESCRIPTION
+    Dumps A Records from a Microsoft Windows DNS server.
+
+.FUNCTIONALITY
+    This script dumps the conent of MicrosoftDNS_AType to a CSV file.
+
     .PARAMETER Server
         The name of the Computer you want to run the command against.
     .PARAMETER CSVPath
@@ -18,10 +42,19 @@ function Get-DNSARecords {
         Password to use for authentication (optional).
     .EXAMPLE
         Get-DNSARecords -Server 192.168.1.1 -CSVPath c:\temp\dns.csv -UserName DOMAIN\Administrator -Password Password123
-    .LINK
-        https://gist.github.com/blark/510cc216416a6160d703bedc7f880b4b
-    #>
+    .EXAMPLE
+        Get-DNSARecords -Server 192.168.1.1
 
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
+    https://gist.github.com/blark/510cc216416a6160d703bedc7f880b4b
+
+#>
+
+function Get-DNSARecords {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$True)][string]$Server,
@@ -29,7 +62,6 @@ function Get-DNSARecords {
         [string]$UserName,
         [string]$Password
     )
-   
     # Set up a hash table to store parameters for Get-WmiObject
     $params=@{'Class'='MicrosoftDNS_AType'
               'NameSpace'='Root\MicrosoftDNS'
@@ -47,5 +79,4 @@ function Get-DNSARecords {
     Write-Output ("Writing to {0}..." -f $CSVPath)
     $dnsRecords | Export-CSV -not $CSVPath
     Write-Output "Done."
-
 }

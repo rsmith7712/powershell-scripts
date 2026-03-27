@@ -22,17 +22,23 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
-.DESCRIPTION
+.NAME
   Remove_Conflicting_Entra_Sync_Account.ps1
 
+.DESCRIPTION
+    Script to remove conflicting or partially created Entra sync accounts.
+
 .FUNCTIONALITY
-  1. Fully remove any conflicting or partially created Entra sync account
+    This script is designed to identify and remove any conflicting or partially
+    created Entra sync accounts that may be causing issues with synchronization.
+    It connects to Azure AD, retrieves the list of users, identifies the sync
+    account, and purges it if necessary.
 
 .NOTES
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
-		
+
 #>
 
 # Install AzureAD Module

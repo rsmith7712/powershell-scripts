@@ -25,19 +25,23 @@
 .NAME
    - Find-Inactive-Computers-in-Active-Directory.ps1
 
-.SYNOPSIS
-   - Find Inactive Computers in Active Directory
+.DESCRIPTION
+    This script is designed to be used as part of an audit of Active Directory
+    Computer Accounts that have been inactive for longer than 90-days.  The
+    script will query Active Directory for computer accounts that have not had
+    their last logon time within the last 90-days and export the results to a CSV file.
 
 .FUNCTIONALITY
-   - Run the commands, adjust the value of the $DaysInactive variable
-    to suit your needs. The script below will search for and collect
-    all computers that have not logged in for the last 90 days, and
-    export the list of stale computer accounts to a CSV file.
+    Run the commands, adjust the value of the $DaysInactive variable to suit your
+    needs. The script below will search for and collect all computers that have not
+    logged in for the last 90 days, and export the list of stale computer accounts
+    to a CSV file.
 
 .NOTES
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 # Specify inactivity range value below

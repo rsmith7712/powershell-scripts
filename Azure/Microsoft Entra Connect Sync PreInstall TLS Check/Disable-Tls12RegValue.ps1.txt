@@ -22,17 +22,20 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.Name
+    Disable-Tls12RegValue.ps1
+
 .DESCRIPTION
-  Disable-Tls12RegValue.ps1
+
 
 .FUNCTIONALITY
-  1. Remove the value of a specified registry key for TLS 1.2 settings
 
-.NOTES
+
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
-		
+
 #>
 
 # Not Recommended; Uncomment To Run

@@ -25,16 +25,20 @@
 .NAME
     DNS-getScavengingData.ps1
 
-.SYNOPSIS
-    Dump the DNS server name and scavenging settings for each DNS server in the domain.
+.DESCRIPTION
+    This script is designed to be used as part of an audit of DNS scavenging settings on
+    each DNS server in the domain.  The script will query each DNS server for its
+    scavenging settings and output the results to a text file.
 
 .FUNCTIONALITY
-    Prompts for Input
+    This script will query each DNS server in the domain for its scavenging settings and
+    output the results to a text file.
 
-.NOTES
+.URL
     See location for notes and history:
-    https://github.com/rsmith7712 
-        PowerShell Scripts - DNS-getScavengingData
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 Import-Module ActiveDirectory;
@@ -43,13 +47,13 @@ Import-Module ActiveDirectory;
 function Logging($pingerror, $Computer, $DnsStatus)
 {
 	$outputfile = "\\<DOMAIN>\Shares\Install\UTILITY\Automation\logs\log_DnsScavengingData.txt";
-	
+
 	$timestamp = (Get-Date).ToString();
-	
+
 	$logstring = "Computer / DNS (reported in Hours): {0}, {1}" -f $Computer, $DnsStatus;
-	
+
 	"$timestamp - $logstring" | out-file $outputfile -Append;
-	
+
 	if ($pingerror -eq $false)
 	{
 		Write-Host "$timestamp - $logstring";
@@ -72,6 +76,6 @@ foreach ($dc in $DCs)
 	Write-host $DC
 	Write-host $string
 	Write-host ""
-	
+
 	Logging $False $DC $string;
 }

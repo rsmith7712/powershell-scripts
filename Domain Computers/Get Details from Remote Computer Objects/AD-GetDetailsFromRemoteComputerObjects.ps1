@@ -34,10 +34,12 @@
 .FUNCTIONALITY
     User Input: Prompts the user for a computer object name using Read-Host.
     Add Trailing $: Appends a $ to the input to match naming conventions for computer objects.
+
     Query Computer Details:
         -Win32_ComputerSystem retrieves the computer name and current logged-in user.
         -Win32_OperatingSystem retrieves the OS version.
         -Get-ADComputer retrieves the ObjectSID of the computer object from Active Directory.
+
     Error Handling: Catches and displays errors if the query fails.
 
 .URL

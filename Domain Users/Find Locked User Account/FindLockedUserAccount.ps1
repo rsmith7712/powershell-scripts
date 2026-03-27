@@ -25,8 +25,10 @@
 .NAME
    - FindLockedUserAccount.ps1
 
-.SYNOPSIS
-    - 
+.DESCRIPTION
+    This script is designed to be used as part of an audit of Active Directory
+    User Accounts that are locked.  The script will query Active Directory for
+    user accounts that are locked and export the results to a CSV file.
 
 .FUNCTIONALITY
     Prompts for Input, or Does It?

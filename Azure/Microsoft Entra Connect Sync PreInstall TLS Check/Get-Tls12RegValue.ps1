@@ -22,17 +22,23 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.NAME
+    Get-Tls12RegValue.ps1
+
 .DESCRIPTION
-  Get-Tls12RegValue.ps1
+    Function to get the value of a specified registry key for TLS 1.2 settings.
 
 .FUNCTIONALITY
-  1. Get the value of a specified registry key for TLS 1.2 settings
+    This script defines a function that retrieves the value of a specified
+    registry key related to TLS 1.2 settings. It checks both the 32-bit and
+    64-bit registry paths for .NET Framework and Schannel protocols, and outputs
+    the results in a structured format.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
-		
+
 #>
 
 Function Get-ADSyncToolsTls12RegValue

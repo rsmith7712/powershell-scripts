@@ -26,7 +26,7 @@
   disableDefenderFirewall.ps1
 
 .FUNCTIONALITY
-  Disable Defender Firewall on WinSvr2022
+  Disable Defender Firewall on WinSvr2022.
 
 .NOTES
     See location for notes and history:

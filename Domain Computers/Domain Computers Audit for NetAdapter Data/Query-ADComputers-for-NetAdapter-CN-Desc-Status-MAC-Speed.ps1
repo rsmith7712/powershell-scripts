@@ -22,17 +22,23 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.NAME
+    Query-ADComputers-for-NetAdapter-CN-Desc-Status-MAC-Speed.ps1
+
 .DESCRIPTION
-  Query-ADComputers-for-NetAdapter-CN-Desc-Status-MAC-Speed.ps1
+    Query AD Computers for NetAdapter Name, Description, Status, MAC Address, and Speed
 
 .FUNCTIONALITY
-  - 
+    This script is designed to be used as part of an audit of Active Directory
+    Computers for their NetAdapter information.  The script will query Active
+    Directory for all computer accounts and then query each computer for their
+    NetAdapter information.  The results will be exported to a CSV file.
 
 .NOTES
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
-		
+
 #>
 
 $Computers = Get-ADComputer -Filter '*'

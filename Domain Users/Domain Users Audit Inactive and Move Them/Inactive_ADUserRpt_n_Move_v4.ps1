@@ -1,21 +1,54 @@
-<#	
-	.NOTES
-	===========================================================================
-	 Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2016 v5.2.129
-	 Created on:   	5/20/2016 10:41 AM
-	 Created by:   	RSmith7712, @EricRocconi, @AnthonyStringer, @DonJones, @DanPotter
-	 Organization: 	
-	 Filename:     	Inactive_ADUserRpt_n_Move_v4.ps1
-	===========================================================================
-	.DESCRIPTION
-		# Purpose of Script:
-			# 1. Query ADUsers in a specific OU and identify those that have been inactive for 90-days or more 
-			# 2. Document their Group Memberships 
-			# 3. Make a note in the user's Description field that the 'Account Disabled as of yyyy/mm/dd' 
-			# 4. Make a note in the user's Description field of the OU they were resident in
-			# 5. Disable user's account 
-			# 6. Move the disabled user's account to a 'ParkingOU' 
-			# 7. Generate a report and export results to a .CSV file 
+# LEGAL
+<# LICENSE
+    MIT License, Copyright 2016 Richard Smith, EricRocconi,
+	AnthonyStringer, DonJones, DanPotter
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+#>
+# GENERAL SCRIPT INFORMATION
+<#
+.NAME
+    Inactive_ADUserRpt_n_Move_v4.ps1
+
+.DESCRIPTION
+    This script is designed to be used as part of an audit of Active Directory
+	Users that have been inactive for longer than 90-days.  The script will
+	query Active Directory for user accounts that have not logged in within the
+	last 90-days and export the results to a CSV file.  The script will also
+	disable the user account, make a note in the user's description field of the
+	date they were disabled and the OU they were resident in, and move the user
+	account to a 'ParkingOU' for later review and deletion.
+
+.FUNCTIONALITY
+    This script is designed to be used as part of an audit of Active Directory
+	Users that have been inactive for longer than 90-days.  The script will
+	query Active Directory for user accounts that have not logged in within the
+	last 90-days and export the results to a CSV file.  The script will also
+	disable the user account, make a note in the user's description field of the
+	date they were disabled and the OU they were resident in, and move the user
+	account to a 'ParkingOU' for later review and deletion.
+
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 # Import Modules Needed

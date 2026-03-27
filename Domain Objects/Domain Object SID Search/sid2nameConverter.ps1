@@ -22,22 +22,26 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.NAME
+    sid2nameConverter.ps1
+
 .DESCRIPTION
-  sid2nameConverter.ps1
+    Import list of computer names from a text file and verify if instances are
+    found in Active Directory, DNS, Responds to PING.
 
 .FUNCTIONALITY
-  1. List of SIDs: The SIDs are stored in an array for iteration.
-  2. Each SID is converted into a `SecurityIdentifier` object.
-  3. The `Translate` method resolves the SID to an NT account.
-  3. Error Handling: If resolution fails, "Not Found" is output for that SID.
-  4. Results: A custom object is created for each SID containing SID, AccountName, and ReferencedDomainName.
-  5. Formatted Table: The results are displayed in a neat table.
+    1. List of SIDs: The SIDs are stored in an array for iteration.
+    2. Each SID is converted into a `SecurityIdentifier` object.
+    3. The `Translate` method resolves the SID to an NT account.
+    3. Error Handling: If resolution fails, "Not Found" is output for that SID.
+    4. Results: A custom object is created for each SID containing SID, AccountName, and ReferencedDomainName.
+    5. Formatted Table: The results are displayed in a neat table.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
-		
+
 #>
 
 # List of SIDs

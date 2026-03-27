@@ -1,24 +1,49 @@
-<#	
-	.NOTES
-	===========================================================================
-	 Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2016 v5.2.127
-	 Created on:   	10/6/2016 3:12 PM
-	 Created by:   	Richard Smith
-	 Organization: 	
-	 Filename:     	git-Check_ScoreCard_Services.ps1
-	===========================================================================
-	.DESCRIPTION
-		- Query specified server service status and availability -- (if applicable)
-		- Query each server for their system uptime (since their last reboot)
-		- Post HTML report on file share, and separately... 
-		- Email HTML report to specific addresses
+# LEGAL
+<# LICENSE
+    MIT License, Copyright 2016 Richard Smith
 
-	.CONFIGURATION
-		- All servers and services are broken out into individual target Server family text files
-		- Breakout is by-design as the *ASK* for specific reporting of services has not been consistent by requestor
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-	.STILL_TO_GO
-		- .
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+#>
+# GENERAL SCRIPT INFORMATION
+<#
+.NAME
+    git-Check_ScoreCard_Services.ps1
+
+.DESCRIPTION
+    - Query specified server service status and availability -- (if applicable)
+	- Query each server for their system uptime (since their last reboot)
+	- Post HTML report on file share, and separately...
+	- Email HTML report to specific addresses
+
+.FUNCTIONALITY
+    This script is designed to be used as part of an audit of specific services on
+	specified servers.  The script will query each server for the status of the
+	specified services and report on their availability.  The script will also
+	query each server for their system uptime (since their last reboot) and report
+	on that as well.  The results will be posted to an HTML file on a file share
+	and emailed to specific addresses.
+
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 # Import AD Module

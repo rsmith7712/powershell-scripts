@@ -27,7 +27,7 @@
 
 .DESCRIPTION
     Queries remote computers for OS, system, and TPM information using Domain
-    Admin credentials and exports results to CSV
+    Admin credentials and exports results to CSV.
 
 .FUNCTIONALITY
     Retrieves information from remote computers in the domain, including TPM status.

@@ -25,28 +25,30 @@
 .NAME
     Get-Microsoft-DNS-Static-Records.ps1
 
-.SYNOPSIS
-    PowerShell script to Get all dns static dns records in a specific zone.
+.DESCRIPTION
+    Get list of Static A records in DNS Zone of your choice -- Does NOT run from
+	Win7, Must be newer OS.
 
 .FUNCTIONALITY
-    Prompts for Input
+    This script is designed to retrieve a list of all static A records in a specified
+    DNS zone.  The script will query the DNS server for the specified zone and return
+    a list of all static A records, including the hostname, record type, and IP address.
 
-.NOTES
+.URL
     See location for notes and history:
-    https://github.com/rsmith7712 
-        PowerShell Scripts - Get-Microsoft_DNS_Static_Records
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 Import-Module ActiveDirectory
 
-# VARIABLES 
+# VARIABLES
 $ServerName = "DOMAIN CONTROLLER.DOMAIN.com"
 $ContainerName = "DOMAIN.com"
 
 foreach ($Server in $ServerName) {
-	
 	Get-WmiObject -ComputerName $Server -Namespace "root\MicrosoftDNS" -Class "MicrosoftDNS_AType" `
 	-Filter "ContainerName = '$ContainerName' AND TimeStamp=0" `
 	| Select-Object OwnerName, IPAddress, TextRepresentation, TTL, @{ n = "TimeStamp"; e = { "Static" } } | Export-Csv -Path c:\static_DNS_entries.csv -Encoding ascii -NoTypeInformation
-	
 }

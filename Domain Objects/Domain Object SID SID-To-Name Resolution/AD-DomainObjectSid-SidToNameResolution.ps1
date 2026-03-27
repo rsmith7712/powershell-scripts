@@ -25,7 +25,7 @@
 .NAME
     AD-DomainObjectSid-SidToNameResolution.ps1
 
-.SYNOPSIS
+.DESCRIPTION
     Import list of computer names from a text file and verify if instances are
     found in Active Directory, DNS, Responds to PING.
 
@@ -50,10 +50,11 @@
 
     Run this script with sufficient permissions to resolve SIDs within your Active Directory environment.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - AD-Domain Object SID SID-To-Name Resolution
+        PowerShell Scripts
+
 #>
 
 # List of SIDs

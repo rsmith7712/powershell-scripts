@@ -25,21 +25,21 @@
 .NAME
     AD-TestForDomainMembership_ByOU.ps1
 
-.SYNOPSIS
-    Powershell script that will get the stale records from the zone and match 
-	them with the computer object in AD. Then use, the OperatingSystem field 
-	value of that computer object to decide whether you would delete the A record 
-	or not. In the end, you can have the script send you an email with the 
-	report so you can have a Windows scheduled task do that for you every 
-	Saturday or so!
+.DESCRIPTION
+	This script is designed to test for a system's domain membership status.  The script
+	will pull system names from a text file, test each system for domain membership status,
+	and log the results in a text file.
 
 .FUNCTIONALITY
-    Prompts for Input
+    - Test for system's domain membership status;
+	- Pulling system names from a text file;
+	- Logging results in a text file
 
-.NOTES
+.URL
     See location for notes and history:
-    https://github.com/rsmith7712 
-        PowerShell Scripts - AD-TestForDomainMembership_ByOU
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 # Import AD Module
@@ -54,13 +54,13 @@ Write-Host "PSRemoting Enabled";
 function Logging($pingerror, $Computer, $Membership)
 {
 	$outputfile = "\\FILE_SERVER\Shares\UTILITY\log_TestForDomainMembership.txt";
-	
+
 	$timestamp = (Get-Date).ToString();
-	
+
 	$logstring = "Computer / Domain Status: {0}, {1}" -f $Computer, $Membership;
-	
+
 	"$timestamp - $logstring" | out-file $outputfile -Append;
-	
+
 	if ($pingerror -eq $false)
 	{
 		Write-Host "$timestamp - $logstring";
@@ -94,7 +94,7 @@ ForEach ($Server in $Servers)
 	{
 		Write-Host "After test connection to target server";
 		Write-Host;
-		
+
 		$Membership = gwmi -Class win32_computersystem | select -ExpandProperty domainrole
 		switch ($Membership)
 		{
@@ -106,7 +106,7 @@ ForEach ($Server in $Servers)
 			5 { "Primary Domain Controller" }
 			default { "Domain Membership Unknown" }
 		} # end switch
-		
+
 		Logging $False $Server $Membership;
 	}
 }

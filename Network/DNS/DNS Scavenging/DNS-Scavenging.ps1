@@ -25,21 +25,24 @@
 .NAME
     DNS-Scavenging.ps1
 
-.SYNOPSIS
-    Powershell script that will get the stale records from the zone and match 
-	them with the computer object in AD. Then use, the OperatingSystem field 
-	value of that computer object to decide whether you would delete the A record 
-	or not. In the end, you can have the script send you an email with the 
-	report so you can have a Windows scheduled task do that for you every 
-	Saturday or so!
+.DESCRIPTION
+	This script is designed to be used as part of an audit of DNS records in a
+	zone that are stale and should be scavenged.  The script will query the
+	specified DNS server for A records in the specified zone that are older
+	than a specified number of days.  The script will then match those records
+	with computer objects in Active Directory and use the OperatingSystem field
+	value of those computer objects to decide whether to delete the A record or
+	not.  Finally, the script can send an email with the report so you can have
+	a Windows scheduled task do that for you every Saturday or so!
 
 .FUNCTIONALITY
-    Prompts for Input
+
 
 .NOTES
     See location for notes and history:
-    https://github.com/rsmith7712 
-        PowerShell Scripts - DNS-Scavenging
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 Import-Module activedirectory

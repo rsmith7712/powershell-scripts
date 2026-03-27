@@ -25,16 +25,20 @@
 .NAME
     DNS-getAllStaticRecords.ps1
 
-.SYNOPSIS
-    Get list of Static A records in DNS Zone of your choice -- Does NOT run from Win7, Must be newer OS
+.DESCRIPTION
+    Get list of Static A records in DNS Zone of your choice -- Does NOT run from
+	Win7, Must be newer OS.
 
 .FUNCTIONALITY
-    Prompts for Input
+	This script is designed to retrieve a list of all static A records in a specified
+	DNS zone.  The script will query the DNS server for the specified zone and return
+	a list of all static A records, including the hostname, record type, and IP address.
 
-.NOTES
+.URL
     See location for notes and history:
-    https://github.com/rsmith7712 
-        PowerShell Scripts - DNS-getAllStaticRecords
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 Clear-Host

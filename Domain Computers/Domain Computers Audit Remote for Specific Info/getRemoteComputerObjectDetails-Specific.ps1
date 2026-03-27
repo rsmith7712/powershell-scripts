@@ -26,25 +26,27 @@
     getRemoteComputerObjectDetails-Specific.ps1
 
 .DESCRIPTION
-    Script takes user input for a computer object name, adds
-        a trailing $, queries the specified computer object,
-        and retrieves details such as the current user, OS
-        version, computer name, and object SID. The output
-        is formatted as a table and displayed on the console.
+    Script takes user input for a computer object name, adds a trailing $,
+    queries the specified computer object, and retrieves details such as the
+    current user, OS version, computer name, and object SID. The output is
+    formatted as a table and displayed on the console.
 
 .FUNCTIONALITY
     User Input: Prompts the user for a computer object name using Read-Host.
     Add Trailing $: Appends a $ to the input to match naming conventions for computer objects.
+
     Query Computer Details:
         -Win32_ComputerSystem retrieves the computer name and current logged-in user.
         -Win32_OperatingSystem retrieves the OS version.
         -Get-ADComputer retrieves the ObjectSID of the computer object from Active Directory.
-    Error Handling: Catches and displays errors if the query fails.
+
+        Error Handling: Catches and displays errors if the query fails.
 
 .NOTES
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 # Require domain administrator credentials before script execution

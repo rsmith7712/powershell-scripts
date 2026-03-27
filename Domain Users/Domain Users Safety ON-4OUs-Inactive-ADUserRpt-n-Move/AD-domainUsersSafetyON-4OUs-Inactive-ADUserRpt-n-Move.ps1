@@ -1,7 +1,7 @@
 ﻿# LEGAL
 <# LICENSE
-    MIT License, Copyright 2016 Richard Smith, Eric Rocconi, Anthone Stringer,
-                                Don Jones, Dan Potter
+    MIT License, Copyright 2016 Richard Smith, EricRocconi,
+    AnthoneStringer,DonJones, DanPotter
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the “Software”),
@@ -26,45 +26,50 @@
 .NAME
     AD-domainUsersSafetyON-4OUs-Inactive-ADUserRpt-n-Move.ps1
 
-.SYNOPSIS
-    Purpose of Script:
-		# 1. Query ADUsers in a specific OU and identify those that have been inactive for 90-days or more 
-		#    --> If run at a Domain level, script can Exclude specific OU's
-		# 2. Document their Group Memberships 
-		# 3. Make a note in the user's Description field that the 'Account Disabled as of yyyy/mm/dd' 
-		# 4. Make a note in the user's Description field of the OU they were resident in
-		# 5. Disable user's account 
-		# 6. Move the disabled user's account to a 'ParkingOU' 
-		# 7. Generate a report and export results to a .CSV file 
+.DESCRIPTION
+    This script is designed to be used as part of an audit of Active Directory
+    Users that have been inactive for 90-days or more.  The script will query
+    Active Directory for user accounts that have not logged on in the last 90-days
+    and export the results to a CSV file.  The script will also disable the user
+    account, make a note in the user's description field of the date the account was
+    disabled and the OU they were resident in, and move the user account to a 'ParkingOU'.
 
 .FUNCTIONALITY
-    Prompts for Input
+    Purpose of Script:
+	1. Query ADUsers in a specific OU and identify those that have been inactive for 90-days or more
+	--> If run at a Domain level, script can Exclude specific OU's
+	2. Document their Group Memberships
+	3. Make a note in the user's Description field that the 'Account Disabled as of yyyy/mm/dd'
+	4. Make a note in the user's Description field of the OU they were resident in
+	5. Disable user's account
+	6. Move the disabled user's account to a 'ParkingOU'
+	7. Generate a report and export results to a .CSV file
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts - AD-Domain Users Safety ON-4OUs-Inactive-ADUserRpt-n-Move
+
 #>
 
 # Import Modules Needed
 Import-Module ActiveDirectory
- 
+
 # Output results to CSV file
 $LogFile = "C:\Inactive_ADUserRpt_n_Move_USERS.csv"
- 
+
 # Today's Date
 $today = get-date -uformat "%Y/%m/%d"
- 
+
 # Date to search by
 $xDays = (get-date).AddDays(-30)
 #$xDays = (get-date).AddDays(-90)
- 
+
 # Expiration date
 $expire = (get-date).AddDays(-1)
- 
+
 # Date disabled description variable
 $userDesc = "Disabled Inactive" + " - " + $today + " - " + "Moved From OU" + " - " + $SearchBase
- 
 
 #--> Enable when BULK processing of ALL Target OU's
 $ParkingOU = "OU=30Days, OU=Disabled Accounts, OU=Domain Services, DC=DOMAIN, DC=com"
@@ -93,8 +98,8 @@ ForEach($OU in $OUs){
         -AND (Enabled -eq $True)
         -AND (PasswordNeverExpires -eq $false)
         -AND (WhenCreated -le $xDays)
-    } |  
-    
+    } |
+
     ForEach-Object {
         Set-ADUser $_ -AccountExpirationDate $expire -Description $userdesc -WhatIf
         Move-ADObject $_ -TargetPath $ParkingOU -WhatIf

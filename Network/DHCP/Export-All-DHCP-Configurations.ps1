@@ -25,16 +25,18 @@
 .NAME
    Export-All-DHCP-Configurations.ps1
 
-.SYNOPSIS
-    - Export-All-DHCP-Configurations
+.DESCRIPTION
+    - Export all DHCP configurations
 
 .FUNCTIONALITY
-    Prompts for Input
+    - This script is designed to export all DHCP configurations from a
+    specified DHCP server to an XML file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 # Export all DHCP configurations

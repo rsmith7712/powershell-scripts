@@ -26,10 +26,10 @@
     viewAndRemoveWirelessProfilesInWindows.ps1
 
 .DESCRIPTION
-    View and Remove Wireless Profiles in Windows 10
+    View and Remove Wireless Profiles in Windows 10.
 
 .FUNCTIONALITY
-    See in-line comments or URL for commplete info
+    See in-line comments or URL for commplete info.
 
 .URL
     See location for notes and history:

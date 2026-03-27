@@ -42,7 +42,7 @@
   -Output and Export: The results are displayed in a table format and can
     optionally be exported to a CSV file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts

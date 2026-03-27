@@ -22,15 +22,20 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.NAME
+    MigrateSettings.ps1
+
 .DESCRIPTION
-  MigrateSettings.ps1
+    Use this PowerShell script to export the server configuration from a downlevel
+    version of Azure AD Connect  that does not support the new JSON settings import
+    and export feature.
 
 .FUNCTIONALITY
-  Use this PowerShell script to export the server configuration from a downlevel
-  version of Azure AD Connect  that does not support the new JSON settings import
-  and export feature.
+    Use this PowerShell script to export the server configuration from a downlevel
+    version of Azure AD Connect  that does not support the new JSON settings import
+    and export feature.
 
-  Migration Steps
+    Migration Steps
 
      Please read the complete instructions for performing an in-place versus a legacy settings migration before
      attempting the following steps: https://go.microsoft.com/fwlink/?LinkID=2117122
@@ -42,11 +47,11 @@
          generated in the previous step.  This will create a JSON settings file which can then be imported
          in the Azure Active Directory Connect tool during Custom installation.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
-		
+
 #>
 #
 
@@ -119,7 +124,7 @@ if ($wizard.WizardPath)
         {
             $serviceAccountType = $adSync.ServiceAccountType
         }
-        
+
         [string[]]$connectorIds =(Get-ADSyncConnector | Select-Object -Property Identifier).Identifier
 
         # NOTE: databaseType is a calculated field and is intentionally ommitted
@@ -136,7 +141,7 @@ if ($wizard.WizardPath)
         $policyJSON = [ordered]@{
             "policyMetadata" = $policyMetadata
             "deploymentMetadata" = $deploymentMetadata
-        }                 
+        }
 
         # Create MigratedPolicy.json for the production server
         $policyJSON | ConvertTo-Json | Out-File "$ServerConfiguration\MigratedPolicy.json"

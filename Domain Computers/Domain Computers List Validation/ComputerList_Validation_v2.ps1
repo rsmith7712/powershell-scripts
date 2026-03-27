@@ -27,7 +27,7 @@
 
 .DESCRIPTION
     PowerShell script to validate a list of remote computers against Active Directory
-    and DNS then outputs results to CSV
+    and DNS then outputs results to CSV.
 
 .FUNCTIONALITY
     File Paths and Directories:

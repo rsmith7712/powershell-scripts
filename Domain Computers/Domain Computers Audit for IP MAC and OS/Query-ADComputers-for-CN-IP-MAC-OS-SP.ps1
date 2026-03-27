@@ -22,18 +22,24 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.Name
+    Query-ADComputers-for-CN-IP-MAC-OS-SP.ps1
+
 .DESCRIPTION
-  Query-ADComputers-for-CN-IP-MAC-OS-SP.ps1
+    -Query AD Computers for their Name, IP Address, MAC Address, Operating System,
+    and Service Pack information.
+    -Output results to a text file on the local system.
 
 .FUNCTIONALITY
-  1. Use PowerShell and the AD module 
-    to get a listing of computers and IP addresses
+  1. Use PowerShell and the AD module to query AD Computers for their Name,
+    IP Address, MAC Address, Operating System, and Service Pack information.
+  2. Output results to a text file on the local system.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
-		
+
 #>
 
 $results = Get-ADComputer -Filter * -Properties ipv4Address, MacAddress, OperatingSystem, OperatingSystemServicePack | Format-List name, ipv4*, mac*, oper*

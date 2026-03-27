@@ -23,18 +23,22 @@
 # GENERAL SCRIPT INFORMATION
 <#
 .NAME
-   Delete-ADObjects.ps1
+    Delete-ADObjects.ps1
 
-.SYNOPSIS
-    - Delete-ADObjects.ps1
+.DESCRIPTION
+    Deletes Active Directory objects.
 
 .FUNCTIONALITY
-    Prompts for Input
+    This script is designed to be used as part of a process to delete Active
+    Directory objects.  The script will read a list of user names from a CSV
+    file and attempt to delete the corresponding AD objects.  The script will
+    log the results of each deletion attempt to a log file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 ###########################################[INITIALIZATIONS ]#######################################
@@ -44,7 +48,7 @@ param
 (
     [string]$param1
     [string]$<ParamName> = $(throw "[ERROR] : -<ParamName> parameter is required.")
-    [ValidateSet('item1','item2')]    
+    [ValidateSet('item1','item2')]
 )
 #>
 $script:ScriptName = "Delete-ADObjects.ps1"
@@ -167,5 +171,5 @@ $adList | ForEach-Object{
 $elapsed = [math]::Round($stopwatch.Elapsed.TotalMinutes,2)
 $stopwatch.Stop()
 Process-Output -message "[STATUS] : Script Completion.TTC = $($elapsed) Minutes."
-#EXIT    
-##########################################[ SCRIPT ENDS ]##########################################    
+#EXIT
+##########################################[ SCRIPT ENDS ]##########################################

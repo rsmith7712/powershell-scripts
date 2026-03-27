@@ -25,19 +25,21 @@
 .NAME
     AD-DomainMembership-TestByTextFile.ps1
 
-.SYNOPSIS
-    Test for system's domain membership status -- Pulling system names from a text file
-    - Test for system's domain membership status; 
-	- Pulling system names from a text file; 
-	- Logging results in a text file
+.DESCRIPTION
+	This script is designed to test for a system's domain membership status.  The script
+	will pull system names from a text file, test each system for domain membership status,
+	and log the results in a text file.
 
 .FUNCTIONALITY
-    Prompts for Input
+    - Test for system's domain membership status;
+	- Pulling system names from a text file;
+	- Logging results in a text file
 
-.NOTES
+.URL
     See location for notes and history:
-    https://github.com/rsmith7712 
-        PowerShell Scripts - AD-DomainMembership-TestByTextFile
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 # Import AD Module

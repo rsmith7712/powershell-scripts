@@ -1,7 +1,7 @@
 ﻿# LEGAL
 <# LICENSE
     MIT License, Copyright 2016 Richard Smith, Eric Rocconi, Geoff Sweet,
-                                Alex Paradis, Matt Miller, Damien Gibson
+    Alex Paradis, Matt Miller, Damien Gibson
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the “Software”),
@@ -26,16 +26,22 @@
 .NAME
     AD-RemoteAgentInstallrefTextFile.ps1
 
-.SYNOPSIS
-    Script copies 3 files to specified remote servers and installs Remote Agent
+.DESCRIPTION
+	Script copies 3 files to specified remote servers and installs Remote Agent
+	on each server.  The script also checks the service status after installation
+	and logs results to a text file.
 
 .FUNCTIONALITY
-    Prompts for Input
+    This script is designed to be used as part of an installation of a Remote
+	Agent on multiple servers.  The script will read a list of servers from a
+	text file, copy the necessary files to each server, execute the installation
+	batch file, and log the results to a text file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - AD-Remote Agent Install ref Text File
+        PowerShell Scripts
+
 #>
 
 # Elevating script permissions to bypass UAC roadblocks

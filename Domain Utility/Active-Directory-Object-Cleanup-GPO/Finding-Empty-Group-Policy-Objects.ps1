@@ -23,25 +23,29 @@
 # GENERAL SCRIPT INFORMATION
 <#
 .NAME
-   - Finding-Empty-Group-Policy-Objects.ps1
+   Finding-Empty-Group-Policy-Objects.ps1
 
-.SYNOPSIS
-   - PowerShell script that helps you find and delete
-    unlinked Group Policy Objects (GPO), also known
-    as orphaned GPOs. Orphaned GPOs are not linked
-    to any Active Directory sites, domains, or
-    organizational units (OUs). This can cause
-    various problems. Using PowerShell, it is easy
-    to create reports of unlinked GPOs, back them up,
-    and eventually delete them.
+.DESCRIPTION
+   PowerShell script that helps you find and delete unlinked Group Policy
+   Objects (GPO), also known as orphaned GPOs. Orphaned GPOs are not linked to
+   any Active Directory sites, domains, or organizational units (OUs). This
+   can cause various problems. Using PowerShell, it is easy to create reports
+   of unlinked GPOs, back them up, and eventually delete them.
 
 .FUNCTIONALITY
-   - https://4sysops.com/archives/find-and-delete-unlinked-orphaned-gpos-with-powershell/
+   This script is designed to be used as part of an audit of Group Policy
+   Objects (GPOs) in an Active Directory environment. The script will query
+   Active Directory for GPOs that are not linked to any sites, domains, or OUs
+   and export the results to a text file. The script also creates a backup of
+   the unlinked GPOs and generates an HTML report for each of them.
 
-.NOTES
-    See location for notes and history:
-    https://github.com/rsmith7712
-        PowerShell Scripts
+   .URL
+   See location for notes and history:
+   https://github.com/rsmith7712
+      PowerShell Scripts
+
+   https://4sysops.com/archives/find-and-delete-unlinked-orphaned-gpos-with-powershell/
+
 #>
 
 ########################

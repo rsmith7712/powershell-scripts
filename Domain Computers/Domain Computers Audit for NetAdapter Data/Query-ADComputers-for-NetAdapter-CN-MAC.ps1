@@ -22,17 +22,26 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.NAME
+	Query-ADComputers-for-NetAdapter-CN-MAC.ps1
+
 .DESCRIPTION
-  Query-ADComputers-for-NetAdapter-CN-MAC.ps1
+	Script queries Active Directory for all computer objects, then attempts to
+	connect to each computer to retrieve the MAC address of each network adapter.
+	The results are compiled into a dataset and exported to a CSV file.
 
 .FUNCTIONALITY
-  - 
+	- Get list of all computers in AD
+	- For each computer, test whether it is online
+	- If online, get MAC addresses of machine and add to dataset
+	- If not online, log an empty entry for the computer in the dataset
+	- Export dataset to CSV file
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
-		
+
 #>
 
 # get list of all computers in AD

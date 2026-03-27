@@ -1,4 +1,50 @@
-﻿# Import the Active Directory cmdlets
+﻿# LEGAL
+<# LICENSE
+    MIT License, Copyright 2024 Richard Smith
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+#>
+# GENERAL SCRIPT INFORMATION
+<#
+.NAME
+    FilePusher2_wLogging.ps1
+
+.DESCRIPTION
+    Copy a file to multiple Windows systems with logging
+
+.FUNCTIONALITY
+    This script is designed to copy a file to multiple Windows systems.  The
+    script will query Active Directory for all Windows-based computer accounts,
+    and attempt to copy a specified file to a specified folder on each system
+    using PowerShell remoting.  The script will prompt for Domain Admin credentials
+    to use for the remoting sessions.  The script will also log the results of
+    each copy attempt, including successes, failures, and unreachable systems,
+    to a CSV file.
+
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
+#>
+
+# Import the Active Directory cmdlets
 Import-Module ActiveDirectory -ErrorAction Stop
 
 # Prompt for your Domain Admin credentials

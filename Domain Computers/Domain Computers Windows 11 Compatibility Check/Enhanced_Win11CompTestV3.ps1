@@ -38,16 +38,16 @@
     2. Copy a working compatibility-check script to each remote computer.
     3. Create and run a scheduled task on each remote computer to execute the script locally.
     4. Wait for the tasks to run and then copy the resulting output file back to a central share.
-    
+
     Prerequisites:
     - Administrative rights on remote computers.
     - SMB access (via the C$ share) to each remote computer.
     - Scheduled Tasks can be created remotely.
     - The compatibility-check script (this script file) is fully functional when run locally.
-    
+
     Adjust the paths below as needed.
 
-    # Define directories and file paths
+    # Define directories and file paths #
     $destFolder    = "C:\temp\Enhanced_Win11CompTestV3"
     $logPath       = Join-Path $destFolder "log_win11CompTestV3.txt"
     $resultsPath   = Join-Path $destFolder "results_win11CompTestV3.csv"

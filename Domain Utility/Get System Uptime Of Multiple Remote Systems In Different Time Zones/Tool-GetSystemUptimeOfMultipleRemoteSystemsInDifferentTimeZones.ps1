@@ -25,20 +25,21 @@
 .NAME
    Tool-GetSystemUptimeOfMultipleRemoteSystemsInDifferentTimeZones.ps1
 
-.SYNOPSIS
-		- Get system up time of multiple remote system in different time zones
-
-	.WEBSITE 
-		- https://4sysops.com/archives/calculating-system-uptime-with-powershell/ 
+.DESCRIPTION
+	Get system up time of multiple remote system in different time zones
 
 .FUNCTIONALITY
-    Prompts for Input
+    This script is designed to be used as part of an audit of system uptime of
+	multiple remote systems in different time zones.  The script will query
+	the remote systems for their uptime and export the results to a log file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - 
-        Tool-Get System Uptime Of Multiple Remote Systems In Different Time Zones
+        PowerShell Scripts
+
+	https://4sysops.com/archives/calculating-system-uptime-with-powershell/
+
 #>
 
 # Function - Logging file

@@ -25,25 +25,32 @@
 .NAME
     Code snippits for different ways to collect MAC Address information.ps1
 
-.SYNOPSIS
+.DESCRIPTION
+    This script is designed to provide different code snippits for collecting
+    MAC Address information from local and remote computers. The script includes
+    various methods for collecting MAC Address information, including using WMI,
+    PowerShell cmdlets, and third-party tools.
 
 .FUNCTIONALITY
+    - Collect MAC Address information from local and remote computers
+    - Provide different methods for collecting MAC Address information
+    - Export results to a CSV file
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - Network-Adapter-Snippets -
+        PowerShell Scripts
 
 #>
 
-﻿### Code snippits for different ways to collect MAC Address information ###
+### Code snippits for different ways to collect MAC Address information ###
 
 #Solution 1
-Get-CimInstance -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled='True'" -ComputerName . | 
+Get-CimInstance -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled='True'" -ComputerName . |
 Select-Object -Property MACAddress, Description
 
 # Solution 2
-Get-WmiObject -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled='True'" -ComputerName . | 
+Get-WmiObject -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled='True'" -ComputerName . |
 Select-Object -Property MACAddress, Description
 
 # Solution 3
@@ -51,7 +58,7 @@ getmac.exe /s .
 
 # Solution 4
 # Network Adapter(s)
-		"`t`t`t`tNetwork Adapter(s)"
+		"Network Adapter(s)"
 		$props=@(
 		    @{Label="Description"; Expression = {$_.Description}},
 		    @{Label="IPAddress"; Expression = {$_.IPAddress}},
@@ -63,14 +70,12 @@ getmac.exe /s .
 		)
 Get-WmiObject "Win32_NetworkAdapterConfiguration" -ComputerName . -Filter "IPEnabled = 'True'" | Format-List $props
 
-
 # Solution 5
 # get list of all computers in AD
 $remotecomputer = get-adcomputer -filter *
 
 $Net = Get-WmiObject -Class Win32_NetworkAdapterConfiguration -ComputerName $remotecomputer
 $Net | Select-Object Description,IPAddress,MACAddress
-
 
 # Solution 6
 # get list of all computers in AD
@@ -79,7 +84,6 @@ $remotecomputer = get-adcomputer -filter *
 invoke-command  -computername $remotecomputer -scriptblock {
     get-netadapter
 }
-
 
 # Solution 7
 # get list of all computers in AD
@@ -90,7 +94,6 @@ $result = Get-WmiObject -ComputerName $computers -Class "Win32_NetworkAdapterCon
     Select-Object -Property PSComputerName, MacAddress
 
 $result | Export-Csv C:\Results\Computers.csv -Delimiter ";" -NoTypeInformation
-
 
 # Solution 8
 $Computers = (Get-ADComputer -Filter {enabled -eq $true} -Property Name).Name

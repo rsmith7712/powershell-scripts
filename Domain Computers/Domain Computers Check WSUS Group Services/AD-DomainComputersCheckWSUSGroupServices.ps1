@@ -25,20 +25,23 @@
 .NAME
    AD-DomainComputersCheckWSUSGroupServices.ps1
 
-.SYNOPSIS
-		- Query specified server services status and availability -- (if specified)
-		- Query each server for their system uptime (since their last reboot)
-		- Post HTML report on file share, and separately... 
-		- Email HTML report to specific addresses
+.DESCRIPTION
+	Query specified server services status and availability -- (if specified)
+	Query each server for their system uptime (since their last reboot)
+	Post HTML report on file share, and separately...
+	Email HTML report to specific addresses
 
 .FUNCTIONALITY
-		- All servers and services are broken out into individual target Server family text files
-		- Breakout is by-design as the *ASK* for specific reporting of services has not been consistent by requestor
+	All servers and services are broken out into individual target Server family
+	text files.
+	Breakout is by-design as the *ASK* for specific reporting of services has not
+	been consistent by requestor.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - AD-Domain Computers Check WSUS Group Services
+        PowerShell Scripts
+
 #>
 
 # Import AD Module

@@ -43,7 +43,5 @@
 #>
 
 Import-Module Activedirectory;
-
 Get-ADGroupMember "Domain Admins" |
-
 Export-Csv -NoTypeInformation C:\report_SpecificGroupMembers.csv;

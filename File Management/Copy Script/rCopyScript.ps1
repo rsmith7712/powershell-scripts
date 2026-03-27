@@ -23,55 +23,24 @@
 .NAME
     rCopyScript.ps1
 
-.SYNOPSIS
-    Below is a PowerShell script that uses Robocopy to copy all
-        the contents of a directory to another directory, including
-        empty folders. The script includes helpful comments and
-        prompts to guide users who are not familiar with Robocopy.
-
 .DESCRIPTION
     PowerShell script to copy all contents of a directory to another
-        directory using Robocopy, and includes prompts for source
-        and destination paths.
+    directory using Robocopy, and includes prompts for source
+    and destination paths.
 
 .FUNCTIONALITY
     This script guides the user step-by-step:
-        -Prompts the user for the source and destination directories.
-        -Validates that the source directory exists.
-        -Creates the destination directory if it doesn't exist.
-        -Runs Robocopy with options to include empty folders and restartable mode.
-        -Checks and informs the user of the success or failure of the operation.
+    -Prompts the user for the source and destination directories.
+    -Validates that the source directory exists.
+    -Creates the destination directory if it doesn't exist.
+    -Runs Robocopy with options to include empty folders and restartable mode.
+    -Checks and informs the user of the success or failure of the operation.
 
-.NOTES
-2024-12-11:[UPDATE]
-    (1) Full rewrite; Added: User input prompt, Source/Destination validation,
-        Report success / failure to console, Validate C:\Temp location & 
-        create if doesn't exist, Create & write results to a log file.
-    (2) The script now starts with a cleared console and hides its code from
-        view. It only displays prompts and results to the user.
-    (3) Updated the script to handle errors such as invalid characters in
-        paths and to ensure proper permissions when creating directories. The
-        script now provides informative messages and exits gracefully if
-        issues occur.
-    (4) Script now wraps user-provided paths in quotes if they contain spaces,
-        ensuring compatibility with Robocopy.
-    (5) The script now explicitly wraps source and destination paths in quotes
-        to handle spaces and special characters, including UNC paths.
-        Additionally, it removes the quotes before validating paths with
-        Test-Path.
-    (6) The updated script now handles Robocopy exit codes more explicitly and
-        adds a write permission test for the destination directory. If
-        Robocopy exits with code 16, the script logs it as a critical error
-        and provides an appropriate message.
-    (7) Script now ensures that paths are correctly trimmed of existing quotes
-        before re-quoting them properly for consistent usage. This should
-        resolve the issue with mismatched or mixed quotes in the paths logged
-        in C:\Temp\RobocopyLog.txt.
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
 
-2024-12-11:[CREATED]
-    Request: Simple script uses robocopy to copy all contents of
-        directory to another directory including empty folders.
-        Created script to assist people who do not regularly utilize Rc.
 #>
 
 # Hide script code from the console

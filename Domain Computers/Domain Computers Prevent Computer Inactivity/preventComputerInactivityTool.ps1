@@ -26,7 +26,7 @@
     preventComputerInactivityTool.ps1
 
 .DESCRIPTION
-    Script w/ GUI to Prevent Computer Inactivity
+    Script w/ GUI to Prevent Computer Inactivity.
 
 .FUNCTIONALITY
     This is a little script I use to prevent messenger software from

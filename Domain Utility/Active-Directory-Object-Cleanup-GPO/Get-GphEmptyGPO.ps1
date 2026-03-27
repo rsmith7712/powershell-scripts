@@ -1,6 +1,6 @@
 ﻿# LEGAL
 <# LICENSE
-    MIT License, Copyright 2023 URL
+    MIT License, Copyright 2023 PowerShell Gallery, Microsoft Corporation
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the “Software”),
@@ -25,40 +25,45 @@
 .NAME
    - Get-GphEmptyGPO.ps1
 
-.SYNOPSIS
-   - Find empty GPOs, empty Computer-Settings or empty User-Settings
+.DESCRIPTION
+    This Cmdlet can find empty Group-Policy Objects, either by name or
+    through Pipeline. It has 3 Modes: Find all empty Policies, or find Policies
+    where only Computer-Settings or User-Settings are enabled.
 
 .FUNCTIONALITY
-   - This Cmdlet can find empty Group-Policy Objects, either by name or through Pipeline.
-      It has 3 Modes: Find all empty Policies, or find Policies where only Computer-Settings or User-Settings
-      are enabled.
-       
-      .EXAMPLE
-      Get-EmptyGPO -name "MyEmptyGpo"
-      Tests if MyEmptyGpo has Settings. If it has not, no output is generated, elsewise the Cmdlet returns the
-      Policy-Object
-       
-      .EXAMPLE
-      Get-EmptyGPO -name "MyEmptyGpo" -Scope NoUsersettings
-      Tests if MyEmptyGpo Has No User-Settings enabled, but Computer-Settings! If is completely empty, nothing
-      is returned, elsewise the Policy-Object
-       
-      .EXAMPLE
-      Get-GPO -ALL | Get-EmptyGPO
-      Returns all empty Group-Policy-Objects from the Domain
-       
-      .EXAMPLE
-      $EmptyGPOs = @(Get-GPO -ALL | Get-EmptyGPO)
-      $EmptyComputerGPOs = @(Get-GPO -ALL | Get-EmptyGPO -NoComputerSettings)
-      $EmptyGPOs = $EmptyGPOs + $EmptyComputerGPOs
-      Returns all GPOs without Computer-Settings and alle completely empty GPOs
-   
-   - https://www.powershellgallery.com/packages/GroupPolicyHelper/1.0.1/Content/Get-GphEmptyGPO.ps1
+    This Cmdlet can find empty Group-Policy Objects, either by name or
+    through Pipeline.
 
-.NOTES
+    It has 3 Modes: Find all empty Policies, or find Policies where only
+    Computer-Settings or User-Settings are enabled.
+
+.EXAMPLE
+    Get-EmptyGPO -name "MyEmptyGpo"
+    Tests if MyEmptyGpo has Settings. If it has not, no output is generated, elsewise the Cmdlet returns the
+    Policy-Object
+
+.EXAMPLE
+    Get-EmptyGPO -name "MyEmptyGpo" -Scope NoUsersettings
+    Tests if MyEmptyGpo Has No User-Settings enabled, but Computer-Settings! If is completely empty, nothing
+    is returned, elsewise the Policy-Object
+
+.EXAMPLE
+    Get-GPO -ALL | Get-EmptyGPO
+    Returns all empty Group-Policy-Objects from the Domain
+
+.EXAMPLE
+    $EmptyGPOs = @(Get-GPO -ALL | Get-EmptyGPO)
+    $EmptyComputerGPOs = @(Get-GPO -ALL | Get-EmptyGPO -NoComputerSettings)
+    $EmptyGPOs = $EmptyGPOs + $EmptyComputerGPOs
+    Returns all GPOs without Computer-Settings and alle completely empty GPOs
+
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
+    https://www.powershellgallery.com/packages/GroupPolicyHelper/1.0.1/Content/Get-GphEmptyGPO.ps1
+
 #>
 
 #requires -Version 2.0 -Modules GroupPolicy

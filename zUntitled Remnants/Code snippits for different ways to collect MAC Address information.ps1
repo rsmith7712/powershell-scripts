@@ -1,13 +1,59 @@
-﻿### Code snippits for different ways to collect MAC Address information ###
+﻿# LEGAL
+<# LICENSE
+    MIT License, Copyright 2025 Richard Smith
 
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+#>
+# GENERAL SCRIPT INFORMATION
+<#
+.NAME
+    Code snippits for different ways to collect MAC Address information.ps1
+
+.DESCRIPTION
+    This script is designed to provide various code snippits for collecting
+    MAC Address information using PowerShell. The script includes multiple
+    solutions for retrieving MAC Address information from local and remote
+    computers.
+
+.FUNCTIONALITY
+    This script is designed to provide various code snippits for collecting
+    MAC Address information using PowerShell. The script includes multiple
+    solutions for retrieving MAC Address information from local and remote
+    computers. The script can be modified to include additional functionality
+    as needed.
+
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
+#>
+
+### Code snippits for different ways to collect MAC Address information ###
 
 
 #Solution 1
-Get-CimInstance -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled='True'" -ComputerName . | 
+Get-CimInstance -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled='True'" -ComputerName . |
 Select-Object -Property MACAddress, Description
 
 # Solution 2
-Get-WmiObject -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled='True'" -ComputerName . | 
+Get-WmiObject -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled='True'" -ComputerName . |
 Select-Object -Property MACAddress, Description
 
 # Solution 3
@@ -27,14 +73,12 @@ getmac.exe /s .
 		)
 Get-WmiObject "Win32_NetworkAdapterConfiguration" -ComputerName . -Filter "IPEnabled = 'True'" | Format-List $props
 
-
 # Solution 5
 # get list of all computers in AD
 $remotecomputer = get-adcomputer -filter *
 
 $Net = Get-WmiObject -Class Win32_NetworkAdapterConfiguration -ComputerName $remotecomputer
 $Net | Select-Object Description,IPAddress,MACAddress
-
 
 # Solution 6
 # get list of all computers in AD
@@ -43,7 +87,6 @@ $remotecomputer = get-adcomputer -filter *
 invoke-command  -computername $remotecomputer -scriptblock {
     get-netadapter
 }
-
 
 # Solution 7
 # get list of all computers in AD
@@ -54,7 +97,6 @@ $result = Get-WmiObject -ComputerName $computers -Class "Win32_NetworkAdapterCon
     Select-Object -Property PSComputerName, MacAddress
 
 $result | Export-Csv C:\Results\Computers.csv -Delimiter ";" -NoTypeInformation
-
 
 # Solution 8
 $Computers = (Get-ADComputer -Filter {enabled -eq $true} -Property Name).Name

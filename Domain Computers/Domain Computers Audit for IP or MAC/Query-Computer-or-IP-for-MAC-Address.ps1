@@ -25,21 +25,22 @@
 .DESCRIPTION
     Query remote computer or IP address for its associated MAC information
 
-.FUNCTIONALITY   
+.FUNCTIONALITY
     -Query remote computer or IP address for its associated MAC information.
 	-Display results, if available, in console.
 	-If no results available, display nothing.
 	-Must perform query in same subnet as resource searching for.
 
-.NOTES
-	To run:
+    To run:
 	<script name.ps1> -ComputerName Target1, Target2, etc.
 		or
     <script name.ps1> -ComputerName Get-ADComputer -Filter *
 
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 function Query-MACAddress{

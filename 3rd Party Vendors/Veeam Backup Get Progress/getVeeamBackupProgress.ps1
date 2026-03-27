@@ -1,5 +1,5 @@
-<#
-.LICENSE
+# LEGAL
+<# LICENSE
     MIT License, Copyright 2024 Richard Smith
 
     Permission is hereby granted, free of charge, to any person obtaining a
@@ -19,11 +19,13 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
-
+#>
+# GENERAL SCRIPT INFORMATION
+<#
 .NAME
     getVeeamBackupProgress.ps1
 
-.SYNOPSIS
+.DESCRIPTION
     PowerShell script to actively monitor running veeam backup progress
 
 .FUNCTIONALITY
@@ -41,21 +43,20 @@
     Monitor Loop:
         -The script enters a loop that continuously monitors the specified
         job. It calls the Get-JobProgress function and then sleeps for 30
-        seconds before checking again. 
+        seconds before checking again.
 
     How to use:
         -Save: Save the script as a .ps1 file.
         -Modify: Replace "YourBackupJobName" with the actual name of the Veeam
             backup job you want to monitor.
         -Run: Execute the script in PowerShell. It will continuously monitor the
-            job and output its progress. 
+            job and output its progress.
 
-Enhancements:
-    Multiple Jobs: Modify the script to monitor multiple jobs by adding them to an array and iterating over them.
-    Logging: Add logging capabilities to the script to record job progress to a file.
-    Notifications: Implement email or other notifications to alert you when a job fails or completes. 
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
 
-.NOTES
 #>
 
 # Load the Veeam PowerShell Snap-In

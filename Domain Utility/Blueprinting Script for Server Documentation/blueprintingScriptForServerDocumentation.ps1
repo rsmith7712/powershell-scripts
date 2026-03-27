@@ -25,18 +25,24 @@
 .NAME
     blueprintingScriptForServerDocumentation.ps1
 
-.SYNOPSIS
-    Blueprinting Script for Server Documentation with Logging and Remote Capability
-    with GUI and Console Options
+.DESCRIPTION
+    This script is designed to create a comprehensive blueprint of a server's configuration
+    and settings for documentation purposes. It gathers information about the system, hardware,
+    installed applications, services, scheduled tasks, security settings, and more. The script
+    can be executed locally or remotely and includes logging functionality to track the process.
 
 .FUNCTIONALITY
-    Run the Script: 
+    Run the Script:
         - Execute the script on the inherited system with administrative privileges.
     Review Output:
         - Inspect the generated files in C:\Blueprint for completeness.
     Plan Migration:
         - Use the detailed blueprint to replicate configurations on the new server.
-.NOTES
+
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
 
 #>
 

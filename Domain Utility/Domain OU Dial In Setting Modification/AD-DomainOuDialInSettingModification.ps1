@@ -25,18 +25,26 @@
 .NAME
    AD-DomainOuDialInSettingModification.ps1
 
-.SYNOPSIS
-		# 1. Query ADUsers in a specific OU  
-		# 2. Set the Network Access Permissions to 'Control access through NPS Network Policy' under the Dial-in tab
-		# 3. Make a note in the user's Description field that the 'Dial-in settings changed as of yyyy/mm/dd' 
-		# 4. Export results to a .CSV file of accounts affected
+.DESCRIPTION
+    This script is designed to be used as part of an audit of Active Directory
+    User Accounts that have been inactive for longer than 90-days.  The
+    script will query Active Directory for user accounts that have not had
+    their password set in the last 90-days and modify the Dial-in settings to
+    'Control access through NPS Network Policy' and make a note in the user's
+    Description field that the 'Dial-in settings changed as of yyyy/mm/dd'.  The
+    results will be exported to a CSV file of accounts affected.
 
 .FUNCTIONALITY
+    1. Query ADUsers in a specific OU
+	2. Set the Network Access Permissions to 'Control access through NPS Network Policy' under the Dial-in tab
+	3. Make a note in the user's Description field that the 'Dial-in settings changed as of yyyy/mm/dd'
+	4. Export results to a .CSV file of accounts affected
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts - AD-Domain OU Dial In Setting Modification
+
 #>
 
 # Import Modules Needed

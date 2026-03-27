@@ -52,10 +52,10 @@ param (
 
 begin {
     # If the environment variable customFieldName is set and not "null", assign it to $CustomField.
-    if ($env:customFieldName -and $env:customFieldName -notlike "null") { 
-        $CustomField = $env:customFieldName 
+    if ($env:customFieldName -and $env:customFieldName -notlike "null") {
+        $CustomField = $env:customFieldName
     }
-    
+
     # Import the Active Directory module (for querying AD) if available.
     Import-Module ActiveDirectory -ErrorAction SilentlyContinue
 
@@ -546,7 +546,7 @@ process {
 
     foreach ($computer in $remoteComputers) {
         $computer = $computer.Trim()
-        
+
         # For Option 1, perform AD validation; Option 2 already comes from AD.
         if ($optionChoice -ne "2") {
             try {
@@ -566,7 +566,7 @@ process {
         else {
             Write-Log "Computer '$($computer)' (from AD query) confirmed in Active Directory."
         }
-        
+
         # Validate DNS resolution.
         try {
             $dnsRecord = Resolve-DnsName -Name $computer -ErrorAction SilentlyContinue

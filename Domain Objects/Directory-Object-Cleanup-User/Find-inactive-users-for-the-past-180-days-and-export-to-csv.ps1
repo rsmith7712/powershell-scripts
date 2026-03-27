@@ -23,18 +23,22 @@
 # GENERAL SCRIPT INFORMATION
 <#
 .NAME
-   - Find-inactive-users-for-the-past-180-days-and-export-to-csv.ps1
+    Find-inactive-users-for-the-past-180-days-and-export-to-csv.ps1
 
-.SYNOPSIS
-   -
+.DESCRIPTION
+    Finds inactive users in Active Directory for the past 180 days and exports them to a CSV file.
 
 .FUNCTIONALITY
-    Prompts for Input, or Does It?
+    This script is designed to be used as part of an audit of Active Directory
+    User Accounts that have been inactive for longer than 180-days.  The
+    script will query Active Directory for user accounts that have not had
+    their last logon time within the last 180-days and export the results to a CSV file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 # set the date (the number of days)

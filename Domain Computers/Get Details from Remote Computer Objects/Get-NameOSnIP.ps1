@@ -26,7 +26,7 @@
     Get-NameOSnIP.ps1
 
 .DESCRIPTION
-    Script to Get Computer Name, OS, and IP Address
+    Script to Get Computer Name, OS, and IP Address.
 
 .FUNCTIONALITY
     Retrieves the computer name, operating system, and IP address of the local

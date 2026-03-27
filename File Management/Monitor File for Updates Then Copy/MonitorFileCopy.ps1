@@ -25,31 +25,45 @@
 .NAME
     MonitorFileCopy.ps1
 
-.SYNOPSIS
-    Monitors the File:
-        - The script checks the LastWriteTime property of the
-            target file.
-    Trigger Condition:
-        - If the "Date Modified" changes, it triggers a
-            FileSystemWatcher operation.
-    Robocopy Execution:
-        - Copies the updated file from C:\Planning Report Data
-            Sources to E:\Planning Report Data Sources.
-        - Ensures the operation is resumable and retries in case
-            of temporary failure.
-    Output:
-        - Logs actions to the terminal, showing when a file
-            change is detected and when the copy operation
-            completes.
+.DESCRIPTION
+    This script is designed to monitor a specific file for changes and
+    automatically copy it to a new location when it is updated. It uses the
+    FileSystemWatcher class to detect changes to the file and Robocopy to perform
+    the copy operation, ensuring that the process is efficient and reliable. The
+    script also includes logging functionality to track its actions and any errors
+    that may occur during execution.
 
 .FUNCTIONALITY
-    See FUNCTIONALITY section at bottom of script for detailed instructions
-    on setting up this script, and the associated Scheduled Task.
+    Detailed Functionality Instructions and Deployment Steps Provided At Bottom of Script.
 
-.NOTES
-    To view history and change notes, reference:
-    https://github.com/rsmith7712 
-    PowerShell-Scripts - Tool-Monitor File for Updates Then Copy
+    Summary of Instructions Below:
+    1. Deployment Instructions:
+        - Save the script to a location, e.g., C:\Temp\MonitorFileCopy.ps1.
+        - Run the script manually in PowerShell:
+          powershell.exe -ExecutionPolicy Bypass -File "C:\Scripts\MonitorFileCopy.ps1"
+        - The script will automatically create C:\Scripts if it doesn’t exist, copy itself there, and relaunch with admin privileges.
+        - Logs are stored in C:\temp\Logs\MonitorFileCopy with daily log files.
+
+    2. Schedule the Script with Task Scheduler:
+        - Configure a Scheduled Task to run the script at startup with admin privileges.
+
+    3. Verify Scheduled Task Behavior:
+        - Restart the system to ensure the task runs on startup and logs activity.
+
+    4. Ensure Survivability:
+        - Ensure proper permissions and execution policy for the script.
+
+    5. Additional Troubleshooting Tips:
+        - Verify file locks, permissions, and test file modifications to confirm functionality.
+
+    6. How to Add More Files to Monitor:
+        - Modify the $FilesToMonitor array to include additional files as needed.
+
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
 #>
 
 # Define core paths
@@ -210,7 +224,7 @@ finally {
 #>
 # FUNCTIONALITY: STEP 2: SCHEDULE THE SCRIPT WITH TASK SCHEDULER
 <# STAGE 2
-    To ensure the script runs automatically at startup after a reboot, 
+    To ensure the script runs automatically at startup after a reboot,
     configure a Scheduled Task in Windows Task Scheduler.
     Open Task Scheduler:
         - Press Win + R, type taskschd.msc, and press Enter.
@@ -237,12 +251,12 @@ finally {
             # PowerShell 5x
             > Program/script: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
         >OR<
-            #PowerShell 7x    
+            #PowerShell 7x
             > Program/script: C:\Program Files\PowerShell\7\pwsh.exe
             > Add arguments: -ExecutionPolicy Bypass -File "C:\Scripts\MonitorFileCopy.ps1"
         - Click OK.
     Conditions Tab:
-        - Uncheck "Start the task only if the computer is on AC power" 
+        - Uncheck "Start the task only if the computer is on AC power"
         to ensure it runs if on laptops running on battery.
     Settings Tab:
         - Check:

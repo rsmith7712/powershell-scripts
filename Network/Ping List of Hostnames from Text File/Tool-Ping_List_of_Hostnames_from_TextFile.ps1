@@ -23,18 +23,24 @@
 # GENERAL SCRIPT INFORMATION
 <#
 .NAME
-   Tool-Ping_List_of_Hostnames_from_TextFile.ps1
+    Tool-Ping_List_of_Hostnames_from_TextFile.ps1
 
-.SYNOPSIS
-    Script copies files to remote systems and adds Trusted Sites to Windows Registry
+.DESCRIPTION
+    This script is designed to copy files to remote systems and add Trusted
+    Sites to the Windows Registry. It prompts the user for input, such as the list
+    of hostnames and the files to be copied, and then performs the necessary
+    operations on each remote system.
 
 .FUNCTIONALITY
-    Prompts for Input
+    - Prompts the user for a list of hostnames and files to be copied.
+    - Copies specified files to remote systems.
+    - Adds Trusted Sites to the Windows Registry on remote systems.
 
 .NOTES
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - Tool-Ping List of Hostnames from Text File
+        PowerShell Scripts
+
 #>
 
 $names = Get-content "C:\serverlist.txt"
@@ -46,4 +52,4 @@ foreach ($name in $names){
   else{
     Write-Host "$name,down" -ForegroundColor Red
   }
-} 
+}

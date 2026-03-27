@@ -22,17 +22,23 @@
 #>
 # GENERAL SCRIPT INFORMATION
 <#
+.NAME
+    Enable-Tls12RegValue.ps1
+
 .DESCRIPTION
-  Enable-Tls12RegValue.ps1
+    Function to enable TLS 1.2 by setting the appropriate registry values.
 
 .FUNCTIONALITY
-  1. Enable TLS 1.2 by setting the appropriate registry values
+    This script enables TLS 1.2 by setting the necessary registry values for both
+    the 32-bit and 64-bit .NET Framework paths, as well as the Schannel protocol
+    settings for both client and server. It ensures that TLS 1.2 is enabled and
+    that strong cryptography is used.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
-		
+
 #>
 
 If (-Not (Test-Path 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\.NETFramework\v4.0.30319'))

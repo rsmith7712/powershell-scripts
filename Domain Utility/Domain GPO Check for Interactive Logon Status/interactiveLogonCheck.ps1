@@ -23,86 +23,24 @@
 .NAME
     interactiveLogonCheck.ps1
 
+.DESCRIPTION
+    This script is designed to check the "Interactive Logon: Machine Inactivity Limit"
+    registry setting on a remote computer. It prompts the user for domain administrator
+    credentials, accepts a remote computer name as input, and retrieves the registry
+    setting value. The script also provides options to enable, modify, or disable the
+    setting and logs all activities and results.
+
 .FUNCTIONALITY
-    This script will:
-        - Check if the script is running with administrator privileges.
-        - Prompt the user for domain administrator credentials.
-        - Accept the remote computer name as input and verify if the
-            computer is reachable.
-        - Confirm if the remote computer is running Windows 11 Pro,
-            displaying the operating system if it is not.
-        - Retrieve the registry setting for "Interactive Logon: Machine Inactivity Limit."
-        - Display the result in the console and export it to a CSV file
-            in C:\Temp. If the folder does not exist, it will create it.
-            The CSV file name includes the current date and time in
-            YYYY-MM-DD_HH-MM-SS format.
-        - Save this script as a .ps1 file and run it in an elevated
-            PowerShell session.
+    This script is intended for use in a domain environment to check and manage the
+    "Interactive Logon: Machine Inactivity Limit" setting on remote computers. It is
+    useful for administrators who want to ensure that this security setting is configured
+    according to their organization's policies.
 
-.NOTES 
-2024-12-16:[UPDATED]
-    (1) Replaced the Get-CimInstance command with Get-WmiObject, which
-    supports the -Credential parameter. Additionally, the registry query
-    has been adjusted to use Invoke-Command for remote execution. This
-    should resolve the issue.
-    (2) Added functionality to enable, modify, or disable the registry
-    setting based on user input and implemented logging of all script
-    activities.
-    (3) Added functionality to allow the user to perform additional
-    searches by entering another remote computer name, while reusing the
-    cached credentials. The user can continue searching or exit the
-    script. All actions are logged.
-    (4) Script now includes support for Windows 10 Enterprise and
-    Windows 10 Professional. It applies the same logic for checking and
-    modifying the "Interactive Logon: Machine Inactivity Limit"
-    registry key as it does for Windows 11 Pro.
-    (5) The log and CSV file names have been updated to include the
-    remote computer name, followed by "InactivityLimitResults" and the
-    date/time in the following format [yyyy-MM-dd_HH-mm-ss]. This will help
-    identify which files are associated with specific computers and
-    their changes.
-    (6) The script now validates and creates separate directories for
-    logs (C:\Temp\Logs) and CSV files (C:\Temp\Csv) if they do not exist.
-    Log files and CSV files are saved in their respective directories
-    with the appropriate naming format. Added License header to script.
-    (7) The log and CSV file naming format has been updated to include
-    "Inactivity Limit Results," the date/time in the following format
-    [yyyy-MM-dd_HH-mm-ss], and the remote computer name. File name
-    alignment is important, as is one's personal Zen.
-    (8) I've fixed the issues in the script, including the incomplete
-    string at the CSV export line, and updated the code to ensure proper
-    formatting and execution.
-    (9) I've updated the script to handle local connections by detecting
-    if the provided computer name matches the local machine name. For local
-    connections, the script now queries the OS without using credentials.
-    (10) The script has been updated to use Get-CimInstance and
-    Invoke-Command with proper handling of arguments for registry
-    operations, addressing access issues and ensuring compatibility.
-    (11) The script has been updated to replace Get-CimInstance with
-    Invoke-Command for remote operations, ensuring compatibility with the
-    use of credentials.
-    (12) Added logic to clear the console only when the script is first
-    launched. Subsequent searches will not clear the console.
-    (13) The script now logs the user executing it and their provided
-    credentials into the log file.
-    (14) The script has been updated to include the date and time to the
-    end of the ScriptExecution.log file name.
-    (15) Updated the script to record the script executor and domain
-    administrator credentials into the session-specific
-    ScriptExecution_(date & time).log.
-    (16) All script activity and results are now recorded in the
-    ScriptExecution_(date & time).log file.
-    (17) Script now records detailed results for each searched computer
-    in a separate log file named in the format
-    InactivityLimitResults_yyyy-MM-dd_HH-mm-ss_<ComputerName>.log. The
-    overall script activity continues to be logged in the
-    ScriptExecution_yyyy-MM-dd_HH-mm-ss.log. "He who has a why can
-    endure any how" Friedrich Nietzsche
-    (18) Removed '-Win11Pro' from file name as this works for
-    Windows 10 Professional and Windows 10 Enterprise as well.
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
 
-2024-12-16:[CREATED]
-    Time for troubleshooting and updates.
 #>
 
 # Ensure the PowerShell script runs in Administrator mode

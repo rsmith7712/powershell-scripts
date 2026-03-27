@@ -25,15 +25,20 @@
 .NAME
    Tool-NetworkCreateShortcut.ps1
 
-.SYNOPSIS
-    Create desktop shortcut with PowerShell
+.DESCRIPTION
+    This script creates a desktop shortcut to a specified URL using PowerShell.
+    It utilizes the WScript.Shell COM object to create the shortcut and set its
+    properties, such as the target path and icon location.
 
 .FUNCTIONALITY
+    - Creates a desktop shortcut to a specified URL.
+    - Sets the target path and icon location for the shortcut.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - Tool-Network Create Shortcut
+        PowerShell Scripts
+
 #>
 
 $Shell = New-Object -ComObject WScript.Shell

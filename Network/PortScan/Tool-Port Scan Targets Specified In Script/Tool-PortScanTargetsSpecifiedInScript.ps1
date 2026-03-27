@@ -25,18 +25,21 @@
 .NAME
    Tool-PortScanTargetsSpecifiedInScript.ps1
 
-.SYNOPSIS
-    - Port scanning script targeted at specific ports
-	- Pulling targets from text file 
-	- Generate report and dump to csv file
+.DESCRIPTION
+	This script is designed to scan specific ports on a list of targets pulled
+	from a text file. The script will generate a report of the results and export
+	the report to a csv file.
 
 .FUNCTIONALITY
-    Prompts for Input
+	- Pulls list of targets from text file
+	- Scans specified ports on each target
+	- Generates report and exports to csv file
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - Tool-Port Scan Targets Specified In Script
+        PowerShell Scripts
+
 #>
 
 # Import AD Module

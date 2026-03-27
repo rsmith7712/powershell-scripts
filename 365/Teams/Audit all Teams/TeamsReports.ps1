@@ -1,22 +1,55 @@
-﻿<#
-=============================================================================================
-Name:           Export Microsoft Teams report
-Description:    This script exports Microsoft Teams report to CSV
-Version:        2.0
-website:        o365reports.com
+﻿# LEGAL
+<# LICENSE
+    MIT License, Copyright 2020 Richard Smith
 
-Script Highlights:
-~~~~~~~~~~~~~~~~~
-1.A single script allows you to generate eight different Teams reports.
-2.The script can be executed with MFA enabled accounts too.
-3.Exports output to CSV.
-4.Automatically installs Microsoft Teams PowerShell module (if not installed already) upon your confirmation.
-5.The script is scheduler friendly. I.e., Credential can be passed as a parameter instead of saving inside the script.
-6.The script supports certificate-based authentication.
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-For detailed Script execution: https://o365reports.com/2020/05/28/microsoft-teams-reporting-using-powershell/
-============================================================================================
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
 #>
+# GENERAL SCRIPT INFORMATION
+<#
+.NAME
+    TeamsReports.ps1
+
+.DESCRIPTION
+    This script is designed to generate various Microsoft Teams reports.  The
+    script will connect to Microsoft Teams, and then export the requested report
+    to a CSV file.
+
+.FUNCTIONALITY
+    1. A single script allows you to generate eight different Teams reports.
+    2. The script can be executed with MFA enabled accounts too.
+    3. Exports output to CSV.
+    4. Automatically installs Microsoft Teams PowerShell module (if not installed already) upon your confirmation.
+    5. The script is scheduler friendly. I.e., Credential can be passed as a parameter instead of saving inside the script.
+    6. The script supports certificate-based authentication.
+
+    For detailed Script execution: https://o365reports.com/2020/05/28/microsoft-teams-reporting-using-powershell/
+
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
+    o365reports.com
+    Version 2.0
+
+#>
+
 #Accept input paramenters
 param(
     [string]$UserName,

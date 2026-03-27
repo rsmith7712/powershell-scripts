@@ -25,14 +25,18 @@
 .NAME
     Snippit-Working-Get-NetIPInterface.ps1
 
-.SYNOPSIS
+.DESCRIPTION
+    Use PowerShell and the NetAdapter module to get a listing of network adapters
+    and their associated IP addresses, MAC addresses, and link speeds.
 
 .FUNCTIONALITY
+    This script is designed to provide a simple way to list network adapter IP interfaces
+    and their associated information.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - Network-Adapter-Snippets -
+        PowerShell Scripts
 
 #>
 

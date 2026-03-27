@@ -25,26 +25,22 @@
 .NAME
     Get a List of Computers and IP Addresses from Active Directory.ps1
 
-.SYNOPSIS
+.DESCRIPTION
+    Use PowerShell and the AD module to get a listing of computers and IP addresses
 
 .FUNCTIONALITY
+    This script is designed to be used as part of an audit of Active Directory
+    Computer Accounts.  The script will query Active Directory for computer
+    accounts and their associated IP addresses and export the results to a text
+    file.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - Network-Adapter-Snippets -
+        PowerShell Scripts
 
 #>
-
-﻿<#
-.SUMMARY
-    Use PowerShell and the AD module 
-    to get a listing of computers and IP addresses
-#>
-
 
 $results = Get-ADComputer -Filter * -Properties ipv4Address, MacAddress, OperatingSystem, OperatingSystemServicePack | Format-List name, ipv4*, mac*, oper*
-
 $results | Out-File C:\temp\AD-Systems-n-IPs.txt
-
 #$results | Export-Csv C:\temp\AD-Systems-n-IPs.csv -NoTypeInformation

@@ -25,11 +25,23 @@
 .NAME
    Set-Owner.ps1
 
-.SYNOPSIS
-    - Changes owner of a file or folder to another user or group.
+.DESCRIPTION
+    Changes owner of a file or folder to another user or group.  By default,
+    the owner will be changed to 'Builtin\Administrators'.  The script will
+    attempt to take ownership of the file or folder if necessary, and will grant
+    FullControl permissions to the parent folder if necessary to take ownership.
+    The script can also be used to recursively set ownership on all files and
+    folders beneath a given folder.
 
 .FUNCTIONALITY
-    Prompts for Input
+    Changes the owner of a file or folder to another user or group.  By default,
+    the owner will be changed to 'Builtin\Administrators'.  The script will
+    attempt to take ownership of the file or folder if necessary, and will grant
+    FullControl permissions to the parent folder if necessary to take ownership.
+    The script can also be used to recursively set ownership on all files and
+    folders beneath a given folder.
+
+Prompts for Input
 	.PARAMETER
 		Path
             The folder or file that will have the owner changed.
@@ -47,7 +59,7 @@
 
             Description: Changes the owner of test.txt to Domain\bprox
 
-        Set-Owner -Path C:\temp -Recurse 
+        Set-Owner -Path C:\temp -Recurse
 
             Description: Changes the owner of all files and folders under C:\Temp to Builtin\Administrators
 
@@ -55,10 +67,11 @@
 
             Description: Changes the owner of all files and folders under C:\Temp to Domain\bprox
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
         PowerShell Scripts
+
 #>
 
 Function Set-Owner {

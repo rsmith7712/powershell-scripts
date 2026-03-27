@@ -25,14 +25,18 @@
 .NAME
     Snippit-Working-GWMI-NeededInformation.ps1
 
-.SYNOPSIS
+.DESCRIPTION
+    Use PowerShell and the Get-WmiObject cmdlet to get a listing of network adapter
+    information such as IP addresses, MAC addresses, and default gateways.
 
 .FUNCTIONALITY
+    This script is designed to provide a simple way to list network adapter information
+    and their associated details.
 
-.NOTES
+.URL
     See location for notes and history:
     https://github.com/rsmith7712
-        PowerShell Scripts - Network-Adapter-Snippets -
+        PowerShell Scripts
 
 #>
 
