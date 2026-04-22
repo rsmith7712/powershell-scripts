@@ -1,0 +1,67 @@
+# PowerShell module / package output
+bin/
+out/
+publish/
+artifacts/
+Release/
+Debug/
+
+# Logs, transcripts, and reports
+*.log
+*.txt
+*.csv
+Logs/
+Reports/
+Transcripts/
+
+# Local secrets and machine-specific overrides
+*.secret.*
+*.secrets.*
+*.local.*
+appsettings.local.json
+settings.local.json
+.env
+.env.*
+
+# Certificates / keys
+*.pfx
+*.p12
+*.pem
+*.key
+*.cer
+
+# PowerShell editor / test output
+TestResults/
+coverage.xml
+*.coverage
+PesterTestResults.xml
+
+# VS Code / Visual Studio / JetBrains
+.vscode/
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS clutter
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+*.orig
+~$*
+
+# Module dependencies / generated help
+Modules/
+docs/_site/
+
+# Archives
+*.zip
+*.7z
+*.nupkg

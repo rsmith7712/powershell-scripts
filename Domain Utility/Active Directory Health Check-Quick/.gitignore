@@ -1,0 +1,37 @@
+# PowerShell
+*.psd1
+*.psm1
+*.pssc
+*.clixml
+*.ps1xml
+
+# Logs and transcripts
+*.log
+*.txt
+*.out
+*.trace
+transcript*
+
+# Reports and exports
+*.csv
+*.html
+*.xml
+*.json
+*.pdf
+*.xlsx
+Reports/
+Output/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Archives
+*.zip
+*.7z

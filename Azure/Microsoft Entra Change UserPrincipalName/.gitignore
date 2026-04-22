@@ -1,0 +1,35 @@
+# PowerShell
+*.ps1xml
+*.pssc
+*.psrc
+
+# Secrets / local config
+*.pfx
+*.p12
+*.pem
+*.cer
+*.key
+*.secrets.*
+*.credentials.*
+*.env
+.env
+
+# Logs / reports / exports
+*.log
+*.csv
+*.html
+*.json
+Reports/
+Output/
+Logs/
+Transcripts/
+
+# PowerShell editors / analysis
+.vscode/
+.history/
+PSScriptAnalyzerSettings.psd1
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store

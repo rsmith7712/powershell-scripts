@@ -1,0 +1,25 @@
+# PowerShell
+*.ps1xml
+*.pssc
+*.psrc
+
+# Logs and reports
+*.log
+*.tmp
+*.bak
+*.csv
+*.txt
+*.xml
+reports/
+output/
+
+# Editors
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+Thumbs.db
+.DS_Store
+
+auto-save/

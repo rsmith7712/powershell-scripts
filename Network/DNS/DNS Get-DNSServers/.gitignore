@@ -1,0 +1,14 @@
+# Logs and exports
+*.log
+*.csv
+*.txt
+
+# PowerShell artifacts
+*.psd1.bak
+*.psm1.bak
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

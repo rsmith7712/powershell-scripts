@@ -1,0 +1,52 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# PowerShell artifacts
+*.psd1.bak
+*.psm1.bak
+*.ps1.bak
+*.clixml
+*.ps1xml
+
+# Logs and exports
+*.log
+*.csv
+*.tmp
+*.bak
+results.csv
+remove_item_errors.txt
+
+# Test and coverage output
+TestResults/
+coverage/
+*.coverage
+*.trx
+
+# Build / packaging
+bin/
+out/
+dist/
+artifacts/
+packages/
+*.nupkg
+*.zip
+
+# Secrets / local config
+.env
+.env.*
+local.settings.json
+*.pfx
+*.cer
+*.key
+*.pem
+*.secrets.*
+
+# Module / dependency caches
+Modules/
+.nuget/
