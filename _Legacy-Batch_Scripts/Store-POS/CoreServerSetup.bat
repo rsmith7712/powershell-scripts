@@ -1,0 +1,1 @@
+Powershell.exe -ExecutionPolicy Bypass -File "C:\temp\CoreServerSetup.ps1"

@@ -1,0 +1,1 @@
+netsh trace start scenario=netconnection capture=yes report=yes maxSize=1000 fileMode=circular overwrite=yes traceFile=C:\Tracing\client.etl

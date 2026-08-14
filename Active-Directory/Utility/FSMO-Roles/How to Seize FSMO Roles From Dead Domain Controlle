@@ -1,0 +1,78 @@
+How to Seize FSMO Roles From Dead Domain Controller?
+
+Mix from:
+- https://theitbros.com/transfer-fsmo-roles-from-failed-domain-controller/
+- https://petri.com/delete_failed_dcs_from_ad
+
+
+
+Important! Before you begin, make sure your account is a member of a following AD groups: Domain Admins and Schema Admins.
+
+
+
+from a powershell admin console
+
+# Discover domain controller in the forest
+dsquery server -forest
+
+
+# Check which domain controller is the owner of FSMO
+netdom query fsmo
+
+# Before you transfer the FSMO roles on the additional domain controller, 
+# you must register the Active Directory schema management library. 
+# In case you don‘t, then you won‘t be able to transfer role Schema master.
+# !! This must be successful !!
+regsvr32 schmmgmt.dll
+
+# Open the utility
+ntdsutil
+
+# Enter role management and connect to the domain controller that will be seizing the role/s
+roles
+
+connections
+
+connect to server SRV-ADS-DC01.example.com
+
+q
+
+# After connecting to the new target DC, seize FSMO roles
+seize naming master
+
+seize infrastructure master
+
+seize rid master
+
+seize schema master
+
+seize pdc
+
+q
+
+# For each role transfer, confirmation is needed
+Role Seizure Confirmation Dialog
+
+Are you sure you want server "SRV-ADS-DC01.example.com" to seize the <specific role name> with the value below?
+
+# Enter the cleaning of metadata
+#  q back so your prompt is ntdsutil:
+metadata cleanup
+
+connections
+
+connect to server SRV-ADS-DC01.example.com
+
+q
+
+metadata cleanup: select operations target
+selection operations target: list domains
+
+# type select domain <number> where <number>
+
+
+
+
+
+
+

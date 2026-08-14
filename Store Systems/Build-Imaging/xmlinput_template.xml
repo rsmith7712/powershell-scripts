@@ -1,0 +1,210 @@
+<!-- Parameters -->
+<parameters>
+	<!-- File name for products xml file -->
+	<!-- Default value Application.xml -->
+	<xmlfilename value="gsinst.xml"/>
+	<!-- Product to install. Default value Application-->
+    <!-- Possible values:  Application, ApplicationPOSOnly, Developer, DeveloperPOSOnly, ApplicationServer, DatabaseServer, ApplicationBOOnly -->
+    <product value="ApplicationBOOnly" />
+	<!-- -->
+	<!-- Collapsed, POS or Server -->
+	<!-- Default value Collapsed -->
+	<system value="Server"/>
+	<!-- -->
+	<!-- Server name if MultiMachine or Machine name if Collapsed; an empty string will use local machine name -->
+	<!-- Default value Local machine name -->
+	<primaryserver value="[get from store server]"/>
+	<!-- -->
+	<!-- Database Server name if MultiMachine or Machine name if Collapsed; an empty string will use local machine name -->
+	<!-- Default value Local machine name -->
+	<databaseserver value="[get from store server]"/>
+	<!-- -->
+	<!-- Sets terminal number -->
+	<!-- Default value 90 -->
+	<termno value="91"/>
+	<!-- -->
+	<!-- 1 install Atrium interface, 0 don't install Atrium interface -->
+	<!-- Default value 0 -->
+	<atriuminterface value="0"/>
+	<!-- -->
+	<!-- Minimal, Basic, or Full database population -->
+	<!-- Default value Full -->
+	<databaseinstall value="Full"/>
+	<!-- -->
+	<!-- 1 SQL uses Windows Authentication, 2 SQL uses SQL Authentication -->
+	<!-- Default value 2 -->
+	<dbauth value="1"/>
+	<!-- -->
+	<!-- Database is for: 0 POS, 1 Server, 2 StoreCenter -->
+	<!-- Note this is not required if the xmlfilename is one of the standard ones and is set to: -->
+	<!-- FrameworkOnly.xml, ApplicationPOSOnly.xml = 0; Application.xml, ApplicationSC = 1       -->
+	<!-- If you wish to override the values above this line must come after the xmlfilename line -->
+	<!-- Default value 1 -->
+	<!-- dbtype value="[set to 0 for register]"></dbtype -->
+	<!-- -->
+	<!-- Sets UFO_NUMBER -->
+	<!-- Default value 1024 -->
+	<storeid value="[should be based on 2nd and 3rd octet]"/>
+	<!-- -->
+	<!-- Server name of the StoreCENTER server use "" if not required -->
+	<!-- Default value "" -->
+	<scserver value="[if 2nd digit of the store ID = 9 then lbstorecentertest else lbstorecenter]"/>
+	<!-- -->
+	<!-- Server name of the ReturnCENTER server use "" if not required -->
+	<!-- Default value "" -->
+	<rcserver value=""/>
+	<!-- -->
+	<!-- Server name of the CustomerCENTER server use "" if not required -->
+	<!-- Default value "" -->
+	<ccserver value=""/>
+	<!-- -->
+    <!-- Server name of the CustomerCENTER server use "" if not required -->
+    <!-- Default value "" -->
+    <rmserver value=""/>
+    <!-- Server name of the Digital Receipt Center server use "" if not required -->
+    <!-- Default value "" -->
+    <drcserver value=""/>
+    <!-- -->
+	<!-- install directory -->
+	<!-- Default value c:\gstr -->
+	<installdir value="c:\gstr"/>
+    <!-- -->
+ 	<!-- Database user id -->
+    <!-- Default value sa -->
+	<userid value="DomainSa"/>
+	<!-- -->
+	<!-- Database password -->
+  <!-- Default value @  -->
+  <password value="<password>"/>
+	<!-- -->
+	<!-- Segment -->
+  <!-- Default value Specialty  -->
+	<segment value="Specialty"/>
+	<!-- -->
+  <!-- USCAN -->
+  <!-- Default value 0  -->
+  <!-- -->
+  <USCAN value="0"/>
+  <!-- MultideviceType -->
+  <!-- Default value 0  -->
+  <!-- -->
+  <MultideviceType value="0"/>
+  <!-- -->
+  <!-- Terminal Monitor -->
+  <!-- Default value 0  -->
+  <TerminalMonitor value="0"/>
+  <!-- -->
+  <!-- Crypto Server Password -->
+  <!-- Default value ""  -->
+  <CryptoServerPassword value="SVRDomain.123"/>
+  <!-- -->
+  <!-- Crypto Client Password -->
+  <!-- Default value ""  -->
+  <CryptoClientPassword value="CLDomain.123"/>
+  <!-- -->
+  <!-- Crypto Enterprise ID -->
+  <!-- Default value ""  -->
+  <CryptoEnterpriseID value="cd45e6fb-b7fb-4cec-ac7c-682ace0f86b7"/>
+  <!-- -->
+  <!-- RunCryptoSecurity -->
+  <!-- Default value 0  -->
+  <!-- -->
+  <RunCryptoSecurity value="1"/>
+  <!-- -->
+  <!-- Catalina -->
+  <!-- Default value 0  -->
+  <!-- -->
+  <Catalina value="0"/>
+  <!-- -->
+  <!-- CatalinaAddress -->
+  <!-- Default value "" -->
+  <!-- -->
+  <CatalinaAddress value="(unknown)"/>
+  <!-- -->
+  <!-- Redundancy  -->
+  <!-- Default value 0 - no -->
+  <Redundancy value="0"/>
+  <!-- -->
+  <!-- Redundancy - on Primary machine -->
+  <!-- Default value 0 - no -->
+  <RedundancyIsPrimaryInstallation value="0"/>
+  <!-- -->
+  <!-- Redundancy in domain based network -->
+  <!-- Default value 0 - no -->
+  <RedundancyIsInDomain value="0"/>
+  <!-- -->
+  <!-- Redundancy  primary server name -->
+  <!-- Default value "" -->
+  <RedundancyPrimaryServer value=""/>
+  <!-- -->
+  <!-- Redundancy  alternate server name -->
+  <!-- Default value "" -->
+  <RedundancyAlternateServer value=""/>
+  <!-- -->
+  <!-- Redundancy  witness server name -->
+  <!-- Default value "" -->
+  <RedundancyWitnessServer value=""/>
+  <!-- -->
+  <!-- InstallExpressReplication -->
+  <!-- Default value "0" -->
+  <InstallExpressReplication value="" />
+  <!-- -->
+  <!-- InstallPDRPublisher -->
+  <!-- Default value "1" -->
+  <InstallPDRPublisher value="" />
+  <!-- -->
+  <!-- InstallPDRSubscriber -->
+  <!-- Default value "2" -->
+  <InstallPDRSubscriber value="" />
+  <!-- -->
+  <!-- InstallSqlReplicationServer -->
+  <!-- Default value "3" -->
+  <!-- -->
+  <InstallSqlReplicationServer value="" />
+  <!-- -->
+  <!-- InstallSqlReplicationClient -->
+  <!-- Default value "4" -->
+  <InstallSqlReplicationClient value="" />
+  <!-- -->
+  <!-- Specifies the type of credit interface supported. Currently AJB and ACI will be the available options. -->
+  <!-- Default value "AJB" -->
+  <CreditInterface value="AJB" />
+  <!-- -->
+  <!-- Redundancy filesync owner (user) name  -->
+  <!-- Default value "GSReplication" -->
+  <RedundancyFileSyncOwner value="GSReplication"/>
+  <!-- -->
+  <!-- Redundancy filesync owner password  -->
+  <!-- Default value "" -->
+  <RedundancyFileSyncPassword value=""/>
+
+  <!-- -->
+  <!-- Tax Type - default to Sales Tax -->
+  <!-- Default value "0" -->
+  <UseVAT value="0 for US/CA; 1 for AU" />
+
+  <!-- -->
+  <!-- Install Languages - colon separated list of LCIDs -->
+  <!-- Default value 1033 - EN-US -->
+  <InstallLanguages value="[EN-US/CA = 1033; FR-CA = 3084; EN-AU = 3081]" />
+
+  <!-- -->
+  <!-- Store Language - a single LCID, must be one of the InstallLanguages -->
+  <!-- Default value 1033 - EN-US -->
+  <StoreLanguage value="[EN-US/CA = 1033; FR-CA = 3084; EN-AU = 3081]" />
+  
+  <!-- -->
+  <!-- Specifies if the Configuration Tool will be installed -->
+  <!-- Default value "0" -->
+  <GSConfigTool value="0" />
+
+  <!-- -->
+  <!-- Specifies if the Configuration Tool will be installed -->
+  <!-- Default value "0" -->
+  <GSConfigToolLaunch value="0" />
+
+  <!-- -->
+  <!-- Digital Receipt Cache Db installation-->
+  <!-- Default value "0" -->
+  <DigitalReceiptCache value="0"/>
+</parameters>

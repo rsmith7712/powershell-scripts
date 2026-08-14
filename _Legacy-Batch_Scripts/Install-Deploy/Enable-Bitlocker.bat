@@ -1,0 +1,1 @@
+C:\Software\Bitlocker\bitlocker_deployment_v.2.vbs /on:tpm /l:C:\bitlockeractivation.txt

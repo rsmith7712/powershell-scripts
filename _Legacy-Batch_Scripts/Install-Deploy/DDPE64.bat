@@ -1,0 +1,1 @@
+c:\software\DDPE_64bit_setup.exe /s /v"SERVERHOSTNAME=srv.example.com POLICYPROXYHOSTNAME=srv.example.com MANAGEDDOMAIN=DOMAIN DEVICESERVERURL=https://srv.example.com:8443/xapi/ /norestart /l*v Shieldinstall.log /qn"

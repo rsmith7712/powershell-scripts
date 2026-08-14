@@ -1,0 +1,1 @@
+dsquery computer -inactive 12 -limit 0 >> "C:\Users\user1\Desktop\Old_Computers_90Days.csv"

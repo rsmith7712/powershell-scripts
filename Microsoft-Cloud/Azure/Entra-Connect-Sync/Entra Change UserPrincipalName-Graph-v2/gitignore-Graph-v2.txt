@@ -1,0 +1,40 @@
+# PowerShell
+*.ps1xml
+*.pssc
+*.psrc
+*.cdxml
+
+# Logs and reports
+*.log
+*.csv
+Reports/
+Output/
+Logs/
+
+# Secrets and local config
+*.clixml
+*.credential
+*.creds
+*.secrets.*
+secrets.json
+appsettings.local.*
+local.settings.json
+.env
+.env.*
+
+# Editor and OS files
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# Test and build artifacts
+TestResults/
+coverage/
+artifacts/
+bin/
+obj/
+
+# Modules installed locally for testing
+Modules/

@@ -1,0 +1,1 @@
+REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v WinstationsDisabled /t REG_DWORD /d 0 /f

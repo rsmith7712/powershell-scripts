@@ -1,0 +1,1 @@
+C:\Software\O2010Pro\setup.exe /repair ProPlus /config C:\temp\SilentRepairConfig.xml

@@ -1,0 +1,1 @@
+msiexec /i "c:\software\splunk\splunkforwarder-6.4.8-5dedc6298537-x64-release.msi" LAUNCHSPLUNK=0 AGREETOLICENSE=Yes INSTALLDIR="C:\Program Files\SplunkUniversalForwarder" SERVICESTARTTYPE=auto /quiet

@@ -1,0 +1,1 @@
+powershell.exe -executionpolicy bypass -file "C:\Software\RLC-Softwaretasks.ps1"

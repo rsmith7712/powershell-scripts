@@ -1,0 +1,1 @@
+@echo off&&powershell -NoE -C "&{ipmo ActiveDirectory;Set-ADAccountPassword (Read-Host 'User') -R}

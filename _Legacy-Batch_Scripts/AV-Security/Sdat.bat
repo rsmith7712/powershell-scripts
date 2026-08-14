@@ -1,0 +1,1 @@
+RENAME \\SERVER\SHARE\...\SDAT*.EXE Setup.exe

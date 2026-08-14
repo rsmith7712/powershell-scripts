@@ -1,0 +1,1 @@
+powershell.exe -executionpolicy bypass -file .\Install_SQLEXPRESS.ps1

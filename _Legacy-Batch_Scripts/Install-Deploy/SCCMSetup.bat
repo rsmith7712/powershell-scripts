@@ -1,0 +1,1 @@
+START \\SERVER\SHARE\...\SCCMInstall.EXE

@@ -1,0 +1,35 @@
+﻿<#
+
+Get replication partner status
+repadmin /showrepl	Get-ADReplicationPartnerMetadata
+
+
+Get Inbound replication queue details
+repadmin /queue	Get-ADReplicationQueueOperation
+
+
+Replicate specific AD objects between domain controllers
+repadmin /replsingleobj	Sync-ADObject
+
+
+Get replication metadata of an AD object
+repadmin /showobjmeta	Get-ADReplicationAttributeMetadata
+
+
+Shows highest committed USN
+repadmin /showutdvec	Get-ADReplicationUpToDatenessVectorTable
+
+
+Displays ISTG details
+repadmin /istg *	Get-ADReplicationSite –filter * | Select InterSiteTopologyGenerator
+
+
+List all the subnets in the forest
+dsquery subnet	Get-ADReplicationSubnet
+
+
+List the AD sites in the domain
+dsquery site	Get-ADReplicationSite
+
+
+#>

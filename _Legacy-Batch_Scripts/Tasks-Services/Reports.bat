@@ -1,0 +1,5 @@
+MD "C:\Reports"
+NET SHARE REPORTS="C:\Reports"
+
+XCACLS.EXE C:\REPORTS /T /G Administrators:F /Y
+XCACLS.EXE C:\REPORTS /T /E /G EVERYONE:R /Y

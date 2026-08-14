@@ -1,0 +1,100 @@
+# LEGAL
+<# LICENSE
+    MIT License, Copyright 2016 Richard Smith, Ericuser26,
+	AnthonyStringer, DonJones, DanPotter
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the “Software”),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+#>
+# GENERAL SCRIPT INFORMATION
+<#
+.NAME
+    Inactive_ADUserRpt_n_Move_v4.ps1
+
+.DESCRIPTION
+    This script is designed to be used as part of an audit of Active Directory
+	Users that have been inactive for longer than 90-days.  The script will
+	query Active Directory for user accounts that have not logged in within the
+	last 90-days and export the results to a CSV file.  The script will also
+	disable the user account, make a note in the user's description field of the
+	date they were disabled and the OU they were resident in, and move the user
+	account to a 'ParkingOU' for later review and deletion.
+
+.FUNCTIONALITY
+    This script is designed to be used as part of an audit of Active Directory
+	Users that have been inactive for longer than 90-days.  The script will
+	query Active Directory for user accounts that have not logged in within the
+	last 90-days and export the results to a CSV file.  The script will also
+	disable the user account, make a note in the user's description field of the
+	date they were disabled and the OU they were resident in, and move the user
+	account to a 'ParkingOU' for later review and deletion.
+
+.URL
+    See location for notes and history:
+    https://github.com/rsmith7712
+        PowerShell Scripts
+
+#>
+
+# Import Modules Needed
+Import-Module ActiveDirectory
+ 
+# Output results to CSV file
+$LogFile = "C:\Domain_Inactive_ADUserRpt_n_Move_v4_USERS.csv"
+ 
+# Today's Date
+$today = get-date -uformat "%Y/%m/%d"
+ 
+# Date to search by
+$xDays = (get-date).AddDays(-90)
+ 
+# Expiration date
+$expire = (get-date).AddDays(-1)
+ 
+# Date disabled description variable
+$userDesc = "Disabled Inactive" + " - " + $today + " - " + "Moved From OU" + " - " + $SearchBase
+ 
+# Sets the OU to do the base search for all user accounts, change as required
+$SearchBase = "DC=DOMAIN, DC=com"
+
+# Sets the OU where accounts will be MOVED TO, change as required
+$ParkingOU = "OU=30Days, OU=Disabled Accounts, OU=Domain Services, DC=DOMAIN, DC=com"
+
+# Document Group Memberships and export to CSV 
+
+Get-ADUser -SearchBase $SearchBase -Filter {LastLogonDate -like $xDays -and Enabled -eq "true"} -Properties DisplayName, MemberOf | % {
+  New-Object PSObject -Property @{
+	UserName = $_.DisplayName
+	Groups = ($_.MemberOf | Get-ADGroup | Select -ExpandProperty Name) -join ","
+	}}
+Select UserName, Groups | Export-Csv C:\DeleteThisFile.csv -NTI
+
+# Pull all inactive users older than $xDays from a specified OU
+$Users = Get-ADUser -SearchBase $SearchBase -Properties memberof, PasswordNeverExpires, WhenCreated, PasswordLastSet, LastLogonDate -Filter {
+    (LastLogonDate -notlike '*' -OR LastLogonDate -le $xDays)
+    -AND (PasswordLastSet -le $xDays)
+    -AND (Enabled -eq $True)
+    -AND (PasswordNeverExpires -eq $false)
+    -AND (WhenCreated -le $xDays)
+} |  ForEach-Object {
+    Set-ADUser $_ -AccountExpirationDate $expire -Description $userdesc -WhatIf
+    Move-ADObject $_ -TargetPath $ParkingOU -WhatIf
+    $_ | select Name, SamAccountName, PasswordExpired, PasswordNeverExpires, WhenCreated, PasswordLastSet, LastLogonDate, @{n='Groups';e={(($_.memberof | Get-ADGroup).Name) -join '; '}}
+}
+
+$Users | Where-Object {$_} | Export-Csv $LogFile -NoTypeInformation

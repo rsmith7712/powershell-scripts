@@ -1,0 +1,1 @@
+powershell -executionpolicy bypass -file C:\temp\Install-BackOffice60.ps1

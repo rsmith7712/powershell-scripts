@@ -1,0 +1,1 @@
+powershell.exe -command {start-process Powershell.exe -argumentlist '-executionpolicy bypass -file "C:\temp\Setup-StoreComputer.ps1"' -verb RunAs}

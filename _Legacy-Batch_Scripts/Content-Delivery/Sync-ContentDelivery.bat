@@ -1,0 +1,1 @@
+robocopy "\\SERVER\SHARE\ContentDelivery" "C:\contentdelivery" /mir /purge /r:5

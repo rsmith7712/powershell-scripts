@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<CryptoSecuritySetting>
+  <xmlSerializerSection type="CryptoSecurity.GSCryptographyData, ConfigurationRuntimeData, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <GSCryptographyData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+		<userclient>GSUserClient</userclient>
+		<userserver>GSUserServer</userserver>
+		<ServerName>%%%%SLC1</ServerName>
+		<path></path>
+		<groupserver>GSCryptoAppUsers
+		</groupserver>
+		<groupclient>GSCryptographers
+			<user>ASPNET</user>
+		</groupclient>
+		<roleclient>Cryptographers
+			<user>GSCryptographers</user>
+			<user>SYSTEM</user>
+		</roleclient>
+		<roleserver>Cryptographers
+			<user>GSCryptoAppUsers</user>
+		</roleserver>
+		<CertificateName></CertificateName>
+		<CertificateStore></CertificateStore>
+		<ConnectString>Driver={SQL Server};Server=%%%%SLC1;Database=CryptoCache;Trusted_Connection=yes</ConnectString>
+		<EncryptionAlgorithm></EncryptionAlgorithm>
+		<HashAlgorithm></HashAlgorithm>
+		<Mask>{\d\d\d\d}$</Mask>
+		<ProviderName></ProviderName>
+		<ProviderType></ProviderType>
+		<ServerTimeout>0x2710</ServerTimeout>
+		<ExpirationInterval>90,0,0,0</ExpirationInterval>		
+    </GSCryptographyData>
+  </xmlSerializerSection>
+</CryptoSecuritySetting>

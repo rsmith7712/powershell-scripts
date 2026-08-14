@@ -1,0 +1,1 @@
+powershell -executionpolicy bypass -file "C:\Software\TeamViewer\TeamViewer_Shortcut.ps1"

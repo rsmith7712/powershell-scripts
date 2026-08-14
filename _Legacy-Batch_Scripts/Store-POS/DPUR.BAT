@@ -1,0 +1,2 @@
+C:\temp\DARTSPURGE.EXE
+EXIT

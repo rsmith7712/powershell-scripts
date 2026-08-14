@@ -1,0 +1,56 @@
+# .gitignore — REVIEW-Scripts (pre-publication)
+# Blocks OS/IDE/build/dependency artifacts, secrets, certificates, and session/log data
+# from being committed to a public repository.
+
+# ---- OS files ----
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ---- Secrets & environment ----
+.env
+.env.*
+config.json
+secrets/
+
+# ---- Certificates / private keys ----
+*.pem
+*.pfx
+*.pkcs12
+*.p12
+*.key
+*.cer
+*.crt
+
+# ---- Dependencies ----
+node_modules/
+venv/
+.venv/
+packages/
+
+# ---- Build artifacts ----
+dist/
+build/
+out/
+.next/
+
+# ---- IDE / editor ----
+.vscode/
+.idea/
+.project
+
+# ---- PowerShell session / export data ----
+*.pssession
+*.clixml
+
+# ---- Logs ----
+*.log
+
+# ---- Local outputs: *.txt and *.csv are intentionally NOT blanket-ignored ----
+# This archive KEEPS many legitimate *.txt (docs/notes/READMEs) and *.csv (data) files,
+# so a blanket "*.txt" / "*.csv" rule would wrongly exclude real content.
+# To ignore only disposable text logs, prefer specific patterns instead, e.g.:
+#   log_*.txt
+#   *.log.txt

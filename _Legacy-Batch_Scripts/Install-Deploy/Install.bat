@@ -1,0 +1,1 @@
+"O:\O365_2\setup.exe" /configure O:\O365_2\configuration.xml

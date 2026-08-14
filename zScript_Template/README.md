@@ -113,4 +113,6 @@ Customize:
 
 ## Notes
 
-This starter intentionally uses placeholder values for anything environment-specific so it can be posted publicly with reduced risk.
+This starter intentionally uses placeholder values for anything
+environment-specific so it can be posted publicly with reduced
+risk.
